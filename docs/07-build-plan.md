@@ -1,0 +1,37 @@
+# 07 — Build Plan and Program Timeline
+
+## The timing facts that drive this plan (checked 2026-07-30)
+
+**Y Combinator's Fall 2026 (F26) on-time application deadline was 2026-07-27, 8:00pm PT — three days before this research was conducted.** Late applications are still technically accepted per YC's own apply page, but explicitly with "no guaranteed timeline" for review, and reviewers are focused on the on-time cohort (decisions by 2026-08-28). A late F26 submission today is not a realistic path — do not plan around it.
+
+**YC's Winter 2027 (W27) batch has no official application deadline published yet as of 2026-07-30.** Third-party trackers (explicitly labeled as estimates, not official, by their own authors) project the deadline around late October-early November 2026, based on YC's historical ~9-10-week pre-batch cadence, with the W27 batch itself running January-March 2027. **Re-check `ycombinator.com/apply` directly in September 2026** — do not rely on the projected date as final.
+
+**Founders Inc has no deadline at all.** Its application process is rolling, with no batch/cohort structure gating when you can apply, and its own site copy explicitly invites in-progress applications: "Tell us what you're building for an opportunity to be invited to campus, get your first check." The stated response time is roughly a month. First checks run $100K-$250K for 4-7% equity. Dev/Tools and AI/ML are both explicitly listed among its focus areas, and a direct review of f.inc's public portfolio found no company doing AI-infrastructure benchmarking or developer-tool comparison specifically — a genuine white space as far as could be verified.
+
+The combination of these three facts is the actual scheduling logic below: f.inc is the immediate, no-deadline opportunity to pursue as soon as something real exists to show, and YC W27 is a real but not-yet-precisely-dated target roughly 12-14 weeks out that benefits enormously from having several more weeks of accumulated public track record behind it by the time it's submitted.
+
+## Weeks 0-3 (now, 2026-07-30, through approximately 2026-08-20): build and ship the MVP
+
+Build the benchmark runner and judge pipeline first, scoped to 4-5 vendors cleared against `03-legal-and-vendor-terms.md` (recommended starting set: Tavily, Exa, Brave, Serper, Perplexity — explicitly excluding Seltz and Search Router, which have contractual no-benchmarking clauses, until written consent is separately secured). Get the weekly-refresh cycle actually running, even against a partial query taxonomy, as early as possible — the elapsed public track record is the core credibility claim and cannot be caught up on later, so every week this isn't live yet is a week of differentiation lost. Ship a minimal public dashboard as soon as there's real data to show, even before every planned feature is built.
+
+**Apply to Founders Inc as soon as the MVP is live** — target mid-August 2026 — rather than waiting for a "finished" product. Their own framing rewards early, in-progress applications, and a check at this stage would directly fund the cloud compute needed to run the benchmark continuously without worrying about the founder's personal runway.
+
+## Weeks 3-10 (through approximately early October 2026): expand and recruit
+
+Add the remaining cleared vendors (You.com, Linkup, and reconsider Perplexity's pricier modes) and ship the v1 router SDK, built BYOK-only per `03-legal-and-vendor-terms.md` and schema-compatible with LiteLLM's `/v1/search` endpoint per `05-architecture.md`, so it's a natural drop-in for anyone already on LiteLLM. Actively recruit initial users from the pre-qualified, already-in-pain pool: specifically the developer(s) who commented on LiteLLM's GitHub issue #15314 (the original "please add routing across search vendors" request) and participants in adjacent Hacker News threads describing hand-built multi-vendor fallback harnesses. These are people who have already demonstrated the exact pain SearchBench solves, unprompted, which makes them both easier to convert and better sources of real usage feedback than any cold outreach would be.
+
+Critically, let the benchmark accumulate several continuous weeks of real freshness/latency/cost history during this window rather than treating this as primarily a feature-building phase — the running track record itself, not additional vendor coverage, is the actual differentiator against every existing vendor snapshot documented in `02-competitive-landscape.md`.
+
+## Weeks 10-14 (through the actual W27 deadline once YC publishes it — reconfirm on ycombinator.com/apply in September 2026): apply to YC
+
+Apply with a live URL, several weeks of continuously-collected public data, a working router SDK, and concrete usage or quotes from the initial users recruited in the prior phase. This sequencing — letting the f.inc check (if received) fund the runway needed to reach a credible, evidence-backed YC application, rather than applying to YC on a bare idea — is deliberate. **YC's current Request for Startups list (13 items, Fall 2026 cycle) does not explicitly name search infrastructure or benchmarking**; the closest adjacent items are "Multiplayer AI" (agent orchestration/tooling) and "Self-Maintaining APIs" (developer-facing API infra). Present this honestly in any pitch as adjacent-but-not-direct evidence of YC's current interest in AI-agent infrastructure and developer tooling — not as "YC explicitly asked for this," which it did not.
+
+The relevant YC portfolio precedent worth knowing going in: **LLM Stats** (YC Summer 2025) is an "Independent AI evaluations lab" building "contamination-proof benchmarks that measure real world performance" — for LLM *models*, not search APIs, but a close structural analog that demonstrates YC is comfortable funding exactly this business model (independent benchmarking-as-a-company). No YC-backed or Product-Hunt-launched company doing cross-vendor web-search-API benchmarking or routing specifically was found in any batch reviewed — this is a real white space, not proof no one else is quietly building it.
+
+## Definition of done for each phase (what "ready to apply" actually means)
+
+For f.inc: a live public dashboard with real (even if partial) vendor coverage, a documented methodology, and at minimum one full weekly refresh cycle completed in public — proof the mechanism works, not proof it's mature. For YC W27: everything above, plus multiple additional weeks of continuous data (long enough that "continuously run" is demonstrably true rather than aspirational), a working router SDK with at least a handful of real external users, and ideally a specific, quotable piece of feedback or usage evidence tied to the LiteLLM-issue/HN-thread user pool described above.
+
+## What would change this plan
+
+If YC publishes the actual W27 deadline earlier or later than the projected late-October/early-November window, adjust the weeks-10-14 phase accordingly rather than anchoring to the estimate. If f.inc responds with interest before the MVP fully matches the "definition of done" above, take the conversation — their own model is built around meeting founders mid-build, not post-launch. If, during weeks 0-3, the legal review recommended in `03-legal-and-vendor-terms.md` surfaces a materially different risk picture than described here (for example, a vendor objects directly once contacted), revisit the v1 vendor scope before proceeding rather than treating the recommended 5-vendor starting set as fixed.

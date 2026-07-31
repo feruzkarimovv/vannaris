@@ -1,0 +1,147 @@
+{
+  "set_name": "pilot-v1",
+  "note": "20-query pilot across two deliberately contrasting categories. general_facts is the baseline where every vendor should score well; code_technical is where docs/04 predicts freshness and version drift separate them most. If spread appears anywhere, it appears here first — which is what makes this pair the cheapest possible test of the routing thesis. Full runs seed general_facts from real SimpleQA (MIT); these pilot items are hand-authored in that style to keep the pilot free of any dataset-license question.",
+  "queries": [
+    {
+      "id": "gf-001",
+      "category": "general_facts",
+      "text": "Who wrote the novel Things Fall Apart and in what year was it published?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Chinua Achebe, 1958"
+    },
+    {
+      "id": "gf-002",
+      "category": "general_facts",
+      "text": "What is the deepest point in the ocean and how deep is it?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Challenger Deep, Mariana Trench, approximately 10,935 metres"
+    },
+    {
+      "id": "gf-003",
+      "category": "general_facts",
+      "text": "Which element has the atomic number 79?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Gold"
+    },
+    {
+      "id": "gf-004",
+      "category": "general_facts",
+      "text": "Who was the first woman to win a Nobel Prize and in which category?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Marie Curie, Physics (1903)"
+    },
+    {
+      "id": "gf-005",
+      "category": "general_facts",
+      "text": "What year did the Chernobyl nuclear disaster occur?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "1986"
+    },
+    {
+      "id": "gf-006",
+      "category": "general_facts",
+      "text": "What is the capital city of Kazakhstan and what was it previously called?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Astana, previously Nur-Sultan (renamed back in 2022)"
+    },
+    {
+      "id": "gf-007",
+      "category": "general_facts",
+      "text": "Who directed the film Seven Samurai?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Akira Kurosawa"
+    },
+    {
+      "id": "gf-008",
+      "category": "general_facts",
+      "text": "What is the longest river in South America?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "The Amazon"
+    },
+    {
+      "id": "gf-009",
+      "category": "general_facts",
+      "text": "In what year was the Treaty of Westphalia signed?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "1648"
+    },
+    {
+      "id": "gf-010",
+      "category": "general_facts",
+      "text": "Who invented the World Wide Web and at which organisation?",
+      "source": "authored-simpleqa-style",
+      "gold_answer": "Tim Berners-Lee, at CERN"
+    },
+
+    {
+      "id": "ct-001",
+      "category": "code_technical",
+      "text": "How do I use the use() hook in React 19 to read a promise inside a component?",
+      "source": "authored",
+      "gold_answer": "use() unwraps a promise or context during render; must be called with a stable/cached promise, works with Suspense boundaries."
+    },
+    {
+      "id": "ct-002",
+      "category": "code_technical",
+      "text": "What replaced the deprecated datetime.utcnow() in Python 3.12 and how do I write timezone-aware UTC timestamps?",
+      "source": "authored",
+      "gold_answer": "datetime.now(datetime.UTC) — utcnow() is deprecated since 3.12."
+    },
+    {
+      "id": "ct-003",
+      "category": "code_technical",
+      "text": "How do I configure strict mode for tool definitions in the Anthropic Python SDK?",
+      "source": "authored",
+      "gold_answer": "Set strict: true as a top-level field on the tool definition, with additionalProperties: false and required in the input schema."
+    },
+    {
+      "id": "ct-004",
+      "category": "code_technical",
+      "text": "In Next.js 15 App Router, how do I opt a route out of static rendering?",
+      "source": "authored",
+      "gold_answer": "export const dynamic = 'force-dynamic', or use runtime APIs like cookies()/headers()."
+    },
+    {
+      "id": "ct-005",
+      "category": "code_technical",
+      "text": "How do I define a partial unique index in PostgreSQL 16?",
+      "source": "authored",
+      "gold_answer": "CREATE UNIQUE INDEX ... ON table (col) WHERE condition;"
+    },
+    {
+      "id": "ct-006",
+      "category": "code_technical",
+      "text": "What is the difference between uv pip install and uv add in the uv package manager?",
+      "source": "authored",
+      "gold_answer": "uv pip install is the pip-compatible interface; uv add edits pyproject.toml and updates the lockfile in a uv-managed project."
+    },
+    {
+      "id": "ct-007",
+      "category": "code_technical",
+      "text": "How do I enable strict null checks incrementally in an existing TypeScript 5 codebase?",
+      "source": "authored",
+      "gold_answer": "strictNullChecks in tsconfig, typically scoped via separate configs, project references, or per-file // @ts-check migration."
+    },
+    {
+      "id": "ct-008",
+      "category": "code_technical",
+      "text": "How do I set a per-request timeout in httpx for Python and what are the four timeout components?",
+      "source": "authored",
+      "gold_answer": "httpx.Timeout(connect=, read=, write=, pool=) passed as timeout= per request or on the client."
+    },
+    {
+      "id": "ct-009",
+      "category": "code_technical",
+      "text": "In Rust, what changed about async closures in the 2024 edition?",
+      "source": "authored",
+      "gold_answer": "Async closures (async || {}) were stabilised, with AsyncFn/AsyncFnMut/AsyncFnOnce traits."
+    },
+    {
+      "id": "ct-010",
+      "category": "code_technical",
+      "text": "How do I run a matrix build across multiple Python versions in GitHub Actions and fail fast on the first error?",
+      "source": "authored",
+      "gold_answer": "strategy.matrix with python-version list; fail-fast: true is the default, set false to run all."
+    }
+  ]
+}
