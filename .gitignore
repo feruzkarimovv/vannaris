@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Raw vendor responses are stored locally but never committed — publishing
+# vendor content (as opposed to derived scores) is what docs/03 warns against.
+data/raw/
+*.db
+*.sqlite3
