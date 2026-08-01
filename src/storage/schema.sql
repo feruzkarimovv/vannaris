@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS runs (
     finished_at     TEXT,
     week            TEXT NOT NULL,          -- ISO week, e.g. '2026-W32'
     query_set_hash  TEXT NOT NULL,          -- pins exactly which queries ran
+    -- 'manual' | 'scheduled'. CLAUDE.md forbids describing the benchmark as
+    -- continuously run before it is; this column is what makes that checkable.
+    -- The site's cadence copy is derived from it, so no page can assert a
+    -- schedule that never fired.
+    trigger         TEXT NOT NULL DEFAULT 'manual',
     notes           TEXT
 );
 
@@ -76,9 +81,19 @@ CREATE TABLE IF NOT EXISTS judge_scores (
 );
 
 -- ---------------------------------------------------------- aggregate layer
+--
+-- One published cell per (week, vendor, category). That uniqueness is the
+-- point — but it also means an INSERT OR REPLACE from a two-query smoke test
+-- will silently overwrite a 150-query result and leave behind a cell that
+-- looks exactly like a real one. It did, once. Two guards now exist:
+-- `run_id` records which run a cell came from, and runner.aggregate() refuses
+-- to overwrite a cell built from more queries than the one being written.
+-- The published site does not read this table at all: src/export.py recomputes
+-- from judge_scores for one explicitly chosen canonical run per week.
 CREATE TABLE IF NOT EXISTS weekly_scores (
     id            TEXT PRIMARY KEY,
     week          TEXT NOT NULL,
+    run_id        TEXT REFERENCES runs(id),
     vendor        TEXT NOT NULL,
     category      TEXT NOT NULL,
     -- Median across the cross-family ensemble, not mean: one outlier judge

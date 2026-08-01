@@ -1,0 +1,166 @@
+# The weekly benchmark run.
+#
+# This file is the one asset in the project that cannot be bought, rushed or
+# rewritten later: elapsed public running time. Everything it does is in
+# service of one claim — that the numbers on the site were produced by a
+# mechanism that runs on its own, in public, on a schedule, and that anyone can
+# read the mechanism.
+#
+# Three properties it has to keep:
+#
+#   1. A bad run must not become published data. The runner exits non-zero when
+#      a run is not methodologically valid (a judge family missing, ensembles
+#      below the completeness floor), and every step below runs in order, so a
+#      failed run stops before the commit. The data is still uploaded as an
+#      artifact — a failed run is evidence about vendor and judge reliability,
+#      it just does not get a row on the site.
+#
+#   2. The database is never committed. It holds raw vendor payloads, and
+#      `docs/03` is clear that derived scores are publishable and retrieved
+#      content is not. What gets committed is the export, which src/export.py
+#      guarantees carries no vendor-written text. The track record therefore
+#      accumulates as per-week JSON in git, and the exporter merges the history
+#      back in each run — see the module docstring there.
+#
+#   3. The site never claims more than the data shows. `--trigger scheduled` is
+#      recorded on the run row; the exporter derives `schedule_started` from
+#      it, and the pages read that. Nothing here needs to remember to edit copy
+#      when the schedule starts.
+#
+# Arming this workflow is two founder actions, both deliberately left undone —
+# see the weekly-run section of README.md.
+
+name: Weekly benchmark
+
+on:
+  schedule:
+    # Mondays, 06:23 UTC. The odd minute is deliberate: GitHub queues scheduled
+    # jobs and drops them under load at the top of the hour. Delivery is still
+    # best-effort — if a week is missed, it is missed, and the honest response
+    # is a gap in the data rather than a backfilled run pretending otherwise.
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Cap the query count (smoke test). Empty runs the full set."
+        required: false
+        default: ""
+      trigger:
+        description: "Recorded on the run. 'scheduled' is what the cadence claim counts."
+        required: false
+        default: manual
+        type: choice
+        options: [manual, scheduled]
+
+# Needed to push the export back to the default branch.
+permissions:
+  contents: write
+
+# Never two runs at once: they would write the same week and race on the push.
+concurrency:
+  group: weekly-benchmark
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    # The full set is 750 vendor calls and 2,250 judgements at deliberately low
+    # concurrency (see runner.py). ~40 minutes observed; this is the ceiling
+    # before something is wrong.
+    timeout-minutes: 90
+
+    env:
+      # Vendors: the ToS-cleared v1 set. Adding one here without adding it to
+      # REGISTRY in src/vendors/adapters.py does nothing; adding it to both is
+      # the act of putting a vendor in a public benchmark. Read docs/03 first.
+      EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+      PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+      YOUCOM_API_KEY: ${{ secrets.YOUCOM_API_KEY }}
+      SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+      LINKUP_API_KEY: ${{ secrets.LINKUP_API_KEY }}
+      # Judges: one model per family, pinned in src/judge/ensemble.py.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # One cheap live call per key before spending anything real. Debugging
+      # eight auth schemes inside a 3,000-call pipeline is miserable; a run that
+      # silently drops a vendor because its key expired is worse, because it
+      # publishes a table with a hole in it that looks like a result.
+      - name: Verify all eight keys
+        run: python scripts/check_keys.py --require-all
+
+      - name: Run the benchmark
+        id: run
+        env:
+          SB_LIMIT: ${{ inputs.limit }}
+          SB_TRIGGER: ${{ inputs.trigger || 'scheduled' }}
+        run: |
+          set -euo pipefail
+          # tee, not a pipe to head/tail: a previous session destroyed a run's
+          # own report by piping it through tail and had to reconstruct the
+          # findings from the database. The full log is an artifact below.
+          python -m src.runner \
+            --queries src/queries/full-v1.json \
+            --trigger "$SB_TRIGGER" \
+            ${SB_LIMIT:+--limit "$SB_LIMIT"} \
+            2>&1 | tee run.log
+
+      # Reads the committed history in site/data, adds the week just run, and
+      # writes the bundle every page reads. Fails the build if any vendor-written
+      # text reached the export.
+      - name: Build the public export
+        run: python -m src.export
+
+      # The pages fill every figure from the export at load; this is what
+      # catches a number that silently stopped resolving.
+      - name: Check the site
+        run: |
+          npm install --no-save jsdom
+          node scripts/check-site.mjs
+
+      - name: Commit the week
+        run: |
+          set -euo pipefail
+          git config user.name "searchbench-runner"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data site/export
+          if git diff --cached --quiet; then
+            echo "export unchanged — nothing to commit"
+            exit 0
+          fi
+          WEEK=$(python -c "import json,pathlib;print(json.loads(pathlib.Path('site/export/manifest.json').read_text())['week'])")
+          git commit -m "data: weekly run ${WEEK}"
+          # The default branch can move between checkout and push. Rebase onto
+          # it and retry rather than force-pushing over whatever landed.
+          for attempt in 1 2 3; do
+            if git push; then exit 0; fi
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+          done
+          echo "could not push after three attempts" >&2
+          exit 1
+
+      # Always: a failed run is the one whose log and database are most worth
+      # having. The database is an artifact and never a commit — it holds raw
+      # vendor payloads (see the header of this file).
+      - name: Upload the run log and database
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-${{ github.run_number }}
+          path: |
+            run.log
+            data/searchbench.db
+          retention-days: 90
+          if-no-files-found: warn

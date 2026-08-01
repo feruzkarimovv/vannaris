@@ -16,6 +16,7 @@ import json
 import os
 import sqlite3
 import statistics
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,13 +24,13 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
+from . import storage
 from .judge.ensemble import JUDGES, median_overall, score_response
 from .vendors.adapters import build_all
 from .vendors.base import SearchResponse
 
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "searchbench.db"
-SCHEMA = ROOT / "src" / "storage" / "schema.sql"
 
 # Kept low deliberately: several vendors publish per-minute caps well under
 # what unbounded asyncio.gather would produce, and tripping a rate limit
@@ -39,6 +40,13 @@ VENDOR_CONCURRENCY = 4
 # retry budget. Wall-clock is not the scarce resource here — a weekly job can
 # take an extra ten minutes; it cannot afford a hole in its sample.
 JUDGE_CONCURRENCY = 6
+
+# Share of responses that must carry a complete three-judge ensemble for the
+# run to be worth publishing. Matches export.MIN_CELL_COVERAGE, which is the
+# floor a cell has to clear there — a run that cannot clear it anywhere is a
+# failed run, and under a scheduler nobody is watching the console, so it has
+# to be an exit code rather than a line of output.
+MIN_COMPLETE_SHARE = 0.60
 
 
 def now() -> str:
@@ -52,10 +60,7 @@ def iso_week(dt: datetime | None = None) -> str:
 
 
 def connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    conn.executescript(SCHEMA.read_text())
-    return conn
+    return storage.connect(DB_PATH)
 
 
 def load_queries(path: Path) -> tuple[list[dict], str]:
@@ -119,11 +124,16 @@ async def judge_all(
     return scored
 
 
-def persist(conn, run_id, week, digest, queries, responses, scored) -> None:
+def persist(conn, run_id, week, digest, queries, responses, scored,
+            started_at, trigger) -> None:
     cur = conn.cursor()
+    # started_at is the real start, threaded in from main(). It used to be
+    # stamped here, at persist time, which made every run look instantaneous
+    # and put `ran_at` on the published site an hour or so late.
     cur.execute(
-        "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash) VALUES (?,?,?,?,?)",
-        (run_id, now(), now(), week, digest),
+        "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash, trigger) "
+        "VALUES (?,?,?,?,?,?)",
+        (run_id, started_at, now(), week, digest, trigger),
     )
     for q in queries:
         cur.execute(
@@ -161,8 +171,15 @@ def persist(conn, run_id, week, digest, queries, responses, scored) -> None:
     conn.commit()
 
 
-def aggregate(conn, week, responses, scored, qmap) -> dict[tuple[str, str], float]:
-    """Collapse per-response medians into (vendor, category) cells."""
+def aggregate(conn, week, run_id, responses, scored, qmap) -> dict[tuple[str, str], float]:
+    """Collapse per-response medians into (vendor, category) cells.
+
+    Guarded against downgrade. A `--limit 2` smoke test and a full 150-query
+    run write to the same (week, vendor, category) key, and the smoke test used
+    to win simply by being later — leaving a published-looking cell computed
+    from two queries. A cell is only overwritten by a run covering at least as
+    many queries as the one already there.
+    """
     cells: dict[tuple[str, str], list[float]] = {}
     for r in responses:
         m = median_overall(scored.get(f"{r.query_id}::{r.vendor}", []))
@@ -175,20 +192,33 @@ def aggregate(conn, week, responses, scored, qmap) -> dict[tuple[str, str], floa
         best_by_cat[cat] = max(best_by_cat.get(cat, 0.0), val)
 
     cur = conn.cursor()
+    skipped = 0
     for (vendor, cat), val in means.items():
         rs = [r for r in responses if r.vendor == vendor and qmap[r.query_id]["category"] == cat]
         lat = [r.latency_ms for r in rs if r.latency_ms is not None]
+
+        prior = cur.execute(
+            "SELECT n_queries FROM weekly_scores WHERE week=? AND vendor=? AND category=?",
+            (week, vendor, cat),
+        ).fetchone()
+        if prior and prior[0] > len(rs):
+            skipped += 1
+            continue
+
         cur.execute(
-            "INSERT OR REPLACE INTO weekly_scores (id, week, vendor, category, median_score, "
-            "n_queries, n_errors, p50_latency_ms, total_cost_usd, delta_from_best, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (str(uuid.uuid4()), week, vendor, cat, round(val, 3), len(rs),
+            "INSERT OR REPLACE INTO weekly_scores (id, week, run_id, vendor, category, "
+            "median_score, n_queries, n_errors, p50_latency_ms, total_cost_usd, "
+            "delta_from_best, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (str(uuid.uuid4()), week, run_id, vendor, cat, round(val, 3), len(rs),
              sum(1 for r in rs if not r.ok),
              int(statistics.median(lat)) if lat else None,
              round(sum(r.cost_usd or 0 for r in rs), 5),
              round(best_by_cat[cat] - val, 3), now()),
         )
     conn.commit()
+    if skipped:
+        print(f"  {skipped} cell(s) left alone — an existing cell covers more queries "
+              f"than this run. Smoke runs do not overwrite full runs.")
     return means
 
 
@@ -259,11 +289,56 @@ def report(means, responses, scored, qmap, cats) -> None:
             print("  ensemble is the bias mitigation, not a nice-to-have. Do not publish.")
 
 
-async def main() -> None:
+def validity(scored: dict[str, list], responses: list[SearchResponse]) -> list[str]:
+    """Reasons this run must not become published data. Empty means publishable.
+
+    Separate from report() because report() is for a human reading a console and
+    this is for a scheduler that is not reading anything. Everything is stored
+    either way — the run is still evidence about vendor and judge reliability,
+    it just does not get to feed the export.
+    """
+    problems: list[str] = []
+    judged = {k: v for k, v in scored.items() if v}
+    if not judged:
+        return ["no response was judged at all"]
+
+    families = {f for f, _ in JUDGES}
+    seen = {s.judge_family for v in judged.values() for s in v if s.overall is not None}
+    # The cross-family split IS the bias mitigation (docs/04). Two families is
+    # not a degraded ensemble, it is a different methodology.
+    for fam in sorted(families - seen):
+        problems.append(f"judge family {fam!r} produced no usable scores")
+
+    complete = sum(
+        1 for v in judged.values()
+        if len([s for s in v if s.overall is not None]) == len(JUDGES)
+    )
+    share = complete / len(judged)
+    if share < MIN_COMPLETE_SHARE:
+        problems.append(
+            f"only {share:.0%} of judged responses have a complete ensemble "
+            f"(floor {MIN_COMPLETE_SHARE:.0%})"
+        )
+
+    if not any(r.ok for r in responses):
+        problems.append("every vendor call failed")
+    return problems
+
+
+async def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--queries", default=str(ROOT / "src" / "queries" / "pilot.json"))
     ap.add_argument("--limit", type=int, default=None, help="cap queries, for smoke tests")
+    # Recorded on the run, not just used for logging: the site's cadence claim
+    # is derived from whether scheduled runs exist (see storage/schema.sql).
+    ap.add_argument("--trigger", choices=("manual", "scheduled"),
+                    default=os.environ.get("SB_TRIGGER", "manual"),
+                    help="how this run was invoked; CI passes 'scheduled'")
     args = ap.parse_args()
+    # argparse only validates `choices` for values that arrive on the command
+    # line, so a typo'd SB_TRIGGER would sail through into the evidence layer.
+    if args.trigger not in ("manual", "scheduled"):
+        raise SystemExit(f"SB_TRIGGER must be 'manual' or 'scheduled', got {args.trigger!r}")
 
     load_dotenv(ROOT / ".env")
     env = dict(os.environ)
@@ -281,8 +356,9 @@ async def main() -> None:
 
     adapters = build_all(env)
     run_id, week = str(uuid.uuid4()), iso_week()
+    started_at = now()
 
-    print(f"run {run_id[:8]}  week {week}  queryset {digest}")
+    print(f"run {run_id[:8]}  week {week}  queryset {digest}  trigger {args.trigger}")
     print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
           f"= {len(queries) * len(adapters)} calls, {len(queries) * len(adapters) * len(JUDGES)} judgements\n")
 
@@ -293,14 +369,23 @@ async def main() -> None:
         scored = await judge_all(client, keys, responses, qmap)
 
     conn = connect()
-    persist(conn, run_id, week, digest, queries, responses, scored)
-    means = aggregate(conn, week, responses, scored, qmap)
+    persist(conn, run_id, week, digest, queries, responses, scored, started_at, args.trigger)
+    means = aggregate(conn, week, run_id, responses, scored, qmap)
     conn.close()
 
     report(means, responses, scored, qmap, cats)
     print(f"\n  vendor spend this run: ${sum(r.cost_usd or 0 for r in responses):.4f}")
     print(f"  stored: {DB_PATH}")
 
+    problems = validity(scored, responses)
+    if problems:
+        print("\n  RUN NOT PUBLISHABLE:")
+        for p in problems:
+            print(f"    - {p}")
+        print("  Everything above is stored; the export will not select this run.")
+        return 1
+    return 0
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    sys.exit(asyncio.run(main()))
