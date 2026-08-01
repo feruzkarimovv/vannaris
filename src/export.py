@@ -587,7 +587,20 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
 # --------------------------------------------------------------------- output
 
 def _assert_no_vendor_content(obj, path: str = "$") -> None:
-    """Fail the build if anything vendor-written reached the export."""
+    """Fail the build if anything vendor-written reached the export.
+
+    Every element is walked, not a sample of them. This used to stop at the
+    first 50 entries of any list, which made it unsound exactly where it
+    mattered: a published week carries 750 detail rows, so a leak anywhere past
+    the 51st was invisible to the one check standing between the raw layer and
+    the public export. `docs/03` treats that boundary as a copyright and
+    ToS-exposure decision rather than a formatting one, and a firewall with a
+    sampling rate is not a firewall.
+
+    The cap was presumably there for speed, and there was none to save: the
+    whole bundle is a few tens of thousands of small dicts even after a year of
+    weeks, and this runs once per export.
+    """
     if isinstance(obj, dict):
         for k, v in obj.items():
             if k in _FORBIDDEN_KEYS:
@@ -597,7 +610,7 @@ def _assert_no_vendor_content(obj, path: str = "$") -> None:
                 )
             _assert_no_vendor_content(v, f"{path}.{k}")
     elif isinstance(obj, list):
-        for i, v in enumerate(obj[:50]):
+        for i, v in enumerate(obj):
             _assert_no_vendor_content(v, f"{path}[{i}]")
 
 
