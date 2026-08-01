@@ -122,6 +122,12 @@ elif ls data/*.db >/dev/null 2>&1; then
 else
   run "export (fixture)" export_fixture
 fi
+# What the pages are *made of*: landmarks, heading outline, chart mounts,
+# table headers, controls, and the name of every data-bound slot, compared
+# against a committed snapshot. check-site.mjs proves the figures a page has
+# resolve; this proves the page still has them. Deleting a section, a chart or
+# a sentence with a figure in it passes every other gate here.
+run "site: structure"     node scripts/check-structure.mjs
 run "site: data resolves" node scripts/check-site.mjs
 run "site: quality"       node scripts/check-quality.mjs
 # Same shape as the export gate. The real calibration/ directory is gitignored
