@@ -123,6 +123,16 @@ jobs:
       - name: Build the public export
         run: python -m src.export
 
+      # docs/03 cleared five vendors for the public benchmark and named two whose
+      # contract terms forbid exactly this. That is a statement about what gets
+      # published, so it is checked against the artefact about to be committed
+      # rather than against the source that produced it. This ran only in
+      # scripts/check-all.sh, which nothing here calls — so until now the only
+      # automated path that publishes was the only path that never checked
+      # whether what it published was publishable.
+      - name: No unlisted vendor in the published data
+        run: python scripts/check_vendors.py site/data/bundle.js
+
       # The pages fill every figure from the export at load; this is what
       # catches a number that silently stopped resolving.
       # `npm ci` from the committed lockfile, not `npm install --no-save`: the
