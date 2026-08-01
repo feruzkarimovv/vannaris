@@ -46,6 +46,23 @@ def connect(db_path: Path | str = DB_PATH, *, create: bool = True) -> sqlite3.Co
     path = Path(db_path)
     if create:
         path.parent.mkdir(parents=True, exist_ok=True)
+    elif not path.is_file():
+        # sqlite3.connect() creates the file whether or not the schema is then
+        # applied, so `create=False` alone did not mean what its one caller
+        # needed it to mean. src/export.py passes it precisely so that exporting
+        # can never be the thing that brings a database into existence — an
+        # empty export is a signal, not something to paper over — and that
+        # comment described an intention the code did not carry out.
+        #
+        # The consequence was not theoretical. One export against a missing
+        # database left a zero-byte data/vannaris.db behind, and from then on
+        # `ls data/*.db` in scripts/check-all.sh matched, so the export gate
+        # routed to the real database forever and failed on every run. A stray
+        # empty file is a bad reason for a gate to be red.
+        raise SystemExit(
+            f"no database at {path} — nothing to export. Run the benchmark first "
+            f"(python -m src.runner), or pass --db to point at one."
+        )
     conn = sqlite3.connect(path)
     if create:
         conn.executescript(SCHEMA.read_text())
