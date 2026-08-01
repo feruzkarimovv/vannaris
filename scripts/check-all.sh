@@ -94,22 +94,14 @@ fi
 # honest thing to do — an earlier version of this check flagged that sentence
 # and would have taught whoever hit it to delete the explanation. What actually
 # matters is that no vendor outside the cleared set has a published score.
-if [ -f site/data/bundle.js ]; then
-  stray=$($PY - <<'EOF'
-import json, pathlib, re
-cleared = {"exa", "perplexity", "youcom", "serper", "linkup"}
-raw = pathlib.Path("site/data/bundle.js").read_text()
-data = json.loads(raw.split("window.SB_DATA = ", 1)[1].rsplit(";", 1)[0])
-ids = {v["id"] for v in data.get("vendors", [])}
-for wk in data.get("all_weeks", {}).values():
-    ids |= {c.get("vendor") for c in wk.get("cells", []) if c.get("vendor")}
-print(",".join(sorted(ids - cleared)))
-EOF
-)
-  if [ -n "$stray" ]; then
-    echo "   vendor(s) outside the ToS-cleared set carry published scores: $stray (docs/03)"
-    claims=1
-  fi
+# Moved out of this file into scripts/check_vendors.py, unchanged in what it
+# asserts. It lived here as a heredoc, which meant it ran only where a person
+# ran this gate by hand — and the weekly workflow, which commits site/data to
+# the default branch every Monday, ran nothing like it. The one automated path
+# that publishes was the one path that never checked what it published. Both
+# now call the same code, and it has tests.
+if ! $PY scripts/check_vendors.py site/data/bundle.js; then
+  claims=1
 fi
 if [ "$claims" = "0" ]; then printf '\033[32m   ok\033[0m\n'; else
   printf '\033[31m   FAILED (forbidden claims)\033[0m\n'; failed=$((failed + 1)); fi
