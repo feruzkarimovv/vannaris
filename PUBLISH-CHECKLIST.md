@@ -10,16 +10,20 @@ engineering tasks — none of them should be resolved by whoever happens to be d
 
 **"SearchBench" is a working name and has not been cleared.**
 
-- [ ] **Registrar check** on the domain family (`.com` / `.ai` / `.dev` / `.io`). Earlier research
-      could not resolve this — the results were inconsistent across attempts, so a manual lookup at a
-      registrar is required. Not a web search.
+- [x] **Registrar check** on the domain family (`.com` / `.ai` / `.dev` / `.io`) — done 2026-08-01
+      against registry RDAP records, written up in `docs/10-name-clearance-2026-08-01.md`.
+      `searchbench.com` is held by a corporate brand-protection registrar; `searchbench.ai` is parked
+      and expires 2026-09-09; `.dev` and `.io` are free. All four `retrievalreferee` TLDs are free.
 - [ ] **A real USPTO search** (Trademark Search / TESS), not a general web search. No conflicting
-      registration surfaced in general search, which is not the same as clearance.
-- [ ] **Decide on the known conflict.** A dormant GitHub project with a near-identical hyphenated
-      name exists in an adjacent space: LLM-judge scoring of consumer AI search products, last
-      touched 2024, no licence, no hosted leaderboard. Low enforcement risk, real confusion and SEO
-      risk, and an awkward "someone already did a thing called this" that a journalist or competitor
-      can raise. Also live: an unmaintained Drupal module and an unrelated Hugging Face dataset.
+      registration surfaced in general search, which is not the same as clearance. **Still open, and
+      it is now the only blocker in this section.** Every programmatic route is closed — see
+      `docs/10` §3, which also gives the two ways to close it. Search `SEARCHBENCH`, `SEARCH BENCH`
+      and the chosen alternative in classes 009 and 042. A federal search is free.
+- [ ] **Decide on the known conflict** — restated 2026-08-01, because it is bigger than `docs/03`
+      recorded. Four GitHub projects now carry the exact name in this exact vertical, one of them
+      pushed 2026-07-31, and "search benchmark" as a phrase has a 404-star occupant. The dormant
+      project `docs/03` names does have a licence (MIT) and is not archived. Still low enforcement
+      risk; materially more confusion and SEO risk than when the name was chosen. `docs/10` §2 and §4.
 - [ ] Two candidate alternatives are already ruled out as live conflicts — one collides with an
       actively-promoted product from a well-known evaluation project, the other with a live
       database-benchmarking product positioned almost identically. `docs/03` names both, and names

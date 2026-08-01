@@ -85,6 +85,23 @@ All sources below were fetched or searched on 2026-07-30 unless otherwise dated.
 - YC Early Decision (ruled out as not applicable): [techcrunch.com, 2025-09-24](https://techcrunch.com/2025/09/24/y-combinator-launches-early-decision-for-students-who-want-to-graduate-first-build-later/) — secondary
 - LLM Stats (YC S2025 portfolio precedent): [ycombinator.com/companies/llm-stats](https://www.ycombinator.com/companies/llm-stats) — primary
 
+## Name clearance, checked 2026-08-01 (`10-name-clearance-2026-08-01.md`)
+
+- Domain registration status: registry RDAP records for `searchbench`, `searchref` and
+  `retrievalreferee` across `.com` / `.ai` / `.dev` / `.io`, reached through the IANA RDAP bootstrap
+  at [rdap.org](https://rdap.org/) — primary (the registry's own record, not a reseller widget).
+  Registrar, creation and expiry dates as returned by Verisign, Identity Digital, Google Registry and
+  the `.ai` registry on 2026-08-01.
+- Repository collisions and `Talc-AI/search-bench`'s licence/activity: [GitHub REST API](https://docs.github.com/rest)
+  (`repos/{owner}/{repo}` and repository search) — primary
+- Package namespace availability: [pypi.org](https://pypi.org/) JSON API and
+  [registry.npmjs.org](https://registry.npmjs.org/) — primary
+- USPTO federal register: **NOT SOURCED — the check was not completed.**
+  [tmsearch.uspto.gov](https://tmsearch.uspto.gov/) is behind an AWS WAF challenge,
+  [api.uspto.gov](https://api.uspto.gov/) requires an interactively-obtained API key,
+  `assignment-api.uspto.gov` no longer resolves, and [tmview](https://www.tmdn.org/tmview/) resets
+  its search API. No trademark claim in `docs/10` rests on a source, because there is none.
+
 ## Carried forward from earlier research rounds (rounds 9-10 and the Speko/YC correction)
 
 The founder idea search that preceded this gap-closing pass — including the original 27-idea, 8-round search; round 9's 20-idea generate/kill-test pass; round 10's benchmark-focused generalization of the Speko.ai mechanism; and the correction confirming Speko.ai as a real Y Combinator Summer 2026 company (via [ycombinator.com/companies/speko](https://www.ycombinator.com/companies/speko)) — is preserved in full in `founder-idea-search-round9.md`, delivered separately over the course of this project. That file is the complete provenance record for how SearchBench was selected over the other 31+ ideas considered; it is not duplicated here, but should be treated as part of this project's source record.
