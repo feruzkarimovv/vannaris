@@ -14,27 +14,42 @@ the gaps in the data all published — including the parts that make the results
 
 ## Status
 
-**One complete run. The weekly schedule has not started.**
+**As of 2026-08-01: one complete week of data, from a run a person invoked. The first scheduled
+run fires 2026-08-03.**
+
+Every figure below is a dated snapshot, not a live reading. This file is markdown and can derive
+nothing, so it states what was true and when, and points at the generated export for what is true
+now — [`site/data/latest.json`](site/data/latest.json), written by `src/export.py`. Where the two
+disagree, the export is right and this file is stale.
+
+**First published week, `2026-W31`, run 2026-07-31:**
 
 | | |
 |---|---|
-| Published weeks | 1 (`2026-W31`) |
 | Queries | 150, across 6 categories |
 | Vendors | 5 (Exa, Perplexity, Serper, You.com, Linkup) |
 | Judges | 3, one each from Anthropic, OpenAI and Google |
 | Judgements | 2,151 across 717 fully-scored responses (95.6% of 750) |
-| Vendor spend, one full run | $3.38 |
+| Vendor spend | $3.38 |
 
-The whole premise of this project is elapsed public running time, and that clock has not started.
-Until it has, nothing in this repository or on the site describes the benchmark as continuously or
-weekly run. That restraint is the point, not modesty — and it is enforced in code rather than left
-to discipline: each run records whether a scheduler or a person invoked it, and the site's cadence
-copy is derived from that, so no page can claim a schedule that never fired.
+The whole premise of this project is elapsed public running time. The clock it measures counts
+weeks the *scheduler* delivered — `track_record.scheduled_weeks` in the export — and nothing here
+or on the site describes the benchmark as recurring until that number moves. That restraint is the
+point, not modesty, and it is enforced in code rather than left to discipline: each run records
+whether a scheduler or a person invoked it, and the site's cadence copy is derived from that, so no
+page can claim a schedule that never fired. This file is the one place that cannot derive its
+claims, which is why it dates them instead.
 
-The scheduled workflow that starts the clock is written and tested but **not armed**. Two actions
-arm it, both the founder's: [the weekly run](#the-weekly-run).
+The workflow that starts that clock was **armed on 2026-08-01**, and has not yet delivered a week:
+the first scheduled run fires Monday 2026-08-03 at 06:23 UTC. Everything published so far comes
+from a run a person invoked, which is why the track record reads one week and
+`schedule_started` is still false. Armed is not started — see [the weekly run](#the-weekly-run).
 
-## What the first run found
+## What the first run found — `2026-W31`
+
+These are that week's numbers and they stay that week's numbers: a later week does not revise them,
+and it does not update this section either. For the current figures, read the site or
+`site/data/latest.json`.
 
 The cheapest API in the set costs **23× less per query** than the highest-scoring one, and what you
 give up for that depends entirely on the category:
@@ -113,7 +128,10 @@ with one cheap call each, run the full 150-query set, build the export, check th
 the week. A run that fails any of those steps stops before the commit, and its log and database are
 uploaded as an artifact regardless — the failed runs are the ones most worth keeping.
 
-**It is not armed.** Two things arm it, both founder decisions:
+**It was armed on 2026-08-01.** The eight secrets are set and the workflow has been rehearsed by
+hand; the first *scheduled* run fires Monday 2026-08-03 at 06:23 UTC. It was armed by these two
+steps, kept here because they are also how it would be re-armed after a secret rotates or after
+GitHub disables the schedule for repository inactivity:
 
 ```bash
 # 1. Give Actions the keys. Eight secrets, same names as .env.
@@ -125,14 +143,21 @@ done
 git push origin main
 ```
 
-Then run it once by hand — `gh workflow run "Weekly benchmark"` — before trusting the cron. Leave
-the `trigger` input on `manual` for that first run: `scheduled` is what the site's track record
-counts, and a hand-fired test is not a week the schedule delivered.
+Rehearse it by hand — `gh workflow run "Weekly benchmark"` — before trusting the cron, and leave
+the `trigger` input on `manual`: `scheduled` is what the site's track record counts, and a
+hand-fired test is not a week the schedule delivered. Use the `limit` input to cap the query count
+so a rehearsal costs cents rather than dollars; the canonical-selection floor will correctly refuse
+to publish it.
 
-Worth knowing before arming it:
+**Armed is not started.** The clock this project runs on measures weeks the *scheduler* delivered,
+so nothing here or on the site describes the benchmark as weekly or continuous until
+`track_record.scheduled_weeks` is above zero. That is derived from `runs.trigger` rather than
+asserted, so no copy anywhere needs editing on the day it changes.
 
-- **It spends real money on a schedule.** About $3.40 of vendor spend per run plus judge tokens;
-  roughly $55–70/month all in, measured rather than estimated.
+Worth knowing now that it is armed:
+
+- **It spends real money on a schedule, starting now.** About $3.40 of vendor spend per run plus
+  judge tokens; roughly $55–70/month all in, measured rather than estimated.
 - **The database is never committed** — it holds raw vendor payloads. What gets committed is
   `site/data/` and `site/export/`, which the exporter guarantees carry no vendor-written text. The
   track record therefore accumulates as per-week JSON in git, and each run merges that history
@@ -229,13 +254,16 @@ an attorney reviewing the methodology before a public launch.
 
 ## Known limitations
 
-Restating what the site says, because a repository that only advertises its strengths is marketing:
+Restating what the site says, because a repository that only advertises its strengths is marketing.
+Written 2026-08-01; the site states its own limitations from the data rather than from this list,
+so where the two disagree the site is current and this is not:
 
 - **No human calibration *yet*.** The methodology calls for a hand-labelled gold set scored monthly
   against the ensemble. The tooling exists and a set is drawn; **no human has labelled it**, so the
   judges remain unaudited and this is still the first thing a sharp reviewer should attack. See
   "Calibrating the judges" below.
-- **One week of data**, so no trend, no week-over-week movement, no track record.
+- **One week of data** at the time of writing, so no trend, no week-over-week movement, no track
+  record. This is the limitation that fixes itself, and only by elapsed time.
 - **Scores cluster between 7 and 10**, which suggests the query set is not hard enough to
   discriminate cleanly at the top.
 - **Single geography, single point in time.** Search results vary by region and by hour; this

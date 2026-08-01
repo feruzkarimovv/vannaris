@@ -203,3 +203,27 @@ before signing anything — not before applying.
   actual moat and building an audience alongside the data is close to free.
 - **`grilling`** — if revisiting the router's product thesis. It has already been wrong once
   and been corrected by data; stress-test it before building on it.
+
+---
+
+## Appended 2026-08-01, later the same day: the schedule was armed
+
+This document says in three places that the weekly workflow is written, tested and
+**deliberately not armed**, and that two founder actions remain. That was true when it was
+written and is no longer true. It is left in place above rather than edited, because this
+file records what a session knew at the time; this note records what changed.
+
+What actually happened: the eight API keys were put into Actions secrets at 10:25 UTC on
+2026-08-01, and `Weekly benchmark` was hand-dispatched four times to rehearse it. All four
+succeeded in under 90 seconds each, which is far too fast to have been the full 150-query
+set — they were capped rehearsals, and the canonical-selection floor correctly refused to
+publish any of them. The cron is live and first fires Monday 2026-08-03 at 06:23 UTC.
+
+**Armed is still not started.** As of this note the published record is one manually-invoked
+week: `track_record.scheduled_weeks` is 0 and `schedule_started` is false. The clock this
+project actually runs on measures weeks the scheduler delivered, and nothing anywhere may
+describe the benchmark as weekly or continuous until that number moves. It is derived from
+`runs.trigger`, so no copy needs editing on the day it does.
+
+`CLAUDE.md`, `README.md` and the header of `.github/workflows/weekly.yml` were corrected to
+match. Anything in this file about arming being outstanding should be read as historical.
