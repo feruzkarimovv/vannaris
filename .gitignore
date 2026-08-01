@@ -22,3 +22,7 @@ data/raw/
 # Site checks use jsdom, installed ad hoc rather than as a project dependency —
 # this stays a Python repo with a static site, not a Node project.
 node_modules/
+
+# Calibration tasks show the vendors' actual retrieved content to the labeller.
+# docs/03: retrieved content is stored for reproducibility, never republished.
+calibration/

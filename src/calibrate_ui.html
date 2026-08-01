@@ -1,0 +1,208 @@
+<!doctype html>
+<!-- Generated into a calibration set directory by src/calibrate.py.
+     Loads task.js from the same folder. Never served, never committed: the task
+     shows vendor-retrieved content, which docs/03 says is stored and not
+     republished. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vannaris — judge calibration</title>
+<style>
+  :root {
+    --bg: #0d0d0f; --panel: #16161a; --line: #26262c; --ink: #e8e8ea;
+    --dim: #8b8b95; --accent: #ff5c1f; --good: #3b82f6;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#fbfbfa; --panel:#fff; --line:#e4e4e2; --ink:#17171a; --dim:#6b6b75; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui, sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg);
+           border-bottom:1px solid var(--line); padding:12px 20px;
+           display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header b { font-size:14px; letter-spacing:.02em; }
+  .bar { flex:1; height:4px; background:var(--line); border-radius:2px; min-width:120px; }
+  .bar i { display:block; height:100%; background:var(--accent); border-radius:2px; }
+  .muted { color:var(--dim); font-size:13px; }
+  main { max-width:900px; margin:0 auto; padding:24px 20px 120px; }
+  .q { font-size:21px; font-weight:600; line-height:1.35; margin:0 0 6px; }
+  .tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .tag { font:11px var(--mono); text-transform:uppercase; letter-spacing:.06em;
+         color:var(--dim); border:1px solid var(--line); border-radius:99px; padding:2px 9px; }
+  .gold { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--good);
+          padding:10px 14px; border-radius:6px; margin-bottom:18px; font-size:14px; }
+  .answer { background:var(--panel); border:1px solid var(--line); padding:14px;
+            border-radius:8px; margin-bottom:18px; white-space:pre-wrap; font-size:14px; }
+  ol.results { list-style:none; padding:0; margin:0 0 26px; }
+  ol.results li { border:1px solid var(--line); background:var(--panel); border-radius:8px;
+                  padding:11px 14px; margin-bottom:8px; }
+  .rank { font:11px var(--mono); color:var(--dim); }
+  .title { font-weight:600; margin:2px 0 3px; }
+  .url { font:12px var(--mono); color:var(--good); word-break:break-all; }
+  .snip { color:var(--dim); font-size:13.5px; margin-top:6px; }
+  .scores { position:fixed; bottom:0; left:0; right:0; background:var(--panel);
+            border-top:1px solid var(--line); padding:12px 20px; }
+  .scores .wrap { max-width:900px; margin:0 auto; display:grid;
+                  grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px 18px; }
+  .dim label { display:block; font:11px var(--mono); text-transform:uppercase;
+               letter-spacing:.06em; color:var(--dim); margin-bottom:4px; }
+  .btns { display:flex; gap:3px; flex-wrap:wrap; }
+  .btns button { flex:1; min-width:26px; padding:6px 0; font:13px var(--mono);
+                 background:transparent; color:var(--ink); border:1px solid var(--line);
+                 border-radius:4px; cursor:pointer; }
+  .btns button:hover { border-color:var(--dim); }
+  .btns button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .row { display:flex; gap:12px; align-items:center; margin-top:12px; max-width:900px;
+         margin-left:auto; margin-right:auto; }
+  .row input[type=text] { flex:1; background:var(--bg); border:1px solid var(--line);
+                          color:var(--ink); border-radius:5px; padding:7px 10px; font-size:13px; }
+  .row button { padding:8px 16px; border-radius:5px; border:1px solid var(--line);
+                background:var(--bg); color:var(--ink); cursor:pointer; font-size:13px; }
+  .row button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .done { text-align:center; padding:60px 20px; }
+  kbd { font:11px var(--mono); border:1px solid var(--line); border-bottom-width:2px;
+        border-radius:4px; padding:1px 5px; color:var(--dim); }
+</style>
+</head>
+<body>
+<header>
+  <b>Judge calibration</b>
+  <span class="muted" id="pos"></span>
+  <span class="bar"><i id="prog" style="width:0"></i></span>
+  <span class="muted" id="saved">saved locally</span>
+  <button id="export" style="padding:5px 12px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font-size:13px">Export labels.json</button>
+</header>
+
+<main id="main"></main>
+
+<div class="scores" id="panel">
+  <div class="wrap" id="dims"></div>
+  <div class="row">
+    <input type="text" id="note" placeholder="Optional note — why this score? (read back during error analysis)">
+    <button id="prev">← Back</button>
+    <button id="next" class="primary">Next →</button>
+  </div>
+  <div class="row muted" style="margin-top:8px">
+    <span><kbd>1</kbd>–<kbd>9</kbd>,<kbd>0</kbd>=10 score the focused dimension ·
+    <kbd>Tab</kbd> next dimension · <kbd>Enter</kbd> next item ·
+    You are scoring the SEARCH RESULTS, not writing an answer yourself. Vendor identity is hidden on purpose.</span>
+  </div>
+</div>
+
+<script src="task.js"></script>
+<script>
+// The rubric text the judges were given, restated for the human. If the two are
+// answering different questions, the agreement number measures nothing.
+const HELP = {
+  relevance: "Could a competent person answer the query from these results? Reward direct answers; penalise topically-adjacent filler.",
+  freshness: "Current enough for THIS query? Many timeless queries should score high. Do not penalise a result merely for having no date attached.",
+  citation_quality: "Are the sources authoritative? Official docs and primary sources rank above content farms and scraped aggregators.",
+  overall: "Holistic: does this response serve the user well? Judge substance, not volume — three excellent results beat ten mediocre ones."
+};
+
+const TASK = window.VN_TASK;
+const KEY = "vn-calib-" + TASK.set_id;
+const state = JSON.parse(localStorage.getItem(KEY) || "{}");
+let idx = Number(state.__idx || 0);
+let shownAt = Date.now();
+let focusDim = 0;
+
+function labelFor(id) { return (state[id] = state[id] || {}); }
+function save() { state.__idx = idx; localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function renderItem() {
+  const it = TASK.items[idx];
+  if (!it) return renderDone();
+  const esc = s => (s == null ? "" : String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])));
+  document.getElementById("main").innerHTML =
+    `<p class="q">${esc(it.query)}</p>
+     <div class="tags"><span class="tag">${esc(it.category)}</span>
+       <span class="tag">${it.results.length} results</span>
+       <span class="tag">${esc(it.response_mode)}</span></div>
+     ${it.gold_answer ? `<div class="gold"><b>Reference answer:</b> ${esc(it.gold_answer)}</div>` : ""}
+     ${it.answer ? `<div class="answer">${esc(it.answer)}</div>` : ""}
+     <ol class="results">${it.results.map(r =>
+       `<li><div class="rank">#${esc(r.rank)}</div>
+            <div class="title">${esc(r.title) || "<em>no title</em>"}</div>
+            <div class="url">${esc(r.url)}</div>
+            ${r.snippet ? `<div class="snip">${esc(r.snippet)}</div>` : ""}</li>`).join("")}
+     </ol>`;
+  document.getElementById("pos").textContent = `${idx + 1} / ${TASK.items.length}`;
+  const done = Object.keys(state).filter(k => k !== "__idx" && state[k].overall != null).length;
+  document.getElementById("prog").style.width = (100 * done / TASK.items.length) + "%";
+  document.getElementById("saved").textContent = `${done} labelled`;
+  document.getElementById("note").value = labelFor(it.response_id).note || "";
+  renderDims();
+  shownAt = Date.now();
+  window.scrollTo(0, 0);
+}
+
+function renderDims() {
+  const it = TASK.items[idx], lab = labelFor(it.response_id);
+  document.getElementById("dims").innerHTML = TASK.dimensions.map((d, di) =>
+    `<div class="dim"><label title="${HELP[d]}">${d.replace(/_/g, " ")}${di === focusDim ? " ▸" : ""}</label>
+      <div class="btns" data-dim="${d}">${[...Array(11).keys()].map(v =>
+        `<button data-v="${v}" aria-pressed="${lab[d] === v}">${v}</button>`).join("")}</div></div>`).join("");
+  document.querySelectorAll(".btns button").forEach(b => b.onclick = () => {
+    setScore(b.parentElement.dataset.dim, Number(b.dataset.v));
+  });
+}
+
+function setScore(dim, v) {
+  const it = TASK.items[idx], lab = labelFor(it.response_id);
+  lab[dim] = v;
+  lab.seconds = (lab.seconds || 0) + Math.round((Date.now() - shownAt) / 1000);
+  shownAt = Date.now();
+  const di = TASK.dimensions.indexOf(dim);
+  if (di === focusDim && focusDim < TASK.dimensions.length - 1) focusDim++;
+  save(); renderDims();
+}
+
+function go(delta) {
+  const it = TASK.items[idx];
+  labelFor(it.response_id).note = document.getElementById("note").value || null;
+  idx = Math.max(0, Math.min(TASK.items.length, idx + delta));
+  focusDim = 0; save(); renderItem();
+}
+
+function renderDone() {
+  document.getElementById("panel").style.display = "none";
+  const done = Object.keys(state).filter(k => k !== "__idx" && state[k].overall != null).length;
+  document.getElementById("main").innerHTML =
+    `<div class="done"><h2>${done} of ${TASK.items.length} labelled</h2>
+     <p class="muted">Export, then import with<br>
+     <code>python -m src.calibrate import labels.json --labeller YOURNAME</code></p>
+     <p><button class="primary" onclick="idx=0;focusDim=0;document.getElementById('panel').style.display='';renderItem()"
+        style="padding:9px 18px;border-radius:5px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer">
+        Back to the start</button></p></div>`;
+}
+
+document.getElementById("next").onclick = () => go(1);
+document.getElementById("prev").onclick = () => go(-1);
+document.getElementById("export").onclick = () => {
+  const labels = TASK.items.map(it => {
+    const l = state[it.response_id] || {};
+    return {response_id: it.response_id, relevance: l.relevance ?? null,
+            freshness: l.freshness ?? null, citation_quality: l.citation_quality ?? null,
+            overall: l.overall ?? null, note: l.note || null, seconds: l.seconds || null};
+  }).filter(l => l.overall !== null);
+  const blob = new Blob([JSON.stringify({set_id: TASK.set_id, labels}, null, 1)],
+                        {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "labels.json"; a.click();
+};
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") { if (e.key === "Enter") go(1); return; }
+  if (e.key === "Enter") return go(1);
+  if (e.key === "Tab") { e.preventDefault();
+    focusDim = (focusDim + (e.shiftKey ? -1 : 1) + TASK.dimensions.length) % TASK.dimensions.length;
+    return renderDims(); }
+  if (/^[0-9]$/.test(e.key)) setScore(TASK.dimensions[focusDim], e.key === "0" ? 10 : Number(e.key));
+});
+
+renderItem();
+</script>
+</body>
+</html>
