@@ -11,9 +11,9 @@ problem this script solves in one command.
     python scripts/rename.py --dry-run RetrievalReferee
     python scripts/rename.py RetrievalReferee
 
-Both casings are handled: "SearchBench" in prose and headings, "searchbench" in
+Both casings are handled: "Vannaris" in prose and headings, "vannaris" in
 identifiers, paths and filenames. Files whose *name* contains the old slug are
-renamed too, which is how `data/searchbench.db` follows along.
+renamed too, which is how `data/vannaris.db` follows along.
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-OLD_TITLE = "SearchBench"
-OLD_SLUG = "searchbench"
+OLD_TITLE = "Vannaris"
+OLD_SLUG = "vannaris"
 
 # Directories that are never rewritten: generated, vendored, or a historical
 # record that should keep saying what it said at the time.
@@ -41,7 +41,11 @@ SKIP_TREES = {"docs", "applications"}
 SKIP_GLOBS = ("*handoff*",)
 
 TEXT_SUFFIXES = {".py", ".js", ".mjs", ".html", ".css", ".md", ".json", ".sql",
-                 ".txt", ".yml", ".yaml", ".toml", ".sh", ".example"}
+                 ".txt", ".yml", ".yaml", ".toml", ".sh", ".example", ".svg"}
+# .svg is here because og.svg carries the name as rendered text. It is generated
+# by scripts/make_og_image.py, so rewriting it is redundant when that script is
+# re-run — and correct when it is not. A social preview image showing the old
+# name is the kind of miss nobody sees until it is on someone else's timeline.
 
 
 def slugify(name: str) -> str:
@@ -57,8 +61,12 @@ def candidates() -> list[Path]:
         rel = path.relative_to(ROOT)
         if set(rel.parts) & SKIP_DIRS or rel.parts[0] in SKIP_TREES:
             continue
-        # Dot-directories are tool caches and editor state, never product surface.
-        if any(part.startswith(".") for part in rel.parts[:-1]):
+        # Dot-directories are tool caches and editor state, never product surface
+        # — except .github, which is. The workflow names the database by path and
+        # uploads it as an artifact; skipping it renames the file out from under
+        # CI, and `if-no-files-found: warn` means that failure is a line in a log
+        # rather than a red build.
+        if any(part.startswith(".") and part != ".github" for part in rel.parts[:-1]):
             continue
         if path.name.startswith(".env"):
             continue  # never touch secrets

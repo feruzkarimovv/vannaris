@@ -1,4 +1,4 @@
--- SearchBench storage schema.
+-- Vannaris storage schema.
 --
 -- CLAUDE.md requires three separated layers from the start, because they have
 -- different publication rules:
