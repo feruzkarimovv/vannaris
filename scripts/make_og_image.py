@@ -81,7 +81,7 @@ def build(latest: dict) -> str:
     # width — there is no text measurement available here, so it errs wide.
     parts.append(
         f'<text x="64" y="96" font-family="{SANS}" font-size="32" font-weight="700" '
-        f'letter-spacing="-1.1" fill="{INK}">SearchBench</text>'
+        f'letter-spacing="-1.1" fill="{INK}">Vannaris</text>'
         f'<circle cx="285" cy="86" r="5" fill="{SIGNAL}"/>'
     )
 
