@@ -30,7 +30,7 @@ from .vendors.adapters import build_all
 from .vendors.base import SearchResponse
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "searchbench.db"
+DB_PATH = ROOT / "data" / "vannaris.db"
 
 # Kept low deliberately: several vendors publish per-minute caps well under
 # what unbounded asyncio.gather would produce, and tripping a rate limit

@@ -4,6 +4,11 @@
 document closes two of them against primary sources and records exactly why the third is still open.
 It supersedes `docs/03`'s domain paragraph, which was explicitly inconclusive.
 
+> **Outcome, same day: the name is now `Vannaris`.** §1–§5 are the case against keeping
+> "SearchBench" and are left exactly as they were written; §6 records the replacement and how it was
+> chosen. This file keeps saying "SearchBench" throughout because it is a record of a decision, not
+> product surface — `scripts/rename.py` skips `docs/` and `applications/` for that reason.
+
 **Method.** Domains via RDAP queries to the registries themselves (`rdap.org` bootstrap → registry
 RDAP), which is the registry's own record rather than a resolver guess or a reseller's "is it
 available" widget. Repositories via the GitHub API. Package names via the PyPI and npm registry APIs.
@@ -111,3 +116,66 @@ so that clock is running.
 `querybench.com`) were ruled out in `docs/03` and were **not** re-checked on 2026-08-01. If either
 returns to consideration, re-verify — those findings are now over a week old and, as §2 shows, this
 space moves.
+
+---
+
+## 6. The replacement: `Vannaris`, chosen 2026-08-01
+
+The founder rejected "SearchBench" outright — it had always been a placeholder — and asked for a name
+that is distinctive rather than descriptive: not a label that explains the product, a word that can
+come to mean it.
+
+### What the sweep found about the landscape
+
+Roughly 250 candidates were checked across twelve passes: dictionary words, Latin and Greek roots for
+judging/measuring/finding, instruments of measurement, obscure birds and animals, and invented words
+in several phonetic families. The finding is blunt and worth recording, because it constrains any
+future rename:
+
+**Every short pronounceable name is registered.** All 30 dictionary words, all 49 invented five-to-
+seven-letter names, and every bird and animal vocabulary tried were taken on `.com` — and, with a
+handful of exceptions, on `.ai` and `.io` as well. `.dev` is the only TLD with meaningful short-name
+availability left. Free `.com`s begin at roughly eight letters and are overwhelmingly invented words.
+
+Several names that *looked* free died on inspection, which is the reason the deep check exists:
+
+| Candidate | Why it was rejected |
+|---|---|
+| `dunlin` | `.ai` free, but PyPI, npm, the GitHub handle and a 19★ repository are all taken |
+| `numbat` | a 2,619★ Rust tool — **and** a 552★ repository belonging to Perplexity, a benchmarked vendor |
+| `saiga` | a well-known open LLM series with models published on Hugging Face |
+| `thalo` | a 676★ Rust framework |
+| `avocet` | PyPI and the GitHub handle taken; multiple existing companies |
+| `perquire` | clean on domains, but collides with an active Python legal-search-engine project |
+| `retrievalarbiter` | commercially clean, but "Retrieval Arbiter" is a named component in a 2026 agent-memory paper — the same search-noise problem that sank SearchBench |
+| `mirvaris` | free `.com`, but the GitHub handle is taken and two repositories sit under it |
+
+An earlier round produced `QueryArbiter` and `SearchArbiter`, both fully clean. Both were rejected by
+the founder as too descriptive — they name the function rather than the company.
+
+### Vannaris, verified
+
+Checked 2026-08-01 against registry RDAP records, the PyPI and npm registry APIs, the GitHub API, the
+Hugging Face API, and open web search:
+
+| Surface | Status |
+|---|---|
+| `vannaris.com` / `.ai` / `.dev` / `.io` | **all free** |
+| PyPI, npm | **both free** |
+| GitHub organisation `vannaris` | **free** |
+| GitHub repositories carrying the name | **none** |
+| Hugging Face models or datasets | **none** |
+| Open web | **zero results** — no company, product, project or person |
+
+It is an invented word built from Latin *vannus*, the winnowing fan that separates grain from chaff.
+That is a story the project can tell later, not a claim the name makes on its own — which is exactly
+the property the founder asked for and the property "SearchBench" lacked.
+
+### Still not established
+
+**The USPTO check in §3 is unchanged and still open** — it now applies to `VANNARIS`, in classes 009
+and 042. An invented word is inherently distinctive and therefore the strongest kind of mark to
+register and the hardest to challenge, so this is likely to clear. Likely is not cleared, and nothing
+here says otherwise. The X/Twitter handle is also unchecked; that API needs authentication.
+
+**Nothing is registered.** Free means unowned, not reserved — see `PUBLISH-CHECKLIST.md` §1.

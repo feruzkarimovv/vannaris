@@ -8,32 +8,33 @@ engineering tasks — none of them should be resolved by whoever happens to be d
 
 ## 1. Blocking — the name
 
-**"SearchBench" is a working name and has not been cleared.**
+**The name is "Vannaris", chosen 2026-08-01.** It replaced the working name "SearchBench", which was
+never cleared and had four same-name projects in this exact vertical. The selection sweep and its
+primary sources are in `docs/10-name-clearance-2026-08-01.md`; the conflicts that killed the old name
+are recorded there too, and should stay recorded — they are the reason this section exists.
 
-- [x] **Registrar check** on the domain family (`.com` / `.ai` / `.dev` / `.io`) — done 2026-08-01
-      against registry RDAP records, written up in `docs/10-name-clearance-2026-08-01.md`.
-      `searchbench.com` is held by a corporate brand-protection registrar; `searchbench.ai` is parked
-      and expires 2026-09-09; `.dev` and `.io` are free. All four `retrievalreferee` TLDs are free.
-- [ ] **A real USPTO search** (Trademark Search / TESS), not a general web search. No conflicting
-      registration surfaced in general search, which is not the same as clearance. **Still open, and
-      it is now the only blocker in this section.** Every programmatic route is closed — see
-      `docs/10` §3, which also gives the two ways to close it. Search `SEARCHBENCH`, `SEARCH BENCH`
-      and the chosen alternative in classes 009 and 042. A federal search is free.
-- [ ] **Decide on the known conflict** — restated 2026-08-01, because it is bigger than `docs/03`
-      recorded. Four GitHub projects now carry the exact name in this exact vertical, one of them
-      pushed 2026-07-31, and "search benchmark" as a phrase has a 404-star occupant. The dormant
-      project `docs/03` names does have a licence (MIT) and is not archived. Still low enforcement
-      risk; materially more confusion and SEO risk than when the name was chosen. `docs/10` §2 and §4.
-- [ ] Two candidate alternatives are already ruled out as live conflicts — one collides with an
-      actively-promoted product from a well-known evaluation project, the other with a live
-      database-benchmarking product positioned almost identically. `docs/03` names both, and names
-      the zero-conflict fallback it recommends.
+- [x] **Conflict check** — done 2026-08-01. `Vannaris` is free on `.com`, `.ai`, `.dev` and `.io`,
+      free on PyPI and npm, free as a GitHub organisation, has no repository or Hugging Face model
+      carrying the name, and returns **zero results** on the open web. Checked against registry RDAP
+      records and the registries' own APIs, not search results. `docs/10` §6.
+- [ ] **Register the domains — nothing is held yet.** Free means unowned, not reserved. The name
+      appears in this repository and will appear in anything public; register `vannaris.com` at
+      minimum, and `.ai` before announcing anywhere. This is the one item here that gets harder if
+      it waits, and it is cheap today.
+- [ ] **A real USPTO search** (Trademark Search / TESS), not a general web search. Still open, and
+      still the blocker it was — every programmatic route is closed, see `docs/10` §3 for the two
+      ways to close it. Search **`VANNARIS`** in classes 009 (software) and 042 (SaaS). A federal
+      search is free. An invented word is the strongest position a mark can have, which makes this
+      likely to clear — likely is not cleared.
+- [ ] **Claim the handles** the name will need: GitHub organisation, PyPI, npm, X. All were free on
+      2026-08-01 except X, which could not be checked without authentication.
 
-Renaming is one command and touches every file that carries the name:
+Renaming again is one command, and stays cheap until something public carries the name:
 
 ```bash
-python scripts/rename.py --dry-run RetrievalReferee   # see what would change
-python scripts/rename.py RetrievalReferee
+python scripts/rename.py --dry-run NewName   # see what would change
+python scripts/rename.py NewName
+.venv/bin/python scripts/make_og_image.py    # the social card renders the name as text
 .venv/bin/python -m src.export && node scripts/check-site.mjs
 ```
 

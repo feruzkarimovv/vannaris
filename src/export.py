@@ -52,7 +52,7 @@ from .judge.ensemble import JUDGES, RUBRIC
 from .vendors.adapters import REGISTRY, TOP_K
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "searchbench.db"
+DB_PATH = ROOT / "data" / "vannaris.db"
 
 # A (vendor, category) cell needs this share of its queries carrying a complete
 # three-judge ensemble before it is published. 0.6 is deliberately permissive —
