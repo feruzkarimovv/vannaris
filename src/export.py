@@ -388,7 +388,8 @@ def build_judge_stats(rows: list[dict]) -> dict:
 
 # ------------------------------------------------------------------- assembly
 
-def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict]) -> dict:
+def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
+               week_runs: list[dict] | None = None) -> dict:
     rows = load_run(conn, run["id"])
     cells = build_cells(rows)
     totals = build_vendor_totals(rows, cells)
@@ -433,6 +434,14 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict]) ->
         "vendors": totals,
         "judging": build_judge_stats(rows),
         "detail": detail,
+        # Every run this week produced, not just the one that won selection —
+        # the claim "chosen, not inherited" is only checkable if the rejected
+        # candidates are published alongside the chosen one. It lives in the
+        # week payload rather than only in the bundle because CI runs against a
+        # fresh database: a list assembled from the database alone holds
+        # whichever run just executed and nothing else, so the run behind the
+        # published numbers would drop out of the record the week after it ran.
+        "runs_considered": week_runs if week_runs is not None else [run],
     }
 
 
@@ -471,11 +480,38 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
     week_payloads = {w: p for w, p in history.items()}
     from_db = []
     for w in sorted({r["week"] for r in runs}):
+        # Recomputing a week replaces its scores from evidence, but its
+        # candidate list is append-only: a run considered by an earlier export
+        # is a fact about the record, and this database may not be the one that
+        # saw it. CI's never is — it starts from a fresh checkout.
+        prior = {r["id"]: r for r in (history.get(w) or {}).get("runs_considered", [])}
+        prior.update({r["id"]: r for r in runs if r["week"] == w})
+        merged = sorted(prior.values(), key=lambda r: r["started_at"])
+
         run = canonical_run(runs, w)
         if run:
-            week_payloads[w] = build_week(conn, run, queries)
+            week_payloads[w] = build_week(conn, run, queries, merged)
             from_db.append(w)
+        elif w in week_payloads:
+            # A run against a week whose numbers came from an earlier export —
+            # a smoke test on the current week is the ordinary case. Its scores
+            # stay exactly as published; only the record of what was considered
+            # and rejected grows, and it has to grow in the week file, because
+            # that is the artefact that survives to the next export.
+            week_payloads[w] = {**week_payloads[w], "runs_considered": merged}
     published = sorted(week_payloads)
+
+    # Weeks whose runs all failed selection have no payload to carry the record
+    # forward, so their candidates are only visible while they sit in this
+    # database. Published here so a week that produced nothing publishable is
+    # still visible as a week that ran.
+    considered: dict[str, dict] = {}
+    for w in published:
+        for r in week_payloads[w].get("runs_considered", []):
+            considered[r["id"]] = r
+    for r in runs:
+        considered.setdefault(r["id"], r)
+    all_runs = sorted(considered.values(), key=lambda r: r["started_at"])
 
     scheduled_weeks = [w for w in published
                        if week_payloads[w].get("trigger") == "scheduled"]
@@ -539,7 +575,7 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
         "weeks": published,
         "latest": week_payloads[published[-1]] if published else None,
         "all_weeks": week_payloads,
-        "runs_considered": runs,
+        "runs_considered": all_runs,
         # Which weeks this checkout recomputed from evidence, as opposed to
         # carrying forward from a previous export. Not published — main() uses
         # it to decide whether regenerating the CSVs would be an improvement or
@@ -799,7 +835,11 @@ def main() -> None:
     print(f"week {latest['week']}  run {latest['run_id'][:8]}  "
           f"{latest['completeness']['complete_ensembles']}/{latest['completeness']['responses']} "
           f"complete ensembles ({latest['completeness']['pct']}%)")
-    for r in bundle["runs_considered"]:
+    # The candidates that bear on this export: the published week's, plus any
+    # run whose week produced nothing publishable — that second group is the
+    # one an operator is looking for when a run does not appear on the site.
+    for r in [r for r in bundle["runs_considered"]
+              if r["week"] == latest["week"] or r["week"] not in bundle["weeks"]]:
         mark = "  <- published" if r["id"] == latest["run_id"] else ""
         print(f"  run {r['id'][:8]}  {r['week']}  {r['complete']:>4}/{r['responses']:<4} complete"
               f"  min/cat {r['min_per_category']:>3}{mark}")
