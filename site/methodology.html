@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methodology — SearchBench</title>
+<meta name="description" content="How SearchBench scores web-search APIs: the query set, the vendor set, the judge ensemble, the aggregation rules, and what is deliberately not claimed.">
+<meta property="og:title" content="Methodology — SearchBench">
+<meta property="og:description" content="The query set, the vendor set, the judge ensemble, the aggregation rules, and what is deliberately not claimed.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314140f'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="shell">
+    <div class="masthead__row">
+      <a class="wordmark" href="index.html">SearchBench</a>
+      <span class="masthead__now" data-now aria-live="polite"></span>
+      <nav class="nav" aria-label="Primary">
+        <a href="results.html">Results</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="data.html">Data</a>
+        <a href="https://github.com/" data-repo>Source</a>
+      </nav>
+      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+    </div>
+    <div class="stamp" data-stamp aria-label="Current run"></div>
+  </div>
+  <div class="progress" aria-hidden="true"></div>
+</header>
+
+<main>
+
+<section style="padding-bottom:2.5rem">
+  <div class="shell">
+    <h1>Methodology</h1>
+    <p class="hero__lede">
+      A benchmark is only worth as much as the parts of it you can check. This page describes what
+      is measured, how, and where the measurement is weak. The code that implements all of it is in
+      the repository, and the scores it produced are on <a href="data.html">the data page</a>.
+    </p>
+
+    <div class="claim" style="margin-top:2rem">
+      <span class="label">Not yet done</span>
+      <p>
+        <span data-val="d.unbuilt"></span>
+        Listed in <a href="#gaps">open gaps</a> rather than described as if already running.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="queries">
+  <div class="shell">
+    <div class="section-head">
+      <h2>The query set</h2>
+      <p>
+        <span data-val="latest.n_queries" data-fmt="int"></span> queries in
+        <span data-val="d.n_categories"></span> categories, chosen so that the categories fail
+        differently rather than all measuring the same thing.
+      </p>
+          <span class="label"><span data-val="latest.n_queries" data-fmt="int"></span> queries</span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="cat-table">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col" class="num">Queries</th>
+            <th scope="col">What it tests</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="prose" style="margin-top:2rem">
+      <h3>Where the queries come from</h3>
+      <p>
+        Every query is authored for this benchmark rather than lifted from an existing dataset.
+        That is a deliberate trade: an academic set would carry more external validity, but the
+        licences on the obvious candidates are either restrictive, unresolved, or built around a
+        fixed pre-indexed corpus rather than the live web. Authoring the set means it ships with
+        the export under an open licence from day one, and it means nobody has to take on trust
+        that the questions were not chosen to favour a result.
+      </p>
+      <p>
+        The general-facts and multi-hop sets are written in the style of SimpleQA and HotpotQA
+        respectively, without reusing either corpus. The trade-off worth naming: an authored set is
+        easier to accuse of being unrepresentative, and the honest answer is that the whole set is
+        published, so that accusation is checkable rather than rhetorical.
+      </p>
+
+      <h3>Breaking-news queries carry no expected answer</h3>
+      <p>
+        A freshness question with a fixed answer decays into a general-knowledge question within
+        weeks, which quietly turns the freshness column into a second facts column. So those
+        queries are written in perpetually-current form ("what is the latest…", "who currently
+        holds…") and the judge grades them on source recency and internal consistency instead of
+        answer match. Those queries are also flagged to rotate every cycle, so vendors cannot
+        overfit to a static list of breaking-news questions.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="vendors">
+  <div class="shell">
+    <div class="section-head">
+      <h2>The vendor set, and who is missing</h2>
+      <p>
+        The set is scoped by contract, not by popularity. Several search APIs have terms of service
+        that restrict third-party benchmarking, and this project's position is that the rule
+        applies to it too.
+      </p>
+          <span class="label">scoped by contract</span>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:2rem">
+      <table id="vendor-meta-table">
+        <thead>
+          <tr>
+            <th scope="col">Vendor</th>
+            <th scope="col">Returns</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt>Tavily and Brave</dt>
+        <dd>
+          Held back deliberately. Both have terms broad enough to be read as covering third-party
+          benchmarking, and no written consent has been sought. Both are better known than several
+          vendors that <em>are</em> included, so their absence costs this benchmark reach. That is
+          the intended trade.
+        </dd>
+      </div>
+      <div>
+        <dt>Vendors with explicit bars</dt>
+        <dd>
+          Two vendors surveyed have unambiguous contractual prohibitions on benchmarking or
+          competitive analysis without prior written consent. They will not appear here without
+          that consent in hand.
+        </dd>
+      </div>
+      <div>
+        <dt>Adding a vendor</dt>
+        <dd>
+          A vendor enters the benchmark only after its terms have been read and recorded. In the
+          code, that gate is a single registry: adding an entry to it is the act of adding a vendor
+          to a published comparison, and it is commented as such.
+        </dd>
+      </div>
+      <div>
+        <dt>What gets published about a vendor</dt>
+        <dd>
+          Derived scores, timings and costs. Never the URLs, titles, snippets or synthesized
+          answers a vendor returned. That reduces copyright and terms-of-service exposure at the
+          same time, and it is enforced in the export code rather than left to care.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section id="normalisation">
+  <div class="shell">
+    <div class="section-head">
+      <h2>Making responses comparable</h2>
+          <span class="label">top <span data-val="config.top_k"></span>, uniform</span>
+    </div>
+    <div class="grid-2">
+      <div class="prose">
+        <h3>Uniform depth</h3>
+        <p>
+          Vendors return anywhere from eight to twenty results by default. Scoring whatever each
+          one hands back would reward verbosity, so every response is truncated to the top
+          <span data-val="config.top_k"></span> before it reaches a judge. The rubric separately
+          instructs the judge not to reward length.
+        </p>
+        <h3>Two shapes of answer</h3>
+        <p>
+          Most of these APIs return a ranked list. One returns a prose answer <em>and</em> a ranked
+          list. Rather than treat those as incomparable, the shape of each response is recorded and
+          published alongside its score, and the judge is told which shape it is looking at. A
+          vendor can therefore see exactly what it was graded on.
+        </p>
+      </div>
+      <div class="prose">
+        <h3>Cost</h3>
+        <p>
+          Where a vendor reports the cost of a call in its response, that reported figure is used.
+          Where it does not, list price at the cheapest published tier is used. Volume discounts
+          and negotiated pricing are not modelled, which will understate the real cost advantage
+          of the larger vendors.
+        </p>
+        <h3>Latency</h3>
+        <p>
+          Measured by the harness as wall-clock time from request to response, over an ordinary
+          internet connection, with modest request concurrency. Treat the ordering as the signal
+          and the absolute milliseconds as indicative.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="judges">
+  <div class="shell">
+    <div class="section-head">
+      <h2>The judge ensemble</h2>
+      <p>
+        Three models from three different vendors score every response independently against one
+        rubric. The published score is the median.
+      </p>
+          <span class="label">3 models · 3 labs</span>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:2rem">
+      <table id="judge-table">
+        <caption>Model versions are pinned. Changing one is a methodology change and appears in the changelog below.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Family</th>
+            <th scope="col">Model</th>
+            <th scope="col" class="num">Mean score, this run</th>
+            <th scope="col" class="num">Coverage</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="prose">
+        <h3>Why three families</h3>
+        <p>
+          LLM judges systematically prefer text that reads like their own output. The effect is
+          driven by fluency rather than literal self-recognition, so it fires even on text the
+          judge did not write. Search APIs increasingly synthesize their answers with the same
+          class of model, which makes a single-judge design structurally unsafe here.
+        </p>
+        <p>
+          The results page publishes the measured gap between the three families for exactly this
+          reason: on this run they differ by
+          <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span> points on
+          the same responses. The ensemble does not remove that bias. It makes it visible and stops
+          any one family from setting the number alone.
+        </p>
+
+        <h3>Median, and only when complete</h3>
+        <p>
+          The score for a response is the median of the three judges, not the mean, so one outlier
+          cannot move a published figure. Responses missing any judge are dropped entirely rather
+          than averaged over the survivors: rate-limit failures cluster in time rather than falling
+          randomly, so mixing three-way medians and two-way means in one column would introduce
+          bias, not just thin the sample.
+        </p>
+
+        <h3>Salvaging truncated replies</h3>
+        <p>
+          Judges sometimes truncate mid-sentence in the optional rationale field, after emitting
+          complete numeric scores. Discarding those replies wholesale would shrink the sample
+          non-randomly, because longer vendor payloads truncate more often. The parser recovers the
+          scores field-wise and drops only the rationale.
+        </p>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel__head">
+            <h3>The rubric, as the code sends it</h3>
+          <span class="label">read from the export, not retyped</span>
+          </div>
+          <div class="panel__body" style="padding:0">
+            <pre class="mono" data-val="config.rubric" style="margin:0;padding:1.1rem;font-size:0.78rem;line-height:1.55;white-space:pre-wrap;overflow-x:auto"></pre>
+          </div>
+          <div class="panel__foot">
+            Placeholders in braces are filled per response. The length-normalisation and
+            date-metadata instructions are the two bias mitigations built into the prompt itself.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="aggregation">
+  <div class="shell">
+    <div class="section-head">
+      <h2>From scores to a published table</h2>
+          <span class="label">four stages</span>
+    </div>
+    <ol class="steps" data-reveal="rows">
+      <li>
+        <div>
+          <h3>Response score</h3>
+          <p>Median of the three judges' overall scores. Dropped if any judge is missing.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Category cell</h3>
+          <p>
+            Mean of the response scores for that vendor in that category. A cell whose coverage
+            falls below <span data-val="config.min_cell_coverage" data-fmt="pct0"></span> of its
+            queries is published as missing rather than as a number computed from a thin sample.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Vendor score</h3>
+          <p>
+            Mean of that vendor's category cells, so every category weighs the same regardless of
+            how many of its queries scored cleanly.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>One run per week is published</h3>
+          <p>
+            A week can contain smoke tests and aborted runs. The published run is chosen
+            explicitly: it must cover at least
+            <span data-val="config.min_queries_per_category"></span> queries in every category, and
+            among those that qualify the one with the most complete judge ensembles wins. Every
+            candidate run and its completeness ships in the export.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="gaps">
+  <div class="shell">
+    <div class="section-head">
+      <h2>Open gaps</h2>
+      <p>
+        Things this methodology should have and does not. Listed here rather than discovered later
+        by someone reading the code.
+      </p>
+          <span class="label">six, named</span>
+    </div>
+    <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt>No human calibration</dt>
+        <dd>
+          The design calls for 100–200 examples labelled by hand, compared against the ensemble
+          monthly, with the rubric refined against the specific disagreements found. None of that
+          exists yet. Until it does, the judges are unaudited, and this is the first thing a sharp
+          reviewer should attack.
+        </dd>
+      </div>
+      <div>
+        <dt>No elapsed track record</dt>
+        <dd>
+          <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> of data.
+          <span data-val="d.record_note"></span>
+        </dd>
+      </div>
+      <div>
+        <dt>Scores cluster high</dt>
+        <dd>
+          Most results land between 7 and 10. Either these APIs are all good at these questions, or
+          the questions are too easy to discriminate at the top. Harder queries are the next change
+          to the set, and it will move the numbers.
+        </dd>
+      </div>
+      <div>
+        <dt>Positional bias is untested</dt>
+        <dd>
+          The standard mitigation is to run every comparison in both orders and count a preference
+          only when both agree. This benchmark scores each response independently rather than
+          comparing pairs, so positional bias does not arise in the current design. If any pairwise
+          sub-metric is added later, that mitigation has to come with it.
+        </dd>
+      </div>
+      <div>
+        <dt>Single geography, single run</dt>
+        <dd>
+          All queries were issued from one location at one time. Search results vary by region and
+          by hour, and this benchmark does not yet measure either.
+        </dd>
+      </div>
+      <div>
+        <dt>Not a legal review</dt>
+        <dd>
+          The vendor scoping described above is based on reading published terms of service, not on
+          advice from counsel. It reflects a deliberately cautious reading, which is not the same
+          thing as clearance.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section id="reproduce">
+  <div class="shell">
+    <div class="section-head">
+      <h2>Reproduce it</h2>
+      <p>
+        You need your own API keys for the five vendors and the three judge models. A full run of
+        <span data-val="latest.n_queries" data-fmt="int"></span> queries cost
+        <span class="mono" data-val="latest.vendor_spend_usd" data-fmt="money"></span> in vendor
+        calls.
+      </p>
+          <span class="label">your own keys</span>
+    </div>
+    <pre class="mono" style="background:var(--surface-2);padding:1.1rem;border-radius:3px;overflow-x:auto;font-size:0.82rem;line-height:1.7;margin:0">git clone &lt;repository&gt; &amp;&amp; cd searchbench
+python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
+cp .env.example .env          # add your keys
+.venv/bin/python scripts/check_keys.py       # verify all eight, one cheap call each
+.venv/bin/python -m src.runner --queries src/queries/full-v1.json
+.venv/bin/python -m src.export               # rebuild site/data and site/export</pre>
+    <p class="note" style="margin-top:1rem;max-width:78ch">
+      Or skip the run entirely: every number on this site can be recomputed from the published CSVs
+      with no API keys at all. <a href="data.html#recompute">Worked example</a>.
+    </p>
+  </div>
+</section>
+
+<section id="changelog">
+  <div class="shell">
+    <div class="section-head">
+      <h2>Methodology changelog</h2>
+      <p>
+        A judge model swap or a rubric edit changes scores without anything changing about the
+        vendors. Those changes belong in a log, not in a silent commit.
+      </p>
+          <span class="label">since <span data-val="latest.week"></span></span>
+    </div>
+    <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt><span class="mono">2026-W31</span> · initial</dt>
+        <dd>
+          First published run. Three-judge cross-family ensemble, median aggregation, top-10
+          normalisation, <span data-val="latest.n_queries" data-fmt="int"></span>-query set
+          (<span class="mono" data-val="latest.query_set_hash"></span>).
+        </dd>
+      </div>
+      <div>
+        <dt><span class="mono">2026-W31</span> · judge pin reverted</dt>
+        <dd>
+          A newer Google judge model was trialled and reverted before publication: it truncated its
+          JSON on roughly a third of calls under the real, much longer judge prompt, having passed
+          a short probe. The lesson is recorded in the code: validate a judge model against a
+          production-length prompt, never a toy one.
+        </dd>
+      </div>
+      <div>
+        <dt><span class="mono">2026-W31</span> · aggregate layer guarded</dt>
+        <dd>
+          A two-query smoke test was found to have overwritten one category's published cells,
+          which looked identical to a real result. Aggregation now refuses to overwrite a cell
+          computed from more queries, records which run produced each cell, and the published site
+          recomputes from the per-judge scores of one explicitly chosen run.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell foot__row">
+    <div>
+      <p style="margin:0">
+        SearchBench, independent benchmark of web-search APIs.<br>
+        Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
+      </p>
+    </div>
+    <div>
+      <p style="margin:0">
+        <a href="index.html">Overview</a> ·
+        <a href="results.html">Results</a> ·
+        <a href="data.html">Data export</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="data/bundle.js"></script>
+<script>
+window.SBPage = {
+  init: function () {
+    var D = window.SB_DATA, h = window.SBCharts.helpers;
+    function cell(text, cls) {
+      var td = document.createElement("td");
+      if (cls) td.className = cls;
+      td.textContent = text;
+      return td;
+    }
+    function row(tbody, cells) {
+      var tr = document.createElement("tr");
+      cells.forEach(function (c) { tr.appendChild(c); });
+      tbody.appendChild(tr);
+    }
+
+    var cats = document.querySelector("#cat-table tbody");
+    D.categories.forEach(function (c) {
+      row(cats, [cell(c.label), cell(c.n_queries, "num"), cell(c.blurb)]);
+    });
+
+    var modes = { ranked_results: "ranked results", both: "answer + ranked results",
+                  synthesized_answer: "synthesized answer" };
+    var byId = {};
+    D.latest.vendors.forEach(function (v) { byId[v.vendor] = v; });
+    var vt = document.querySelector("#vendor-meta-table tbody");
+    D.vendors.forEach(function (v) {
+      var name = document.createElement("td");
+      name.innerHTML = v.docs
+        ? '<a href="' + v.docs + '" rel="nofollow noopener">' + v.label + "</a>"
+        : v.label;
+      var m = byId[v.id];
+      row(vt, [name, cell(m ? (modes[m.response_mode] || m.response_mode) : "—"),
+               cell(v.note || "—")]);
+    });
+
+    var jt = document.querySelector("#judge-table tbody");
+    D.latest.judging.judges.forEach(function (j) {
+      row(jt, [cell(j.family), cell(j.model),
+               cell(h.fmt(j.mean), "num"),
+               cell((j.coverage * 100).toFixed(1) + "%", "num")]);
+    });
+  },
+  redraw: function () {}
+};
+</script>
+<script src="assets/charts.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

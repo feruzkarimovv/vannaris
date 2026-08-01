@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-08-01T06:24:58+00:00",
+  "week": "2026-W31",
+  "run_id": "50fbea16-fb03-4e26-bcd1-40c1d40bd871",
+  "query_set_hash": "208cb6d7e33aef9b",
+  "licence": "CC BY 4.0",
+  "excluded_by_policy": "Retrieved URLs, titles, snippets and synthesized answers are stored for reproducibility but never published. See data.html.",
+  "files": [
+    {
+      "file": "judge-scores-2026-W31.csv",
+      "rows": 2217,
+      "what": "Every individual judge score. One row per (query, vendor, judge)."
+    },
+    {
+      "file": "responses-2026-W31.csv",
+      "rows": 750,
+      "what": "One row per API call: timing, cost, result count, ensemble median. No retrieved content."
+    },
+    {
+      "file": "weekly-scores-2026-W31.csv",
+      "rows": 30,
+      "what": "The published table: one row per vendor per category."
+    },
+    {
+      "file": "queries.csv",
+      "rows": 150,
+      "what": "The full query set. Authored in-house, so it ships with no dataset-licence encumbrance."
+    }
+  ]
+}

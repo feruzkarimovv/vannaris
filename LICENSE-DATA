@@ -1,0 +1,43 @@
+# Data licence — Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+This licence covers the benchmark data published in this repository:
+
+    site/export/*.csv
+    site/export/manifest.json
+    site/data/*.json
+    site/data/*.js
+    src/queries/*.json
+
+You are free to share and adapt this data for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate if changes were made.
+
+Full licence text: https://creativecommons.org/licenses/by/4.0/legalcode
+Summary: https://creativecommons.org/licenses/by/4.0/
+
+## Suggested attribution
+
+    SearchBench (2026-W31). Benchmark of web-search APIs, week 2026-W31,
+    run 50fbea16, query set 208cb6d7e33aef9b. CC BY 4.0.
+
+Cite the week and the run, not just the project. These numbers are a snapshot
+of one run against live APIs and they will move.
+
+## What this licence does not cover
+
+**Vendor content is not published and is not licensed here.** Retrieved URLs,
+page titles, snippets and synthesized answers are stored locally for
+reproducibility and never leave the machine that ran the benchmark. What is
+published is derived measurement: scores, timings, costs and counts. See
+`docs/03-legal-and-vendor-terms.md` for why that boundary exists.
+
+Vendor names and trademarks belong to their respective owners. Their appearance
+in this data is nominative use for the purpose of identifying what was measured,
+and does not imply affiliation with or endorsement by any of them.
+
+## No warranty
+
+This data is provided as-is. It comes from a single run of an LLM-judged
+benchmark with documented and measurable judge disagreement, and its known
+limitations are published alongside it. Read them before relying on any figure
+here for a purchasing decision.
