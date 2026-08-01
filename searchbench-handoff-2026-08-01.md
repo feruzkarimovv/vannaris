@@ -3,6 +3,21 @@
 Workspace: the repository root. Covers two sessions on 2026-08-01; the second one is marked
 inline where it changed something.
 
+> **Superseded in four places by a third session the same day.** This file is left as written —
+> it is a record — but do not orient off these four facts:
+>
+> - **The project is now called `Vannaris`**, not SearchBench. `docs/10-name-clearance-2026-08-01.md`
+>   records why the old name was abandoned and how the new one was chosen and verified.
+> - **The repository is `feruzkarimovv/vannaris`**, still private.
+> - **The weekly runner is armed.** All eight keys are in Actions secrets, three manual runs have
+>   gone green end to end, and the first scheduled run fires Monday 2026-08-03 at 06:23 UTC. The
+>   "Open items" section below opens by calling this the one thing blocking everything else; it is
+>   done.
+> - **The database is `data/vannaris.db`.**
+>
+> Everything else here — the findings, the mistakes, the decisions and the known weaknesses — still
+> holds, and the judge-calibration work is still the highest-value thing to pick up next.
+
 ## Orientation — read these first, in this order
 
 1. `CLAUDE.md` — operating guide and non-negotiable constraints. Read before anything else.
