@@ -41,7 +41,9 @@ Built and verified end-to-end **in a single day (2026-08-01)**. This is not a pl
 | Runner | Full fetch → judge → aggregate → report pipeline, failure-tolerant |
 | Query set | 150 queries, 25 in each of six categories |
 | Pilot run | 20 queries × 5 vendors × 3 judges = 300 judgements, completed |
-| Full run | 150 queries × 5 vendors × 3 judges = 2,250 judgements, in flight |
+| Full run | 150 queries × 5 vendors × 3 judges = 2,250 judgements, completed — 95.6% carry a complete three-judge score |
+| Public site | Four pages, every figure generated from the data export, no hand-typed numbers. Built, not published |
+| Weekly runner | Scheduled GitHub Actions workflow, tested. Deliberately not armed — arming it is a decision, not a task |
 
 **Cost to operate: roughly $55–70/month**, measured rather than projected. Cheap enough to
 run indefinitely on personal runway, which means the public track record accumulates

@@ -1,0 +1,151 @@
+id,category,source,rotates,text,gold_answer
+gf-001,general_facts,authored-simpleqa-style,0,Who wrote the novel Things Fall Apart and in what year was it published?,"Chinua Achebe, 1958"
+gf-002,general_facts,authored-simpleqa-style,0,What is the deepest point in the ocean and how deep is it?,"Challenger Deep, Mariana Trench, approximately 10,935 metres"
+gf-003,general_facts,authored-simpleqa-style,0,Which element has the atomic number 79?,Gold
+gf-004,general_facts,authored-simpleqa-style,0,Who was the first woman to win a Nobel Prize and in which category?,"Marie Curie, Physics (1903)"
+gf-005,general_facts,authored-simpleqa-style,0,What year did the Chernobyl nuclear disaster occur?,1986
+gf-006,general_facts,authored-simpleqa-style,0,What is the capital city of Kazakhstan and what was it previously called?,"Astana, previously Nur-Sultan"
+gf-007,general_facts,authored-simpleqa-style,0,Who directed the film Seven Samurai?,Akira Kurosawa
+gf-008,general_facts,authored-simpleqa-style,0,What is the longest river in South America?,The Amazon
+gf-009,general_facts,authored-simpleqa-style,0,In what year was the Peace of Westphalia signed?,1648
+gf-010,general_facts,authored-simpleqa-style,0,Who invented the World Wide Web and at which organisation?,"Tim Berners-Lee, at CERN"
+gf-011,general_facts,authored-simpleqa-style,0,What is the chemical formula for sulfuric acid?,H2SO4
+gf-012,general_facts,authored-simpleqa-style,0,Which two countries share the longest international land border?,Canada and the United States
+gf-013,general_facts,authored-simpleqa-style,0,Who composed The Rite of Spring and when did it premiere?,"Igor Stravinsky, 1913"
+gf-014,general_facts,authored-simpleqa-style,0,What is the smallest country in the world by land area?,Vatican City
+gf-015,general_facts,authored-simpleqa-style,0,In which year did the Berlin Wall fall?,1989
+gf-016,general_facts,authored-simpleqa-style,0,Who painted Guernica and what event inspired it?,Pablo Picasso; the bombing of Guernica during the Spanish Civil War
+gf-017,general_facts,authored-simpleqa-style,0,What is the speed of light in a vacuum in metres per second?,"299,792,458 m/s"
+gf-018,general_facts,authored-simpleqa-style,0,Which planet has the most moons in the solar system?,Saturn
+gf-019,general_facts,authored-simpleqa-style,0,Who was the first person to reach the South Pole?,"Roald Amundsen, 1911"
+gf-020,general_facts,authored-simpleqa-style,0,What language has the most native speakers worldwide?,Mandarin Chinese
+gf-021,general_facts,authored-simpleqa-style,0,In what year was the first successful heart transplant performed and by whom?,"1967, by Christiaan Barnard"
+gf-022,general_facts,authored-simpleqa-style,0,What is the tallest mountain in Africa?,Mount Kilimanjaro
+gf-023,general_facts,authored-simpleqa-style,0,Who wrote the Wealth of Nations and in what year?,"Adam Smith, 1776"
+gf-024,general_facts,authored-simpleqa-style,0,What is the largest desert in the world by area?,The Antarctic Desert
+gf-025,general_facts,authored-simpleqa-style,0,Which country was the first to grant women the right to vote nationally?,"New Zealand, 1893"
+bn-001,breaking_news,authored-perpetual,1,What is the latest stable release version of Python?,
+bn-002,breaking_news,authored-perpetual,1,Who is the current Secretary-General of the United Nations?,
+bn-003,breaking_news,authored-perpetual,1,What is the current version of the Linux kernel stable branch?,
+bn-004,breaking_news,authored-perpetual,1,Which team currently leads the Premier League table?,
+bn-005,breaking_news,authored-perpetual,1,What is the current US federal funds target rate?,
+bn-006,breaking_news,authored-perpetual,1,Who is the current CEO of Intel?,
+bn-007,breaking_news,authored-perpetual,1,What is the most recent major version of Node.js on the LTS line?,
+bn-008,breaking_news,authored-perpetual,1,What was the most recent SpaceX Starship flight and what was its outcome?,
+bn-009,breaking_news,authored-perpetual,1,Who currently holds the men's marathon world record and what is the time?,
+bn-010,breaking_news,authored-perpetual,1,What is the latest released version of PostgreSQL?,
+bn-011,breaking_news,authored-perpetual,1,Which country currently holds the rotating presidency of the Council of the European Union?,
+bn-012,breaking_news,authored-perpetual,1,What is the current inflation rate in the United Kingdom?,
+bn-013,breaking_news,authored-perpetual,1,What is the newest iPhone model currently sold by Apple?,
+bn-014,breaking_news,authored-perpetual,1,Who won the most recent Formula 1 Grand Prix?,
+bn-015,breaking_news,authored-perpetual,1,What is the current stable version of Kubernetes?,
+bn-016,breaking_news,authored-perpetual,1,Which company currently has the largest market capitalisation in the world?,
+bn-017,breaking_news,authored-perpetual,1,What is the most recent Nobel Prize in Literature and who won it?,
+bn-018,breaking_news,authored-perpetual,1,What is the latest version of the TypeScript compiler?,
+bn-019,breaking_news,authored-perpetual,1,Who is the current president of Argentina?,
+bn-020,breaking_news,authored-perpetual,1,What is the most recent major security vulnerability disclosed in OpenSSL?,
+bn-021,breaking_news,authored-perpetual,1,What is the current price of gold per troy ounce?,
+bn-022,breaking_news,authored-perpetual,1,Which film won the most recent Academy Award for Best Picture?,
+bn-023,breaking_news,authored-perpetual,1,What is the latest stable release of the Rust compiler?,
+bn-024,breaking_news,authored-perpetual,1,What is the current population estimate of India?,
+bn-025,breaking_news,authored-perpetual,1,Which cryptocurrency exchange most recently suffered a major security breach?,
+ls-001,local_shopping,authored-esci-style,0,best noise cancelling wireless earbuds under $100,
+ls-002,local_shopping,authored-esci-style,0,waterproof hiking boots for wide feet men's size 12,
+ls-003,local_shopping,authored-esci-style,0,24 inch 144hz gaming monitor with adjustable stand,
+ls-004,local_shopping,authored-esci-style,0,stainless steel french press coffee maker 1 litre,
+ls-005,local_shopping,authored-esci-style,0,best budget mechanical keyboard with hot swappable switches,
+ls-006,local_shopping,authored-esci-style,0,cordless vacuum cleaner good for pet hair,
+ls-007,local_shopping,authored-esci-style,0,24 hour pharmacy near downtown Chicago,
+ls-008,local_shopping,authored-esci-style,0,vegetarian restaurants open late in Berlin Kreuzberg,
+ls-009,local_shopping,authored-esci-style,0,usb c hub with hdmi and ethernet for macbook pro,
+ls-010,local_shopping,authored-esci-style,0,standing desk under $400 with electric height adjustment,
+ls-011,local_shopping,authored-esci-style,0,best running shoes for flat feet and overpronation,
+ls-012,local_shopping,authored-esci-style,0,portable power station 500wh for camping,
+ls-013,local_shopping,authored-esci-style,0,cheap flights from London to Lisbon in October,
+ls-014,local_shopping,authored-esci-style,0,cast iron skillet pre seasoned 12 inch,
+ls-015,local_shopping,authored-esci-style,0,air purifier for allergies in a large bedroom,
+ls-016,local_shopping,authored-esci-style,0,dog friendly hotels in Edinburgh city centre,
+ls-017,local_shopping,authored-esci-style,0,external ssd 2tb usb 3.2 for video editing,
+ls-018,local_shopping,authored-esci-style,0,best espresso machine for beginners under $500,
+ls-019,local_shopping,authored-esci-style,0,car seat suitable for newborn to toddler rear facing,
+ls-020,local_shopping,authored-esci-style,0,bike repair shop open on Sunday in Amsterdam,
+ls-021,local_shopping,authored-esci-style,0,merino wool base layer for winter hiking women's,
+ls-022,local_shopping,authored-esci-style,0,robot vacuum with self emptying base and mapping,
+ls-023,local_shopping,authored-esci-style,0,electric kettle with temperature control for tea,
+ls-024,local_shopping,authored-esci-style,0,coworking space with day passes in Lisbon,
+ls-025,local_shopping,authored-esci-style,0,noise blocking curtains for a street facing bedroom,
+ct-001,code_technical,authored,0,How do I use the use() hook in React 19 to read a promise inside a component?,use() unwraps a promise or context during render; requires a stable/cached promise and a Suspense boundary
+ct-002,code_technical,authored,0,What replaced the deprecated datetime.utcnow() in Python 3.12 and how do I write timezone-aware UTC timestamps?,datetime.now(datetime.UTC)
+ct-003,code_technical,authored,0,How do I configure strict mode for tool definitions in the Anthropic Python SDK?,"strict: true as a top-level field on the tool definition, with additionalProperties: false and required set"
+ct-004,code_technical,authored,0,"In Next.js 15 App Router, how do I opt a route out of static rendering?","export const dynamic = 'force-dynamic', or use runtime APIs like cookies()/headers()"
+ct-005,code_technical,authored,0,How do I define a partial unique index in PostgreSQL 16?,CREATE UNIQUE INDEX ... ON table (col) WHERE condition;
+ct-006,code_technical,authored,0,What is the difference between uv pip install and uv add in the uv package manager?,uv pip install is the pip-compatible interface; uv add edits pyproject.toml and updates the lockfile
+ct-007,code_technical,authored,0,How do I enable strict null checks incrementally in an existing TypeScript 5 codebase?,"strictNullChecks in tsconfig, scoped via separate configs or project references"
+ct-008,code_technical,authored,0,How do I set a per-request timeout in httpx for Python and what are the four timeout components?,"httpx.Timeout(connect=, read=, write=, pool=)"
+ct-009,code_technical,authored,0,"In Rust, what changed about async closures in the 2024 edition?","Async closures stabilised, with AsyncFn/AsyncFnMut/AsyncFnOnce traits"
+ct-010,code_technical,authored,0,How do I run a matrix build across multiple Python versions in GitHub Actions and fail fast on the first error?,strategy.matrix with python-version; fail-fast defaults to true
+ct-011,code_technical,authored,0,What is the correct way to handle a 429 response from an API in Python using exponential backoff with jitter?,"Honour Retry-After when present, otherwise exponential backoff with random jitter and a cap"
+ct-012,code_technical,authored,0,How do I create a generated column in SQLite and what are its limitations?,"GENERATED ALWAYS AS (expr) VIRTUAL|STORED; cannot be a primary key, limited ALTER support"
+ct-013,code_technical,authored,0,"In Go 1.22, what changed about loop variable scoping in for loops?","Loop variables are now per-iteration, fixing the long-standing closure capture bug"
+ct-014,code_technical,authored,0,How do I configure Vite to proxy API requests to a backend server during development?,"server.proxy in vite.config, mapping a path prefix to a target with changeOrigin"
+ct-015,code_technical,authored,0,"What is the difference between a Docker ENTRYPOINT and CMD, and how do they interact?","ENTRYPOINT is the executable, CMD supplies default arguments; CMD is overridden by run args"
+ct-016,code_technical,authored,0,How do I write a Postgres query to find rows where a JSONB array contains a given value?,"Use the @> containment operator, e.g. data->'tags' @> '[""x""]'::jsonb"
+ct-017,code_technical,authored,0,"In pandas 2.x, what is the recommended replacement for DataFrame.append()?",pd.concat([...]); append was removed in 2.0
+ct-018,code_technical,authored,0,How do I set up a Python project with pyproject.toml so that it installs in editable mode?,"Define [build-system] and [project], then pip install -e ."
+ct-019,code_technical,authored,0,What causes a React useEffect to run twice in development and how should I handle it?,StrictMode double-invokes effects in dev; write effects to be idempotent with proper cleanup
+ct-020,code_technical,authored,0,How do I configure CORS to allow credentials in FastAPI?,CORSMiddleware with allow_credentials=True and explicit allow_origins (not wildcard)
+ct-021,code_technical,authored,0,What is the difference between git rebase --onto and a plain git rebase?,"--onto lets you specify a new base independent of the upstream, for transplanting a range of commits"
+ct-022,code_technical,authored,0,How do I use structured outputs with the OpenAI API to guarantee a JSON schema is followed?,"response_format with a json_schema, strict: true, additionalProperties: false"
+ct-023,code_technical,authored,0,"In Kubernetes, what is the difference between a readiness probe and a liveness probe?",Readiness gates traffic; liveness restarts the container on failure
+ct-024,code_technical,authored,0,How do I avoid the N+1 query problem in SQLAlchemy 2.0?,selectinload or joinedload eager loading strategies on the relationship
+ct-025,code_technical,authored,0,What is the correct way to type a React component's props with children in TypeScript?,Explicit children: React.ReactNode in the props type; React.FC no longer implies children
+mh-001,multi_hop,authored-hotpotqa-style,0,The director of the film Blade Runner also directed a 1979 science fiction horror film. What was that film's budget?,Ridley Scott directed Alien (1979); budget approximately $11 million
+mh-002,multi_hop,authored-hotpotqa-style,0,"The author of Norwegian Wood was born in which Japanese city, and what is that city's population?",Haruki Murakami was born in Kyoto; population roughly 1.4 million
+mh-003,multi_hop,authored-hotpotqa-style,0,"Which university did the founder of SpaceX attend for his undergraduate degree, and in what year was that university founded?","Elon Musk attended the University of Pennsylvania, founded 1740"
+mh-004,multi_hop,authored-hotpotqa-style,0,"The scientist who formulated the uncertainty principle won the Nobel Prize in what year, and who won the same prize the following year?",Werner Heisenberg won in 1932; Schrödinger and Dirac shared it in 1933
+mh-005,multi_hop,authored-hotpotqa-style,0,"What is the capital of the country that hosted the 2016 Summer Olympics, and what is its elevation?","Brazil; Brasília, elevation approximately 1,172 m"
+mh-006,multi_hop,authored-hotpotqa-style,0,"The composer of the opera The Magic Flute died in which year, and what was his final completed work?","Mozart died in 1791; the Requiem was left unfinished, the Clarinet Concerto was among his last completed works"
+mh-007,multi_hop,authored-hotpotqa-style,0,"Which river flows through the city that hosts the European Central Bank, and how long is that river?",The Main flows through Frankfurt; approximately 525 km
+mh-008,multi_hop,authored-hotpotqa-style,0,"The programming language created by Guido van Rossum was first released in what year, and what language most influenced its design?","Python, 1991; heavily influenced by ABC"
+mh-009,multi_hop,authored-hotpotqa-style,0,"Who succeeded the first president of the United States, and how long did that successor serve?","John Adams succeeded Washington; served one term, 1797-1801"
+mh-010,multi_hop,authored-hotpotqa-style,0,"The company that acquired Instagram was founded in which year, and who were its co-founders?","Facebook, founded 2004, by Mark Zuckerberg and others including Eduardo Saverin"
+mh-011,multi_hop,authored-hotpotqa-style,0,The actor who played the lead in Taxi Driver also starred in a 1980 boxing film. Who directed that film?,"Robert De Niro starred in Raging Bull, directed by Martin Scorsese"
+mh-012,multi_hop,authored-hotpotqa-style,0,"What is the official language of the country where Machu Picchu is located, and what is that country's currency?",Peru; Spanish (and Quechua); the sol
+mh-013,multi_hop,authored-hotpotqa-style,0,"The physicist who developed the general theory of relativity emigrated to which country, and in what year?",Einstein emigrated to the United States in 1933
+mh-014,multi_hop,authored-hotpotqa-style,0,"Which mountain range separates the country containing Mount Elbrus from its southern neighbours, and what is the range's highest peak?","The Caucasus; Mount Elbrus itself at 5,642 m"
+mh-015,multi_hop,authored-hotpotqa-style,0,"The novel that won the Booker Prize in 1981 was written by whom, and what was that author's next novel?","Salman Rushdie, Midnight's Children; followed by Shame"
+mh-016,multi_hop,authored-hotpotqa-style,0,"What is the largest city in the US state where the Grand Canyon is located, and what is its population?","Arizona; Phoenix, roughly 1.6 million"
+mh-017,multi_hop,authored-hotpotqa-style,0,"The inventor of the telephone was born in which city, and what institution did he later help found?",Alexander Graham Bell was born in Edinburgh; helped found the National Geographic Society
+mh-018,multi_hop,authored-hotpotqa-style,0,"Which team won the FIFA World Cup immediately before Argentina's 2022 victory, and who was their captain?","France in 2018, captained by Hugo Lloris"
+mh-019,multi_hop,authored-hotpotqa-style,0,"The database system originally called Postgres was developed at which university, and under which professor?","UC Berkeley, under Michael Stonebraker"
+mh-020,multi_hop,authored-hotpotqa-style,0,"What is the highest-grossing film by the director of Jurassic Park, and how much did it gross?",Spielberg; Jurassic Park itself or E.T. depending on inflation adjustment; roughly $1 billion for Jurassic Park
+mh-021,multi_hop,authored-hotpotqa-style,0,"The country that borders both France and Italy to the north is which, and what is its capital?",Switzerland; Bern
+mh-022,multi_hop,authored-hotpotqa-style,0,"Who wrote the play that inspired the musical West Side Story, and when was the original written?","Shakespeare's Romeo and Juliet, roughly 1595"
+mh-023,multi_hop,authored-hotpotqa-style,0,"The founder of modern nursing served in which war, and what statistical method is she credited with popularising?","Florence Nightingale, the Crimean War; the polar area diagram"
+mh-024,multi_hop,authored-hotpotqa-style,0,"Which element was discovered by Marie Curie in addition to radium, and what was it named after?","Polonium, named after Poland"
+mh-025,multi_hop,authored-hotpotqa-style,0,"The operating system that Linus Torvalds created was inspired by which earlier system, and who wrote that system?","MINIX, written by Andrew Tanenbaum"
+lt-001,long_tail,authored,0,What are the documented failure modes of lithium iron phosphate batteries at low temperatures?,
+lt-002,long_tail,authored,0,How does the Dutch pension system handle indexation during periods of high inflation?,
+lt-003,long_tail,authored,0,What is the current scientific consensus on the role of soil microbiome diversity in carbon sequestration?,
+lt-004,long_tail,authored,0,What legal precedents exist for copyright in works produced substantially by generative models?,
+lt-005,long_tail,authored,0,How do container shipping companies calculate bunker adjustment factors?,
+lt-006,long_tail,authored,0,What are the main criticisms of the replication crisis reforms in experimental psychology?,
+lt-007,long_tail,authored,0,How does Iceland's geothermal district heating infrastructure handle demand peaks?,
+lt-008,long_tail,authored,0,What are the trade-offs between MLCC and tantalum capacitors in high reliability aerospace applications?,
+lt-009,long_tail,authored,0,What evidence exists on the long term efficacy of congestion pricing schemes in reducing urban emissions?,
+lt-010,long_tail,authored,0,How do sovereign wealth funds typically structure their exposure to illiquid private assets?,
+lt-011,long_tail,authored,0,What are the known limitations of CRISPR base editing in post-mitotic cells?,
+lt-012,long_tail,authored,0,How is the concept of technical debt measured empirically in software engineering research?,
+lt-013,long_tail,authored,0,What regulatory differences exist between EU and US approaches to medical device software classification?,
+lt-014,long_tail,authored,0,What are the main methodological objections to using GDP per capita as a welfare measure?,
+lt-015,long_tail,authored,0,How do modern grid operators model inertia loss as synchronous generation is retired?,
+lt-016,long_tail,authored,0,What is known about the pharmacokinetics of orally administered peptide drugs?,
+lt-017,long_tail,authored,0,What archaeological evidence supports competing theories about the collapse of the Bronze Age Mediterranean trade network?,
+lt-018,long_tail,authored,0,How do reinsurance companies price tail risk for correlated natural catastrophe exposures?,
+lt-019,long_tail,authored,0,What are the practical barriers to adopting formal verification in commercial software development?,
+lt-020,long_tail,authored,0,How does ocean acidification differentially affect calcifying organisms across latitudes?,
+lt-021,long_tail,authored,0,What is the evidence base for four day working week trials on productivity outcomes?,
+lt-022,long_tail,authored,0,How do central banks operationally implement quantitative tightening without disrupting repo markets?,
+lt-023,long_tail,authored,0,What are the main approaches to measuring embodied carbon in construction materials?,
+lt-024,long_tail,authored,0,What linguistic evidence supports the Anatolian hypothesis for Proto-Indo-European origins?,
+lt-025,long_tail,authored,0,How do modern semiconductor fabs manage defect density as feature sizes approach single digit nanometres?,

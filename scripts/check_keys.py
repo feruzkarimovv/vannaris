@@ -5,14 +5,21 @@ Run this before the first full benchmark run. Debugging five vendor auth
 schemes inside a 1,700-call pipeline is miserable; debugging them here is not.
 
     python scripts/check_keys.py
+    python scripts/check_keys.py --require-all   # a missing key is a failure
 
 Each vendor gets one trivial query. Total cost is a fraction of a cent, and it
 confirms the thing that actually matters: the key is valid, the endpoint shape
 is right, and we can parse what comes back.
+
+`--require-all` is what the weekly workflow runs. Locally an unset key means
+"not working on that vendor today"; under the scheduler it means the run would
+quietly publish a week with a vendor missing from the table, which is worth
+sixty seconds and a fraction of a cent to catch up front.
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import os
 import sys
@@ -132,6 +139,11 @@ CHECKS = [
 
 
 async def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--require-all", action="store_true",
+                    help="treat an unset key as a failure (used by the weekly workflow)")
+    args = ap.parse_args()
+
     load_dotenv()
     failures, skipped = 0, 0
 
@@ -161,10 +173,11 @@ async def main() -> int:
     if failures:
         print(f"{failures} key(s) failed. Fix these before the first run.")
     if skipped:
-        print(f"{skipped} key(s) not set yet.")
+        print(f"{skipped} key(s) not set yet."
+              + (" --require-all: that is a failure." if args.require_all else ""))
     if not failures and not skipped:
-        print("All eight keys live. Ready for the first benchmark run.")
-    return 1 if failures else 0
+        print(f"All {len(CHECKS)} keys live. Ready for the benchmark run.")
+    return 1 if failures or (skipped and args.require_all) else 0
 
 
 if __name__ == "__main__":
