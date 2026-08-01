@@ -31,8 +31,10 @@ weekly run. That restraint is the point, not modesty — and it is enforced in c
 to discipline: each run records whether a scheduler or a person invoked it, and the site's cadence
 copy is derived from that, so no page can claim a schedule that never fired.
 
-The scheduled workflow that starts the clock is written and tested but **not armed**. Two actions
-arm it, both the founder's: [the weekly run](#the-weekly-run).
+The workflow that starts that clock was **armed on 2026-08-01**, and has not yet delivered a week:
+the first scheduled run fires Monday 2026-08-03 at 06:23 UTC. Everything published so far comes
+from a run a person invoked, which is why the track record reads one week and
+`schedule_started` is still false. Armed is not started — see [the weekly run](#the-weekly-run).
 
 ## What the first run found
 
@@ -113,7 +115,10 @@ with one cheap call each, run the full 150-query set, build the export, check th
 the week. A run that fails any of those steps stops before the commit, and its log and database are
 uploaded as an artifact regardless — the failed runs are the ones most worth keeping.
 
-**It is not armed.** Two things arm it, both founder decisions:
+**It was armed on 2026-08-01.** The eight secrets are set and the workflow has been rehearsed by
+hand; the first *scheduled* run fires Monday 2026-08-03 at 06:23 UTC. It was armed by these two
+steps, kept here because they are also how it would be re-armed after a secret rotates or after
+GitHub disables the schedule for repository inactivity:
 
 ```bash
 # 1. Give Actions the keys. Eight secrets, same names as .env.
@@ -125,14 +130,21 @@ done
 git push origin main
 ```
 
-Then run it once by hand — `gh workflow run "Weekly benchmark"` — before trusting the cron. Leave
-the `trigger` input on `manual` for that first run: `scheduled` is what the site's track record
-counts, and a hand-fired test is not a week the schedule delivered.
+Rehearse it by hand — `gh workflow run "Weekly benchmark"` — before trusting the cron, and leave
+the `trigger` input on `manual`: `scheduled` is what the site's track record counts, and a
+hand-fired test is not a week the schedule delivered. Use the `limit` input to cap the query count
+so a rehearsal costs cents rather than dollars; the canonical-selection floor will correctly refuse
+to publish it.
 
-Worth knowing before arming it:
+**Armed is not started.** The clock this project runs on measures weeks the *scheduler* delivered,
+so nothing here or on the site describes the benchmark as weekly or continuous until
+`track_record.scheduled_weeks` is above zero. That is derived from `runs.trigger` rather than
+asserted, so no copy anywhere needs editing on the day it changes.
 
-- **It spends real money on a schedule.** About $3.40 of vendor spend per run plus judge tokens;
-  roughly $55–70/month all in, measured rather than estimated.
+Worth knowing now that it is armed:
+
+- **It spends real money on a schedule, starting now.** About $3.40 of vendor spend per run plus
+  judge tokens; roughly $55–70/month all in, measured rather than estimated.
 - **The database is never committed** — it holds raw vendor payloads. What gets committed is
   `site/data/` and `site/export/`, which the exporter guarantees carry no vendor-written text. The
   track record therefore accumulates as per-week JSON in git, and each run merges that history
