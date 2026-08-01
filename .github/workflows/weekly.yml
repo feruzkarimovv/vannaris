@@ -27,8 +27,13 @@
 #      it, and the pages read that. Nothing here needs to remember to edit copy
 #      when the schedule starts.
 #
-# Arming this workflow is two founder actions, both deliberately left undone —
-# see the weekly-run section of README.md.
+# Armed on 2026-08-01: the eight secrets are set and the cron is live. The first
+# scheduled run fires Monday 2026-08-03. Armed is not started — the track record
+# counts weeks the *scheduler* delivered, and `trigger` below is what makes that
+# checkable. See the weekly-run section of README.md.
+#
+# It now spends real money every Monday. Do not disarm it, change its schedule,
+# or dispatch it on your own initiative.
 
 name: Weekly benchmark
 
