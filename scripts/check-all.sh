@@ -27,6 +27,11 @@ PY=".venv/bin/python"
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
+# The summary's own arithmetic is part of the gate. `passed` counts every gate
+# that reported ok, including the two written inline below rather than through
+# run() — they printed ok without being counted, so the footer under-reported
+# the number of checks by two. A gate whose summary does not match its own
+# output is a gate nobody can quote.
 failed=0
 passed=0
 skipped=0
@@ -36,8 +41,11 @@ skips=""
 # that conflation has already bitten this repo once, when a pruned jsdom turned
 # two gates into no-ops that still exited 0. Skips are counted, named, and
 # printed again in the summary, so "all gates passed" can never mean "nothing
-# ran". Some skips are legitimate: a fresh checkout has no database and no
-# calibration set, because both are deliberately not in git.
+# ran".
+#
+# The two skips that used to be routine — no database, no calibration set — are
+# gone: both inputs are now generated (see make_fixture() below). `--quick` is
+# the only remaining path that skips anything, and it is opt-in.
 run() {
   local name="$1"; shift
   printf '\n\033[1m── %s\033[0m\n' "$name"
@@ -58,25 +66,71 @@ skip() {
   skips="${skips}   · ${name}: ${why}\n"
 }
 
+# The two gates that used to skip here — the export and the labeller UI — need
+# inputs the repository deliberately does not carry, because both derive from
+# raw vendor content (docs/03). Rather than leave them unverifiable outside the
+# one machine that holds a real database, their input is generated: a small,
+# deterministic, unmistakably-synthetic database built into a temp directory and
+# deleted on the way out. See tests/fixtures/README.md for how to tell it apart
+# from real data at a glance, and tests/test_fixture_db.py for the assertions
+# that keep it covering what it claims to cover.
+#
+# It never touches site/ — make_fixture_db.py refuses to write there at all —
+# and it is only used when no real database exists. Where one does, the gate
+# still runs against the real one.
+FIXTURE=""
+cleanup() { [ -n "$FIXTURE" ] && rm -rf "$FIXTURE"; }
+trap cleanup EXIT
+
+make_fixture() {
+  [ -n "$FIXTURE" ] && return 0
+  FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/vannaris-fixture.XXXXXX") || return 1
+  $PY scripts/make_fixture_db.py --out "$FIXTURE" --quiet || return 1
+}
+
+export_fixture() {
+  make_fixture || return 1
+  $PY -m src.export --db "$FIXTURE/fixture.db" \
+                    --queries "$FIXTURE/queries.json" \
+                    --out "$FIXTURE/site"
+}
+
+labeller_fixture() {
+  make_fixture || return 1
+  # Drawn through `calibrate sample` rather than hand-built, so the gate
+  # exercises the path that actually produces a labelling task. The set id is a
+  # fresh uuid, so the directory is found rather than known.
+  $PY -m src.calibrate --db "$FIXTURE/fixture.db" sample \
+      --n 24 --out "$FIXTURE/calibration" >/dev/null || return 1
+  local dir
+  dir=$(find "$FIXTURE/calibration" -mindepth 1 -maxdepth 1 -type d | head -1)
+  [ -n "$dir" ] || { echo "   fixture calibration set was not written"; return 1; }
+  node scripts/check-labeller.mjs "$dir"
+}
+
 run "unit tests"        $PY -m unittest discover tests
 # The export is the only thing allowed to turn the database into published
 # numbers, so "does it still run clean" is a correctness gate, not a build step.
-# The export needs a database, and the database is gitignored because it holds
-# raw vendor payloads — so a fresh checkout legitimately cannot run this. That
-# is a skip, not a pass and not a failure.
+# The export needs a database and the database is gitignored, so this used to
+# skip everywhere except the one machine holding a real one. It now falls back
+# to the generated fixture, which covers strictly more of the export than a
+# single real week does: rejected runs, a suppressed cell, a scheduled trigger.
 if [ "$QUICK" = "1" ]; then
   skip "export" "--quick"
-elif ! ls data/*.db >/dev/null 2>&1; then
-  skip "export" "no database in data/ — copy one over to check the export here"
-else
+elif ls data/*.db >/dev/null 2>&1; then
   run "export" $PY -m src.export
+else
+  run "export (fixture)" export_fixture
 fi
 run "site: data resolves" node scripts/check-site.mjs
 run "site: quality"       node scripts/check-quality.mjs
+# Same shape as the export gate. The real calibration/ directory is gitignored
+# because the task shows the labeller the vendors' actual retrieved content, so
+# the fixture stands in for it and the real one is left untouched.
 if ls calibration/*/label.html >/dev/null 2>&1; then
-  run "labeller UI"       node scripts/check-labeller.mjs
+  run "labeller UI"           node scripts/check-labeller.mjs
 else
-  skip "labeller UI" "no calibration set drawn — python -m src.calibrate sample"
+  run "labeller UI (fixture)" labeller_fixture
 fi
 
 # The claims this project is not allowed to make. Cheap to check, catastrophic
@@ -111,7 +165,7 @@ EOF
     claims=1
   fi
 fi
-if [ "$claims" = "0" ]; then printf '\033[32m   ok\033[0m\n'; else
+if [ "$claims" = "0" ]; then printf '\033[32m   ok\033[0m\n'; passed=$((passed + 1)); else
   printf '\033[31m   FAILED (forbidden claims)\033[0m\n'; failed=$((failed + 1)); fi
 
 # Secrets must never reach a commit. The history was clean when this was
@@ -123,6 +177,7 @@ if git diff --cached -U0 2>/dev/null | grep -inE "sk-[a-zA-Z0-9]{16,}|api[_-]?ke
   failed=$((failed + 1))
 else
   printf '\033[32m   ok\033[0m\n'
+  passed=$((passed + 1))
 fi
 
 printf '\n'
