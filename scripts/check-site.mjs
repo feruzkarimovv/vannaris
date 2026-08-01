@@ -20,11 +20,18 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = process.argv[2] ? resolve(process.argv[2]) : join(ROOT, "site");
 const PAGES = ["index.html", "results.html", "methodology.html", "data.html"];
 
+const STRICT = process.env.CHECK_STRICT === "1" || process.argv.includes("--strict");
+
 let JSDOM;
 try {
   ({ JSDOM } = await import("jsdom"));
 } catch {
-  console.log("jsdom not installed — skipping site checks (npm i -D jsdom to enable)");
+  if (STRICT) {
+    console.error("jsdom is not installed and CHECK_STRICT is set — refusing to report a pass");
+    console.error("  npm install");
+    process.exit(2);
+  }
+  console.log("jsdom not installed — skipping site checks (npm install to enable)");
   process.exit(0);
 }
 

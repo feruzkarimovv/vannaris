@@ -18,6 +18,13 @@ Vannaris is a free, public, continuously-updated benchmark of web-search/retriev
 `docs/08-risks-and-open-questions.md` — read this whenever something in the other docs seems too clean; it's the honest counterweight.
 `docs/09-sources.md` — every citation, organized by document, with primary/secondary sourcing flagged.
 
+## Working unattended
+
+`AUTONOMY.md` is the contract for long sessions with no human in the loop: the
+single gate that defines "did that work" (`scripts/check-all.sh`), the eight
+things an agent may never do alone, and how work lands. Read it before starting
+any autonomous run. The constraints below are the reasoning behind it.
+
 ## Non-negotiable constraints (do not silently violate these)
 
 **BYOK only, always.** Every vendor's terms of service prohibits reselling or sublicensing access. The router must never hold, proxy-resell, or take a markup on vendor API keys or vendor query costs — it orchestrates using the end user's own credentials. If you find yourself designing a feature where Vannaris sits between the user and the vendor as a resold/proxied service, stop and re-read `docs/03-legal-and-vendor-terms.md` — that design is not viable under the vendor terms as currently understood.
