@@ -1,0 +1,298 @@
+{
+  "index.html": {
+    "title": "Vannaris — a neutral benchmark of web-search APIs for AI agents",
+    "landmarks": [
+      "header",
+      "nav \"Primary\"",
+      "div[role=group] \"Current run\"",
+      "main",
+      "section#record",
+      "section#finding",
+      "section#how",
+      "section#limits",
+      "section#use",
+      "footer"
+    ],
+    "outline": [
+      "h1 Search APIs are not interchangeable, and no vendor will tell you where they differ.",
+      "h2 The current record",
+      "h3 Quality by vendor and category",
+      "h2 The finding a vendor benchmark cannot produce",
+      "h3 Share of the best score",
+      "h2 How a score gets made",
+      "h3 The same queries, to every vendor",
+      "h3 Three judges, three model families",
+      "h3 Median, and only when complete",
+      "h3 Everything published, including the holes",
+      "h2 What this benchmark cannot tell you",
+      "h3 The judges disagree, measurably",
+      "h3 The scores cluster high",
+      "h2 Use the data. Check the work."
+    ],
+    "figures": [
+      "#fig-heatmap",
+      "#fig-retained",
+      "#fig-disagreement",
+      "#fig-distribution"
+    ],
+    "tables": [
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Queries won\" counts the queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | p50 latency | Queries won | Returns]"
+    ],
+    "controls": [
+      "button[type=button][data-theme-toggle] \"dark\""
+    ],
+    "slots": [
+      "d.cheap_cost|money",
+      "d.cheap_vendor ×2",
+      "d.cost_ratio|ratio ×2",
+      "d.n_categories ×3",
+      "d.n_vendors ×3",
+      "d.schedule_note",
+      "d.schedule_state",
+      "d.strong_hi|pct0",
+      "d.strong_lo|pct0",
+      "d.strong_n",
+      "d.top_cost|money",
+      "d.top_vendor",
+      "d.track_dd",
+      "d.track_dt",
+      "d.trend_note",
+      "d.weak_cats",
+      "d.weak_hi|pct0",
+      "d.weak_lo|pct0",
+      "d.weeks ×2",
+      "d.weeks_plural",
+      "generated_at|date",
+      "latest.completeness.complete_ensembles|int",
+      "latest.completeness.pct|n1",
+      "latest.completeness.responses|int ×2",
+      "latest.judging.family_spread|n2",
+      "latest.judging.mean_disagreement|n2",
+      "latest.n_judgements|int",
+      "latest.n_queries|int ×2",
+      "latest.ran_at|date ×2",
+      "latest.vendor_spend_usd|money"
+    ],
+    "links": [
+      "data.html",
+      "index.html",
+      "methodology.html",
+      "methodology.html#vendors",
+      "results.html",
+      "results.html#judging",
+      "results.html#queries"
+    ]
+  },
+  "results.html": {
+    "title": "Results — Vannaris",
+    "landmarks": [
+      "header",
+      "nav \"Primary\"",
+      "div[role=group] \"Current run\"",
+      "main",
+      "section#quality",
+      "section#cost",
+      "section#latency",
+      "section#judging",
+      "section#queries",
+      "footer"
+    ],
+    "outline": [
+      "h1 Results, {latest.week}",
+      "h2 Quality by vendor and category",
+      "h3 Score matrix",
+      "h3 Where each vendor's queries land",
+      "h2 Cost against quality",
+      "h3 Cost per query vs score",
+      "h3 Share of the best score, by category",
+      "h2 Latency",
+      "h3 Median response time",
+      "h2 How much the judges disagree",
+      "h3 How far apart the three judges were",
+      "h3 Mean score by judge family",
+      "h2 Every query, every score"
+    ],
+    "figures": [
+      "#fig-heatmap",
+      "#fig-distribution",
+      "#fig-cost",
+      "#fig-retained",
+      "#fig-latency",
+      "#fig-disagreement",
+      "#fig-judges"
+    ],
+    "tables": [
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Queries won\" counts queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won | Scored | Returns]",
+      "#query-table []"
+    ],
+    "controls": [
+      "button[type=button][data-theme-toggle] \"dark\"",
+      "select#retained-vendor \"Vendor to compare against the best score\"",
+      "select#q-category \"all\"",
+      "input#q-search[type=search] \"filter query text\""
+    ],
+    "slots": [
+      "d.n_categories ×2",
+      "d.n_vendors",
+      "d.schedule_note",
+      "d.weeks",
+      "latest.completeness.complete_ensembles|int",
+      "latest.completeness.pct|n1",
+      "latest.completeness.responses|int",
+      "latest.completeness.vendor_errors|int",
+      "latest.judging.family_spread|n2 ×2",
+      "latest.judging.mean_disagreement|n2 ×2",
+      "latest.judging.n_compared|int",
+      "latest.judging.responses_over_3pts|int",
+      "latest.n_judgements|int",
+      "latest.n_judges",
+      "latest.n_queries|int ×3",
+      "latest.n_vendors",
+      "latest.run_id",
+      "latest.vendor_spend_usd|money",
+      "latest.week"
+    ],
+    "links": [
+      "#judging",
+      "data.html",
+      "index.html",
+      "methodology.html",
+      "methodology.html#judges",
+      "results.html"
+    ]
+  },
+  "methodology.html": {
+    "title": "Methodology — Vannaris",
+    "landmarks": [
+      "header",
+      "nav \"Primary\"",
+      "div[role=group] \"Current run\"",
+      "main",
+      "section#queries",
+      "section#vendors",
+      "section#normalisation",
+      "section#judges",
+      "section#aggregation",
+      "section#gaps",
+      "section#reproduce",
+      "section#changelog",
+      "footer"
+    ],
+    "outline": [
+      "h1 Methodology",
+      "h2 The query set",
+      "h3 Where the queries come from",
+      "h3 Breaking-news queries carry no expected answer",
+      "h2 The vendor set, and who is missing",
+      "h2 Making responses comparable",
+      "h3 Uniform depth",
+      "h3 Two shapes of answer",
+      "h3 Cost",
+      "h3 Latency",
+      "h2 The judge ensemble",
+      "h3 Why three families",
+      "h3 Median, and only when complete",
+      "h3 Salvaging truncated replies",
+      "h3 The rubric, as the code sends it",
+      "h2 From scores to a published table",
+      "h3 Response score",
+      "h3 Category cell",
+      "h3 Vendor score",
+      "h3 One run per week is published",
+      "h2 Open gaps",
+      "h2 Reproduce it",
+      "h2 Methodology changelog"
+    ],
+    "figures": [],
+    "tables": [
+      "#cat-table [Category | Queries | What it tests]",
+      "#vendor-meta-table [Vendor | Returns | Notes]",
+      "#judge-table \"Model versions are pinned. Changing one is a methodology change and appears in the changelog below.\" [Family | Model | Mean score, this run | Coverage]"
+    ],
+    "controls": [
+      "button[type=button][data-theme-toggle] \"dark\""
+    ],
+    "slots": [
+      "config.min_cell_coverage|pct0",
+      "config.min_queries_per_category",
+      "config.rubric",
+      "config.top_k ×2",
+      "d.n_categories",
+      "d.record_note",
+      "d.unbuilt",
+      "d.weeks",
+      "d.weeks_plural",
+      "latest.judging.family_spread|n2",
+      "latest.n_queries|int ×4",
+      "latest.query_set_hash",
+      "latest.vendor_spend_usd|money",
+      "latest.week"
+    ],
+    "links": [
+      "#gaps",
+      "data.html",
+      "data.html#recompute",
+      "index.html",
+      "methodology.html",
+      "results.html"
+    ]
+  },
+  "data.html": {
+    "title": "Data export — Vannaris",
+    "landmarks": [
+      "header",
+      "nav \"Primary\"",
+      "div[role=group] \"Current run\"",
+      "main",
+      "section#files",
+      "section#excluded",
+      "section#columns",
+      "section#recompute",
+      "section#licence",
+      "footer"
+    ],
+    "outline": [
+      "h1 Data export",
+      "h2 Files",
+      "h3 JSON, this week",
+      "h3 JSON, by week",
+      "h3 Manifest",
+      "h2 What is deliberately not in here",
+      "h2 Column dictionary",
+      "h3 judge-scores.csv",
+      "h3 responses.csv",
+      "h3 weekly-scores.csv",
+      "h2 Recompute the headline number",
+      "h2 Licence and citation",
+      "h3 Data",
+      "h3 Code",
+      "h3 Corrections",
+      "h3 Cite this"
+    ],
+    "figures": [],
+    "tables": [
+      "#file-table [File | Rows | Contents]",
+      "table [Column | Meaning]",
+      "table [Column | Meaning]",
+      "table [Column | Meaning]"
+    ],
+    "controls": [
+      "button[type=button][data-theme-toggle] \"dark\""
+    ],
+    "slots": [
+      "config.min_cell_coverage|pct0",
+      "generated_at|date",
+      "latest.week ×3"
+    ],
+    "links": [
+      "#",
+      "data.html",
+      "data/latest.json",
+      "export/manifest.json",
+      "index.html",
+      "methodology.html",
+      "methodology.html#changelog",
+      "results.html"
+    ]
+  }
+}
