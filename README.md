@@ -1,4 +1,4 @@
-# SearchBench
+# Vannaris
 
 An independent benchmark of the web-search APIs that AI agents and RAG pipelines depend on.
 
@@ -7,7 +7,7 @@ publishes. This is an attempt at the other kind: the same queries against every 
 three-model cross-family LLM judge ensemble, with the methodology, the individual judge scores and
 the gaps in the data all published — including the parts that make the results look worse.
 
-> **Working name.** "SearchBench" has **not** been cleared for trademark or domain use, and a
+> **Working name.** "Vannaris" has **not** been cleared for trademark or domain use, and a
 > dormant project with a near-identical name exists in an adjacent space. Nothing here should be
 > published under this name until [`PUBLISH-CHECKLIST.md`](PUBLISH-CHECKLIST.md) is satisfied.
 > `python scripts/rename.py <NewName>` renames the whole repo in one pass.

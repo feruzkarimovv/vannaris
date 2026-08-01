@@ -11,7 +11,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = ROOT / "data" / "searchbench.db"
+DB_PATH = ROOT / "data" / "vannaris.db"
 SCHEMA = ROOT / "src" / "storage" / "schema.sql"
 
 # Columns added to schema.sql after a database already existed. CREATE TABLE IF

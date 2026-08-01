@@ -96,6 +96,11 @@ All sources below were fetched or searched on 2026-07-30 unless otherwise dated.
   (`repos/{owner}/{repo}` and repository search) — primary
 - Package namespace availability: [pypi.org](https://pypi.org/) JSON API and
   [registry.npmjs.org](https://registry.npmjs.org/) — primary
+- Name selection sweep (§6, ~250 candidates over twelve passes): the same four registries as above —
+  Verisign RDAP for `.com`, `whois.nic.ai` for `.ai`, Google Registry RDAP
+  (`pubapi.registry.google`) for `.dev`, Identity Digital RDAP for `.io` — plus the PyPI, npm,
+  GitHub and [Hugging Face](https://huggingface.co/docs/hub/api) APIs, and open web search for
+  residual brand presence — primary
 - USPTO federal register: **NOT SOURCED — the check was not completed.**
   [tmsearch.uspto.gov](https://tmsearch.uspto.gov/) is behind an AWS WAF challenge,
   [api.uspto.gov](https://api.uspto.gov/) requires an interactively-obtained API key,
