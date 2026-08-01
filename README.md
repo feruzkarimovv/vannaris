@@ -231,9 +231,10 @@ an attorney reviewing the methodology before a public launch.
 
 Restating what the site says, because a repository that only advertises its strengths is marketing:
 
-- **No human calibration.** The methodology calls for a hand-labelled gold set scored monthly
-  against the ensemble. It does not exist yet, so the judges are unaudited. This is the first thing
-  a sharp reviewer should attack.
+- **No human calibration *yet*.** The methodology calls for a hand-labelled gold set scored monthly
+  against the ensemble. The tooling exists and a set is drawn; **no human has labelled it**, so the
+  judges remain unaudited and this is still the first thing a sharp reviewer should attack. See
+  "Calibrating the judges" below.
 - **One week of data**, so no trend, no week-over-week movement, no track record.
 - **Scores cluster between 7 and 10**, which suggests the query set is not hard enough to
   discriminate cleanly at the top.
@@ -242,6 +243,41 @@ Restating what the site says, because a repository that only advertises its stre
 - **The query set is authored in-house**, which avoids dataset-licence problems and makes the set
   easier to accuse of being unrepresentative. The whole set is published, so the accusation is
   checkable.
+
+## Calibrating the judges
+
+An LLM judge measured against nothing is an assertion. `docs/04` calls for 100–200 expert-labelled
+examples and a four-phase loop — baseline, error analysis, targeted rubric refinement, re-measure —
+repeated monthly until agreement plateaus. This is that loop:
+
+```bash
+.venv/bin/python -m src.calibrate sample --n 150        # draw a set; writes calibration/<id>/
+open calibration/<id>/label.html                        # label it — about 100 minutes
+.venv/bin/python -m src.calibrate import calibration/<id>/labels.json --labeller YOURNAME
+.venv/bin/python -m src.calibrate report
+```
+
+Four properties are deliberate, and each of them is there to stop the exercise from flattering the
+judge:
+
+- **Two strata, never pooled.** Two thirds of the set is drawn uniformly at random and is the only
+  thing that may be quoted as the benchmark's agreement figure. One third is drawn from the
+  responses where the three judges disagreed most — deliberately the judge's worst moments, useful
+  for diagnosis and meaningless as a headline. `report` prints them separately and says which is
+  which.
+- **The labeller is blind.** No judge scores, no vendor names, shuffled order. Showing any of them
+  turns the measurement into agreement-with-an-anchor, and a brand halo would then be baked into
+  the gold standard the judge gets corrected against.
+- **The draw is seeded and recorded** — run, seed, strata and blinding all go in the database, so
+  the sample can be redrawn exactly. A gold set nobody can reproduce is an assertion about the
+  judge, not evidence about it.
+- **The task never enters the repository.** It shows the vendors' actual titles, URLs and snippets;
+  `docs/03` says retrieved content is stored and not republished, so `calibration/` is gitignored.
+  The labels that come back are numbers, and those are as publishable as any judge score.
+
+Two checks guard it: `node scripts/check-labeller.mjs` exercises the labelling page — persistence,
+keyboard entry, export shape, and that blinding actually holds — and
+`.venv/bin/python -m unittest discover tests` covers the sampler and the agreement arithmetic.
 
 ## Contributing
 

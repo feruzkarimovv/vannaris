@@ -111,6 +111,63 @@ CREATE TABLE IF NOT EXISTS weekly_scores (
     UNIQUE (week, vendor, category)
 );
 
+-- -------------------------------------------------------- calibration layer
+--
+-- docs/04 is explicit that a judge measured against nothing is an unexamined
+-- black box, and that the fix is 100-200 expert-labelled examples with a
+-- four-phase loop: baseline, error analysis, targeted refinement, re-measure.
+-- These tables are that loop's memory.
+--
+-- Human labels are scores, not vendor content, so this layer is publishable on
+-- the same terms as judge_scores. What is NOT publishable is the labelling task
+-- itself: it necessarily shows the labeller the vendor's actual results, so it
+-- is written outside the repository (see src/calibrate.py).
+CREATE TABLE IF NOT EXISTS calibration_sets (
+    id            TEXT PRIMARY KEY,
+    run_id        TEXT NOT NULL REFERENCES runs(id),
+    created_at    TEXT NOT NULL,
+    -- Everything needed to redraw this exact sample. A gold set nobody can
+    -- reproduce is an assertion about the judge, not evidence about it.
+    seed          INTEGER NOT NULL,
+    n_target      INTEGER NOT NULL,
+    disagreement_share REAL NOT NULL,
+    -- What the labeller could and could not see. Published alongside any
+    -- agreement figure, because an unblinded label is a different measurement.
+    blinding      TEXT NOT NULL,
+    notes         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS calibration_items (
+    set_id        TEXT NOT NULL REFERENCES calibration_sets(id),
+    response_id   TEXT NOT NULL REFERENCES raw_responses(id),
+    -- 'random' or 'disagreement'. Load-bearing: the two strata answer different
+    -- questions and must never be pooled into one agreement number. The random
+    -- stratum estimates how well the judge tracks a human in general; the
+    -- disagreement stratum is deliberately drawn from the judge's worst moments
+    -- and would drag any headline figure down while measuring nothing
+    -- representative.
+    stratum       TEXT NOT NULL,
+    position      INTEGER NOT NULL,
+    PRIMARY KEY (set_id, response_id)
+);
+
+CREATE TABLE IF NOT EXISTS human_labels (
+    id            TEXT PRIMARY KEY,
+    set_id        TEXT NOT NULL REFERENCES calibration_sets(id),
+    response_id   TEXT NOT NULL REFERENCES raw_responses(id),
+    labeller      TEXT NOT NULL,
+    relevance         REAL,
+    freshness         REAL,
+    citation_quality  REAL,
+    overall           REAL NOT NULL,
+    note          TEXT,
+    -- Time on task. A gold set produced at four seconds an item is not a gold
+    -- set, and the only way to know that afterwards is to have recorded it.
+    seconds       INTEGER,
+    labelled_at   TEXT NOT NULL,
+    UNIQUE (set_id, response_id, labeller)
+);
+
 CREATE INDEX IF NOT EXISTS idx_raw_run     ON raw_responses(run_id);
 CREATE INDEX IF NOT EXISTS idx_judge_resp  ON judge_scores(response_id);
 CREATE INDEX IF NOT EXISTS idx_weekly_week ON weekly_scores(week);
