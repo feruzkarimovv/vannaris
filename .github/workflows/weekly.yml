@@ -125,10 +125,19 @@ jobs:
 
       # The pages fill every figure from the export at load; this is what
       # catches a number that silently stopped resolving.
+      # `npm ci` from the committed lockfile, not `npm install --no-save`: the
+      # latter reconciles the tree against package.json and will prune a package
+      # that was only ever installed ad hoc. It did exactly that to jsdom once,
+      # which turned two green checks into two silent skips — and both of those
+      # checks exit 0 when their dependency is missing, so CI stayed green while
+      # checking nothing. CHECK_STRICT makes that failure loud instead.
       - name: Check the site
+        env:
+          CHECK_STRICT: "1"
         run: |
-          npm install --no-save jsdom
+          npm ci
           node scripts/check-site.mjs
+          node scripts/check-quality.mjs
 
       - name: Commit the week
         run: |
