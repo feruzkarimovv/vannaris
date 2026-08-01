@@ -15,3 +15,10 @@ venv/
 data/raw/
 *.db
 *.sqlite3
+
+# Tool caches.
+.impeccable/
+
+# Site checks use jsdom, installed ad hoc rather than as a project dependency —
+# this stays a Python repo with a static site, not a Node project.
+node_modules/

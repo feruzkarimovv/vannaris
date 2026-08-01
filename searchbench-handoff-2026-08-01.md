@@ -1,6 +1,7 @@
 # SearchBench — session handoff, 2026-08-01
 
-Workspace: `/Users/feruzkarimov/Desktop/searchbench`
+Workspace: the repository root. Covers two sessions on 2026-08-01; the second one is marked
+inline where it changed something.
 
 ## Orientation — read these first, in this order
 
@@ -9,15 +10,19 @@ Workspace: `/Users/feruzkarimov/Desktop/searchbench`
    UNVERIFIED as still open.
 3. `applications/the-residency.md` — current project state, empirical findings, and honest
    risks, written as a self-contained brief. **This is the fastest way to get current.**
+4. `README.md` — how to run it, and the two founder actions that arm the weekly schedule.
+5. `PUBLISH-CHECKLIST.md` — the gate between "the site is built" and "the site is live".
 
 Code decisions are documented in comments at the point of the decision, deliberately —
 `src/vendors/base.py`, `src/vendors/adapters.py`, `src/judge/ensemble.py`,
-`src/storage/schema.sql`, `src/queries/full-v1.json`. Don't re-derive them from scratch;
-several encode failures that cost a run.
+`src/storage/schema.sql`, `src/export.py`, `.github/workflows/weekly.yml`,
+`src/queries/full-v1.json`. Don't re-derive them from scratch; several encode failures that
+cost a run.
 
 ## State as of end of session
 
-Went from **zero code to a validated end-to-end benchmark in one day.** Working:
+Went from **zero code to a validated end-to-end benchmark in one day**, and by the end of the
+second session the public site and the scheduled runner existed too. Working:
 
 - 5 vendor adapters (Exa, Perplexity, You.com, Serper, Linkup), verified against live APIs
 - Normalisation to a common envelope at uniform top-10 depth
@@ -27,6 +32,34 @@ Went from **zero code to a validated end-to-end benchmark in one day.** Working:
 - 150-query set, 25 in each of six taxonomy categories
 - **Two complete full runs stored in `data/searchbench.db`** (the later one, 96% complete
   triples, is the valid one — see Mistakes below)
+- `src/export.py` — the only code allowed to turn the database into published numbers, and
+  the enforcement point for "no vendor content leaves the raw layer"
+- `site/` — a static four-page site (landing, results, methodology, data export) generated
+  entirely from that export, with `scripts/check-site.mjs` as its smoke test. Built early,
+  against one week of data, as a deliberate deviation from the build order. **Not published.**
+- `.github/workflows/weekly.yml` — the scheduled run. **Written, tested, deliberately not
+  armed.** Two founder actions arm it; see Open items.
+
+### What the second session added, and why
+
+The theme was making the schedule safe to start rather than making the site nicer.
+
+- **`runs.trigger`** records whether a scheduler or a person invoked each run. The site's
+  cadence sentences are derived from it (`track_record.schedule_started`), so no page can
+  claim a schedule that never fired — or, once it fires, keep saying it hasn't. The
+  "the weekly schedule has not started" copy was hand-typed and would have silently become a
+  lie on the first cron.
+- **The runner exits non-zero on an unpublishable run** — a judge family that produced
+  nothing, ensembles below the 60% completeness floor, every vendor call failing. Everything
+  is still stored; the job just stops before the commit. `src/export.py` enforces the same
+  floor when picking a week's canonical run, so the runner's claim is actually true. It
+  wasn't: a collapsed run could previously still be selected and published as a table of nulls.
+- **The exporter merges committed week history.** CI starts from a fresh checkout with no
+  database, so the track record accumulates as per-week JSON in git and the database is never
+  committed — it holds raw vendor payloads. This is why `site/data/` and `site/export/` must
+  be committed for the record to survive.
+- **`scripts/check_keys.py --require-all`** so a lapsed key fails preflight rather than
+  publishing a table with a vendor quietly missing.
 
 Measured operating cost ≈ **$55–70/month**, well under `docs/06`'s $225–400 projection.
 That correction is flagged per `CLAUDE.md`'s instruction not to absorb cost-model deltas
@@ -81,13 +114,23 @@ cost-escalation routing, not best-vendor-per-category routing.
 
 ## Open items
 
-**Next up (my recommendation, unconfirmed by founder):** GitHub Actions weekly workflow.
-The only claim that cannot be bought or accelerated is elapsed public track record, and
-nothing starts that clock but a scheduled run actually firing. `docs/05` specifies public
-repo + Actions (free minutes, and inspectability is itself a credibility feature).
+**The one thing blocking everything else: arm the weekly workflow.** It is written and
+tested; it is not armed, and nothing accrues the one asset that cannot be bought or
+accelerated until it is. Two founder actions, both documented in the weekly-run section of
+`README.md`:
 
-Then, roughly in order: public dashboard (`docs/05`), human-labelled calibration set
-(`docs/04` — now a requirement, see below), router SDK last.
+1. Put the eight keys in GitHub Actions secrets (`gh secret set`).
+2. Push, and run it once by hand with `trigger` left on `manual` before trusting the cron.
+
+**Left undone on purpose.** Arming it starts a recurring real-money spend (~$3.40 vendor
+spend per run, ~$55–70/month all in) on the founder's accounts. That is a founder decision,
+not an assistant one. It is *not* gated by `PUBLISH-CHECKLIST.md` — the runner can accrue
+weeks while the name and legal questions are still open, and that sequencing is the
+recommended one, since weeks accrue during the wait rather than after it.
+
+Then, roughly in order: human-labelled calibration set (`docs/04` — now a requirement, see
+below, and the highest-value thing an assistant can pick up), then the router SDK. The public
+dashboard is built.
 
 **Known weaknesses to address:**
 - Judge disagreement is high on the full set: mean 1.77 points, 98/750 responses differing
@@ -113,12 +156,20 @@ before signing anything — not before applying.
 ## Environment
 
 - `.venv` exists; deps in `requirements.txt`. Run as `.venv/bin/python -m src.runner`.
+  Note that only `httpx` and `python-dotenv` are actually imported — the SDK entries in
+  `requirements.txt` are unused.
 - `.env` holds 5 vendor + 3 judge API keys, all live and verified. **Gitignored. Never read,
   echo, commit, or paste it.** `scripts/check_keys.py` verifies all eight with one cheap
   live call each and prints only pass/fail — use that instead of inspecting the file.
-- **Not a git repo yet.** When initialising: verify `.env` is ignored via `git status`
-  *before* the first commit, and move keys to GitHub Actions secrets before going public.
-- Useful: `python -m src.runner --limit N` for cheap smoke tests.
+  `--require-all` makes an unset key a failure; that is what CI runs.
+- **Git: a private GitHub repo** at `feruzkarimovv/searchbench`. `.env` and `*.db` are
+  ignored and the history has been checked for key patterns. It is private, so pushing
+  publishes nothing — making it public is a separate decision, gated by section 4 of
+  `PUBLISH-CHECKLIST.md`, and the keys must be in Actions secrets before that happens.
+- Useful: `python -m src.runner --limit N` for cheap smoke tests, and
+  `node scripts/check-site.mjs [site-root]` to check a build somewhere other than `site/` —
+  that is how a state the live data does not yet show (a started schedule, a second week)
+  gets tested before it happens for real.
 
 ## Suggested skills
 

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SearchBench — a neutral benchmark of web-search APIs for AI agents</title>
+<meta name="description" content="An independent, reproducible benchmark of the web-search APIs that AI agents depend on. Every score, every judge, and every limitation published in full.">
+<meta property="og:title" content="SearchBench — a neutral benchmark of web-search APIs">
+<meta property="og:description" content="Five search APIs, 150 queries, six categories, a three-model judge ensemble. Open methodology, open data, published limitations.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23121210'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="shell">
+    <div class="masthead__row">
+      <a class="wordmark" href="index.html">SearchBench</a>
+      <span class="masthead__now" data-now aria-live="polite"></span>
+      <nav class="nav" aria-label="Primary">
+        <a href="results.html">Results</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="data.html">Data</a>
+        <a href="https://github.com/" data-repo>Source</a>
+      </nav>
+      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+    </div>
+    <div class="stamp" data-stamp aria-label="Current run"></div>
+  </div>
+  <div class="progress" aria-hidden="true"></div>
+</header>
+
+<main>
+
+<!-- The record, on the ink field. The argument for this project is that it
+     produces results nobody else publishes, so the result is the first thing on
+     the page and the pitch comes after it. When the page is showing you
+     measurements, the lights go down. -->
+<div class="band" data-field="ink">
+  <section class="hero">
+    <div class="shell">
+      <div class="hero__grid">
+        <div>
+          <h1>Search APIs are not interchangeable, and no vendor will tell you where they differ.</h1>
+          <p class="hero__lede">
+            The same <span data-val="latest.n_queries" data-fmt="int"></span> queries, sent to
+            <span data-val="d.n_vendors"></span> web-search APIs, scored by three models from three
+            different labs. The methodology, the individual judge scores and the gaps in the data
+            are all public, including the ones that make the results look worse.
+          </p>
+          <div class="cta-row">
+            <a class="btn" href="results.html">See the results</a>
+            <a class="btn btn--ghost" href="methodology.html">How it works</a>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="claim">
+            <span class="label">Status</span>
+            <p>
+              <strong><span data-val="d.weeks"></span> published <span data-val="d.weeks_plural"></span></strong>
+              of data, most recently on <span class="mono" data-val="latest.ran_at" data-fmt="date"></span>. The
+              weekly schedule <strong data-val="d.schedule_state"></strong>.
+              <span data-val="d.trend_note"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="readout readout--strip" data-reveal="rows">
+        <div class="readout__item">
+          <div class="label readout__label">Judgements</div>
+          <div class="readout__value" data-count data-val="latest.n_judgements" data-fmt="int"></div>
+          <div class="readout__note">3 judges scored every response</div>
+        </div>
+        <div class="readout__item">
+          <div class="label readout__label">Complete ensembles</div>
+          <div class="readout__value"><span data-count data-val="latest.completeness.pct" data-fmt="n1"></span><span class="unit">%</span></div>
+          <div class="readout__note">of <span data-val="latest.completeness.responses" data-fmt="int"></span> responses</div>
+        </div>
+        <div class="readout__item">
+          <div class="label readout__label">Cost to run</div>
+          <div class="readout__value" data-count data-val="latest.vendor_spend_usd" data-fmt="money"></div>
+          <div class="readout__note">all vendors, one full cycle</div>
+        </div>
+        <div class="readout__item">
+          <div class="label readout__label">Published weeks</div>
+          <div class="readout__value" data-count data-val="d.weeks"></div>
+          <div class="readout__note" data-val="d.schedule_note"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="record">
+    <div class="shell">
+      <div class="section-head">
+        <h2>The current record</h2>
+        <p>
+          Every vendor against every category, from the run stamped at the top of this page.
+          Hover a cell for its sample size, or switch any figure to a table.
+        </p>
+        <span class="label"><span data-val="d.n_vendors"></span> vendors · <span data-val="d.n_categories"></span> categories</span>
+      </div>
+
+      <div class="panel" style="margin-bottom:1.6rem">
+        <div class="panel__head">
+          <h3>Quality by vendor and category</h3>
+          <span class="label">ensemble median, 0–10</span>
+        </div>
+        <div class="panel__body" id="fig-heatmap"></div>
+        <div class="panel__foot">
+          <span data-val="latest.completeness.complete_ensembles" data-fmt="int"></span> of
+          <span data-val="latest.completeness.responses" data-fmt="int"></span> responses carry a
+          complete three-judge score. Each cell is the mean over the queries that do.
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="vendor-table">
+          <caption>
+            Overall score is the mean of a vendor's category scores. "Queries won" counts the queries
+            where that vendor took the highest ensemble median.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Vendor</th>
+              <th scope="col" class="num">Score</th>
+              <th scope="col" class="num">Cost / query</th>
+              <th scope="col" class="num">p50 latency</th>
+              <th scope="col" class="num">Queries won</th>
+              <th scope="col">Returns</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- The finding. -->
+<section id="finding">
+  <div class="shell">
+    <div class="section-head">
+      <h2>The finding a vendor benchmark cannot produce</h2>
+      <p>
+        The cheapest API in the set costs
+        <span class="mono" data-val="d.cost_ratio" data-fmt="ratio"></span> less per query than the
+        best-scoring one. What that buys you depends entirely on the kind of question you ask.
+      </p>
+      <span class="label">measured <span data-val="latest.ran_at" data-fmt="date"></span></span>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <p class="figure-xl" data-reveal="settle" data-val="d.cost_ratio" data-fmt="ratio"></p>
+        <p style="max-width:44ch">
+          <strong><span data-val="d.cheap_vendor"></span></strong> costs
+          <span class="mono" data-val="d.cheap_cost" data-fmt="money"></span> per query against
+          <strong><span data-val="d.top_vendor"></span></strong>'s
+          <span class="mono" data-val="d.top_cost" data-fmt="money"></span>. On
+          <span data-val="d.strong_n"></span> of <span data-val="d.n_categories"></span> categories it
+          reaches <span class="mono" data-val="d.strong_lo" data-fmt="pct0"></span>–<span class="mono" data-val="d.strong_hi" data-fmt="pct0"></span>
+          of the best available score. On <span data-val="d.weak_cats"></span> that falls to
+          <span class="mono" data-val="d.weak_lo" data-fmt="pct0"></span>–<span class="mono" data-val="d.weak_hi" data-fmt="pct0"></span>.
+        </p>
+        <p style="max-width:44ch">
+          That is not a ranking. It is a routing policy: use the cheap API by default, escalate on
+          the two categories where the gap actually opens. No vendor has any reason to publish it,
+          which is the entire argument for an independent benchmark existing.
+        </p>
+      </div>
+
+      <div class="panel" data-reveal="rise">
+        <div class="panel__head">
+          <h3>Share of the best score</h3>
+          <span class="label" data-val="d.cheap_vendor"></span>
+        </div>
+        <div class="panel__body" id="fig-retained"></div>
+        <div class="panel__foot">
+          Bars start at 70%. Vermilion marks the categories below 90% of the best available score.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A real sequence, so the numbers carry information. -->
+<section id="how">
+  <div class="shell">
+    <div class="section-head">
+      <h2>How a score gets made</h2>
+      <p>Every step is in the public repository, and every intermediate result is in the export.</p>
+      <span class="label">four steps</span>
+    </div>
+    <ol class="steps" data-reveal="rows">
+      <li>
+        <div>
+          <h3>The same queries, to every vendor</h3>
+          <p>
+            <span data-val="latest.n_queries" data-fmt="int"></span> queries across
+            <span data-val="d.n_categories"></span> categories, sent to all
+            <span data-val="d.n_vendors"></span> APIs and normalised to the same top-10 depth.
+            Without that, the most verbose vendor wins on volume.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Three judges, three model families</h3>
+          <p>
+            Each response is scored by one Anthropic, one OpenAI and one Google model against a
+            published rubric. LLM judges prefer text that reads like their own; using one family
+            would bake that preference into every number.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Median, and only when complete</h3>
+          <p>
+            The published score is the median of the three, and responses missing any judge are
+            dropped rather than averaged over what is left. A partly-computed number in the same
+            column as a complete one is worse than a missing one.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Everything published, including the holes</h3>
+          <p>
+            Individual judge scores, per-response latency and cost, and the coverage of every cell
+            ship as CSV. You can recompute every number on this site from the export.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- The limitations, at full weight and with the evidence attached. -->
+<section id="limits">
+  <div class="shell">
+    <div class="section-head">
+      <h2>What this benchmark cannot tell you</h2>
+      <p>
+        Printed here rather than in a footnote, with the charts that show it. A benchmark that only
+        publishes its strengths is marketing with a chart on it.
+      </p>
+      <span class="label">five known</span>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:2.4rem">
+      <div class="panel">
+        <div class="panel__head">
+          <h3>The judges disagree, measurably</h3>
+          <span class="label">750 responses</span>
+        </div>
+        <div class="panel__body" id="fig-disagreement"></div>
+        <div class="panel__foot">
+          Mean disagreement
+          <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span> points,
+          and a <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span>-point
+          gap between judge families on the same responses.
+          <a href="results.html#judging">Per-family means</a>.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <h3>The scores cluster high</h3>
+          <span class="label">every scored query</span>
+        </div>
+        <div class="panel__body" id="fig-distribution"></div>
+        <div class="panel__foot">
+          Almost everything lands between 7 and 10, which suggests the query set is not hard enough
+          to discriminate cleanly at the top. Harder queries are the next change to it.
+        </div>
+      </div>
+    </div>
+
+    <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt>Absolute scores are soft</dt>
+        <dd>
+          Every vendor faces every judge, so the <em>ranking</em> survives the spread above.
+          A claim like "scores 8.4 out of 10" does not: it would move on judge choice alone.
+        </dd>
+      </div>
+      <div>
+        <dt>There is no human calibration yet</dt>
+        <dd>
+          The methodology calls for a human-labelled gold set scored monthly against the ensemble.
+          It has not been built. Until it is, the judges are unaudited, and this is the first thing
+          a sharp reviewer should attack.
+        </dd>
+      </div>
+      <div>
+        <dt data-val="d.track_dt"></dt>
+        <dd data-val="d.track_dd"></dd>
+      </div>
+      <div>
+        <dt>Two well-known vendors are missing</dt>
+        <dd>
+          Tavily and Brave are deliberately excluded: their terms of service are broad enough to
+          cover third-party benchmarking, and no written consent has been sought.
+          <a href="methodology.html#vendors">Why the set is what it is</a>.
+        </dd>
+      </div>
+      <div>
+        <dt>One place, one moment</dt>
+        <dd>
+          All queries were issued from a single location at a single time. Search results vary by
+          region and by hour, and this measures neither.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<div class="band" data-field="ink">
+  <section id="use">
+    <div class="shell">
+      <div class="section-head">
+        <h2>Use the data. Check the work.</h2>
+        <p>
+          Every judge score, timing and cost is published under CC BY 4.0. If you think a number
+          here is wrong, the fastest way to prove it is to recompute it.
+        </p>
+        <span class="label">CC BY 4.0</span>
+      </div>
+      <div class="cta-row" style="margin-top:0">
+        <a class="btn" href="data.html">Download the export</a>
+        <a class="btn btn--ghost" href="results.html#queries">Browse per-query scores</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<footer class="foot">
+  <div class="shell foot__row">
+    <div>
+      <p style="margin:0">
+        SearchBench, independent benchmark of web-search APIs.<br>
+        Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
+      </p>
+    </div>
+    <div>
+      <p style="margin:0">
+        <a href="methodology.html">Methodology</a> ·
+        <a href="data.html">Data export</a> ·
+        <a href="results.html">Results</a>
+      </p>
+      <p class="mono note" style="margin:0.4rem 0 0">
+        generated <span data-val="generated_at" data-fmt="date"></span>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="data/bundle.js"></script>
+<script src="data/detail.js"></script>
+<script>
+/* Page wiring. Charts resolve their colours from CSS custom properties at draw
+   time, so a theme change rebuilds them rather than leaving the previous
+   palette in place. */
+window.SBPage = {
+  init: function () { this.redraw(); this.vendorTable(); },
+
+  redraw: function () {
+    ["fig-heatmap", "fig-retained", "fig-disagreement", "fig-distribution"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = "";
+      var panel = el.closest(".panel");
+      var toggle = panel && panel.querySelector(".view-toggle");
+      if (toggle) toggle.remove();
+    });
+    var C = window.SBCharts, D = window.SB_DATA;
+    var cheapest = D.latest.vendors.filter(function (v) { return v.cost_per_query_usd; })
+      .reduce(function (a, b) { return a.cost_per_query_usd <= b.cost_per_query_usd ? a : b; });
+    C.heatmap(document.getElementById("fig-heatmap").closest(".panel"));
+    C.retained(document.getElementById("fig-retained").closest(".panel"), cheapest.vendor);
+    C.disagreement(document.getElementById("fig-disagreement").closest(".panel"));
+    C.distribution(document.getElementById("fig-distribution").closest(".panel"));
+  },
+
+  vendorTable: function () {
+    var D = window.SB_DATA, h = window.SBCharts.helpers;
+    var modes = { ranked_results: "ranked results", both: "answer + ranked results",
+                  synthesized_answer: "synthesized answer" };
+    var body = document.querySelector("#vendor-table tbody");
+    // The bar under each score spans the range this run actually produced, not
+    // 0-10 and not a share of the leader. Both of those compress five vendors
+    // into near-identical bars, which is decoration rather than information.
+    var scores = D.latest.vendors.map(function (v) { return v.score; });
+    var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
+    var span = function (v) { return 14 + 86 * (hi > lo ? (v - lo) / (hi - lo) : 1); };
+    D.latest.vendors.forEach(function (v, i) {
+      var tr = document.createElement("tr");
+      function td(text, cls) {
+        var e = document.createElement("td");
+        if (cls) e.className = cls;
+        e.textContent = text;
+        return e;
+      }
+      var name = document.createElement("td");
+      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") +
+        '</span><span class="vendor-name">' + v.label + "</span>";
+      tr.appendChild(name);
+
+      // The bar under a score is drawn relative to the leader, so the column
+      // reads as a comparison rather than as an absolute 0-10 scale.
+      var score = td(h.fmt(v.score), i === 0 ? "num meter best" : "num meter");
+      score.style.setProperty("--pct", span(v.score).toFixed(1));
+      tr.appendChild(score);
+
+      tr.appendChild(td("$" + v.cost_per_query_usd.toFixed(5), "num"));
+      tr.appendChild(td(v.p50_latency_ms.toLocaleString() + " ms", "num"));
+      tr.appendChild(td(v.wins + " / " + D.latest.n_queries, "num"));
+      tr.appendChild(td(modes[v.response_mode] || v.response_mode));
+      body.appendChild(tr);
+    });
+  }
+};
+</script>
+<script src="assets/charts.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>
