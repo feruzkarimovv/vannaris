@@ -16,11 +16,17 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+const STRICT = process.env.CHECK_STRICT === "1" || process.argv.includes("--strict");
+
 let JSDOM;
 try {
   ({ JSDOM } = await import("jsdom"));
 } catch {
-  console.log("jsdom not installed — skipping labeller checks (npm i -D jsdom to enable)");
+  if (STRICT) {
+    console.error("jsdom is not installed and CHECK_STRICT is set — refusing to report a pass");
+    process.exit(2);
+  }
+  console.log("jsdom not installed — skipping labeller checks (npm install to enable)");
   process.exit(0);
 }
 
@@ -112,14 +118,20 @@ check(Object.values(after[first.response_id]).includes(4),
 
 // 6. Export shape must match what `calibrate import` parses, including dropping
 //    unlabelled items rather than exporting them as zeros.
-let exported = null;
-window.URL.createObjectURL = (blob) => { exported = blob; return "blob:x"; };
+// Captured at the Blob constructor rather than by reading the Blob back:
+// jsdom's Blob has no .text() in every version, and a check that breaks on a
+// dependency bump is a check that gets deleted.
+let exportedText = null;
+const RealBlob = window.Blob;
+window.Blob = class extends RealBlob {
+  constructor(parts, opts) { super(parts, opts); exportedText = String(parts[0]); }
+};
+window.URL.createObjectURL = () => "blob:x";
 window.HTMLAnchorElement.prototype.click = function () {};
 document.getElementById("export").click();
-check(exported !== null, "export produced no blob");
-if (exported) {
-  const text = await exported.text();
-  const payload = JSON.parse(text);
+check(exportedText !== null, "export produced no blob");
+if (exportedText) {
+  const payload = JSON.parse(exportedText);
   check(payload.set_id === task.set_id, "export omits set_id");
   check(Array.isArray(payload.labels) && payload.labels.length === 1,
         `export should carry only labelled items, got ${payload.labels?.length}`);
