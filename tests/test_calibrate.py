@@ -126,5 +126,40 @@ class TestDraw(unittest.TestCase):
         self.assertEqual([r["position"] for r in picked], list(range(25)))
 
 
+
+class TestCategoryBalance(unittest.TestCase):
+    """The random stratum must not let category mix drift with the draw."""
+
+    def pool(self, per_cat=40):
+        cats = ["a", "b", "c", "d", "e", "f"]
+        return [{"id": f"{c}{i:03d}", "spread": i % 11, "category": c, "query_id": "q"}
+                for c in cats for i in range(per_cat)]
+
+    def test_small_draw_is_evenly_allocated(self):
+        # The case that motivated this: a 40-item uniform draw produced 13 in one
+        # category and 1 in another.
+        picked = draw(self.pool(), 40, 1, 0.0)
+        counts = {}
+        for r in picked:
+            counts[r["category"]] = counts.get(r["category"], 0) + 1
+        self.assertEqual(len(picked), 40)
+        self.assertLessEqual(max(counts.values()) - min(counts.values()), 1)
+
+    def test_still_deterministic(self):
+        a = [r["id"] for r in draw(self.pool(), 30, 7, 0.0)]
+        b = [r["id"] for r in draw(self.pool(), 30, 7, 0.0)]
+        self.assertEqual(a, b)
+
+    def test_thin_category_does_not_shrink_the_set(self):
+        pool = self.pool() + [{"id": "z001", "spread": 3, "category": "z", "query_id": "q"}]
+        picked = draw(pool, 40, 3, 0.0)
+        self.assertEqual(len(picked), 40)
+
+    def test_disagreement_stratum_still_takes_widest_spreads(self):
+        picked = draw(self.pool(), 40, 4, 0.5)
+        dis = [r["spread"] for r in picked if r["stratum"] == "disagreement"]
+        rand = [r["spread"] for r in picked if r["stratum"] == "random"]
+        self.assertGreater(sum(dis) / len(dis), sum(rand) / len(rand))
+
 if __name__ == "__main__":
     unittest.main()
