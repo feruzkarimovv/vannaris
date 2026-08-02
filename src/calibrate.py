@@ -395,9 +395,14 @@ def agreement(pairs: list[tuple[float, float]]) -> dict:
     }
 
 
-def collect(conn: sqlite3.Connection, set_id: str) -> dict[str, list[dict]]:
-    """Human label joined to every judge score, split by stratum."""
-    out: dict[str, list[dict]] = defaultdict(list)
+def collect(conn: sqlite3.Connection, set_id: str) -> dict[tuple, dict[str, list[dict]]]:
+    """Labels joined to every judge score, keyed by (labeller, kind) then stratum.
+
+    Keyed by labeller because a set can hold several. Pooling them would average
+    a human and a model into one number that describes neither, and the whole
+    point of recording the kind is that those two are not interchangeable.
+    """
+    out: dict[tuple, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
     for r in conn.execute(
         """
         SELECT hl.response_id, hl.overall AS human, hl.labeller, hl.labeller_kind, hl.note,
@@ -423,7 +428,7 @@ def collect(conn: sqlite3.Connection, set_id: str) -> dict[str, list[dict]]:
         if len(d["judges"]) < len(JUDGES):
             continue
         d["ensemble"] = statistics.median(d["judges"].values())
-        out[d["stratum"]].append(d)
+        out[(d["labeller"], d.get("labeller_kind") or "unknown")][d["stratum"]].append(d)
     return out
 
 
@@ -446,83 +451,90 @@ def cmd_report(args: argparse.Namespace) -> int:
         raise SystemExit("no calibration set in this database — run `sample` first")
 
     meta = conn.execute("SELECT * FROM calibration_sets WHERE id = ?", (set_id,)).fetchone()
-    strata = collect(conn, set_id)
-    total = sum(len(v) for v in strata.values())
+    by_labeller = collect(conn, set_id)
+    if args.labeller:
+        by_labeller = {k: v for k, v in by_labeller.items() if k[0] == args.labeller}
     n_items = conn.execute(
         "SELECT COUNT(*) FROM calibration_items WHERE set_id = ?", (set_id,)).fetchone()[0]
 
     print(f"calibration set {set_id}  run {meta['run_id'][:8]}  seed {meta['seed']}")
     print(f"blinding: {meta['blinding']}")
-    print(f"labelled {total}/{n_items} items\n")
-    if not total:
-        print("nothing labelled yet — open the task and import the result.")
+    if not by_labeller:
+        print(f"\nnothing labelled yet — open the task and import the result.")
         return 0
 
-    # A model's labels are not calibration and the report must not let them read
-    # as such. Kinds are reported separately and the headline framing is withheld
-    # unless a human produced the labels — an LLM grading LLMs measures agreement
-    # between models, which is a different question and a much less interesting one.
-    kinds = {r.get("labeller_kind") or "unknown"
-             for rs in strata.values() for r in rs}
-    is_human = kinds == {"human"}
-    if not is_human:
-        print("!" * 78)
-        print(f"LABELLER KIND: {', '.join(sorted(kinds))} — NOT A HUMAN CALIBRATION")
-        print("These numbers describe agreement between models. They do not measure")
-        print("whether the judges track human judgement, which is what docs/04 requires")
-        print("and what the site's caveat is about. Do not publish them as calibration.")
-        print("!" * 78)
+    for (labeller, kind), strata in sorted(by_labeller.items()):
+        total = sum(len(v) for v in strata.values())
         print()
+        print("#" * 78)
+        print(f"LABELLER: {labeller}  [{kind}]  — {total}/{n_items} items")
+        if kind != "human":
+            print("NOT A CALIBRATION. These describe agreement between models and say")
+            print("nothing about whether the judges track human judgement (docs/04).")
+        print("#" * 78)
 
-    for stratum, headline in (("random", True), ("disagreement", False)):
-        rows = strata.get(stratum) or []
-        if not rows:
-            continue
-        if headline:
-            title = ("RANDOM STRATUM — this is the headline agreement figure"
-                     if is_human else
-                     "RANDOM STRATUM — model-vs-model agreement, NOT a calibration figure")
-        else:
-            title = "DISAGREEMENT STRATUM — the judge's worst moments, diagnostic only"
-        print("=" * 78)
-        print(title)
-        print("=" * 78)
-        if not headline:
-            print("  Drawn from the highest inter-judge spread. Never quote these numbers as")
-            print("  the benchmark's agreement: the sample is selected for difficulty.\n")
-        for fam, _model in JUDGES:
-            pairs = [(r["judges"][fam], r["human"]) for r in rows if fam in r["judges"]]
-            print(f"  {fam:<10} {_fmt(agreement(pairs))}")
-        ens = [(r["ensemble"], r["human"]) for r in rows]
-        print(f"  {'ENSEMBLE':<10} {_fmt(agreement(ens))}")
+        for stratum, is_random in (("random", True), ("disagreement", False)):
+            rows = strata.get(stratum) or []
+            if not rows:
+                continue
+            if is_random:
+                head = ("headline agreement figure" if kind == "human"
+                        else "model-vs-model, not a calibration figure")
+                print(f"\nRANDOM STRATUM — {head}")
+            else:
+                print("\nDISAGREEMENT STRATUM — the judges' worst moments, diagnostic only")
+                print("  Selected for difficulty; never quote as the benchmark's agreement.")
+            for fam, _model in JUDGES:
+                pairs = [(r["judges"][fam], r["human"]) for r in rows if fam in r["judges"]]
+                print(f"  {fam:<10} {_fmt(agreement(pairs))}")
+            print(f"  {'ENSEMBLE':<10} {_fmt(agreement([(r['ensemble'], r['human']) for r in rows]))}")
 
-        # docs/04 phase 2: split the errors by direction. A judge that is
-        # uniformly generous needs a rubric change; one that is generous only on
-        # long-tail queries needs a different one.
-        gen = [r for r in rows if r["ensemble"] - r["human"] > 2]
-        harsh = [r for r in rows if r["human"] - r["ensemble"] > 2]
-        print(f"\n  judge >2pts generous: {len(gen)}   judge >2pts harsh: {len(harsh)}")
-        by_cat: dict[str, list[float]] = defaultdict(list)
-        for r in rows:
-            by_cat[r["category"]].append(r["ensemble"] - r["human"])
-        print("  bias by category:")
-        for cat, ds in sorted(by_cat.items(), key=lambda kv: -abs(statistics.fmean(kv[1]))):
-            print(f"    {cat:<16} {statistics.fmean(ds):+.2f}  (n={len(ds)})")
-        print()
+            gen = sum(1 for r in rows if r["ensemble"] - r["human"] > 2)
+            harsh = sum(1 for r in rows if r["human"] - r["ensemble"] > 2)
+            print(f"  judges >2pts generous: {gen}   >2pts harsh: {harsh}")
+            by_cat: dict[str, list[float]] = defaultdict(list)
+            for r in rows:
+                by_cat[r["category"]].append(r["ensemble"] - r["human"])
+            print("  bias by category:")
+            for cat, ds in sorted(by_cat.items(), key=lambda kv: -abs(statistics.fmean(kv[1]))):
+                print(f"    {cat:<16} {statistics.fmean(ds):+.2f}  (n={len(ds)})")
 
-    worst = sorted(
-        [r for rs in strata.values() for r in rs],
-        key=lambda r: -abs(r["ensemble"] - r["human"]),
-    )[:args.show]
+    # Where two labellers scored the same responses, how far apart are they? For a
+    # human and a model this is the number that says what the model pass was
+    # worth: agreement with the judges means little if the two labellers who
+    # produced it do not agree with each other.
+    keys = sorted(by_labeller)
+    if len(keys) > 1:
+        for i, a in enumerate(keys):
+            for b in keys[i + 1:]:
+                ra = {r["response_id"]: r["human"] for rs in by_labeller[a].values() for r in rs}
+                rb = {r["response_id"]: r["human"] for rs in by_labeller[b].values() for r in rs}
+                shared = sorted(set(ra) & set(rb))
+                if len(shared) < 3:
+                    continue
+                print()
+                print("=" * 78)
+                print(f"LABELLER AGREEMENT: {a[0]} [{a[1]}] vs {b[0]} [{b[1]}]")
+                print("=" * 78)
+                print(f"  {_fmt(agreement([(ra[k], rb[k]) for k in shared]))}")
+                print(f"  bias sign: positive means {a[0]} scores higher")
+                worst = sorted(shared, key=lambda k: -abs(ra[k] - rb[k]))[:5]
+                for k in worst:
+                    row = next(r for rs in by_labeller[a].values() for r in rs
+                               if r["response_id"] == k)
+                    print(f"    {ra[k]:>4.1f} vs {rb[k]:>4.1f}  {row['category']:<15} "
+                          f"{row['query_text'][:44]}")
+
+    flat = [r for strata in by_labeller.values() for rs in strata.values() for r in rs]
+    worst = sorted(flat, key=lambda r: -abs(r["ensemble"] - r["human"]))[:args.show]
     if worst:
+        print()
         print("=" * 78)
-        print(f"LARGEST DISAGREEMENTS (top {len(worst)}) — read these before changing the rubric")
+        print(f"LARGEST JUDGE DISAGREEMENTS (top {len(worst)}) — read before changing the rubric")
         print("=" * 78)
         for r in worst:
-            print(f"  human {r['human']:>4.1f}  ensemble {r['ensemble']:>4.1f}  "
-                  f"[{r['stratum'][:4]}] {r['category']:<15} {r['query_text'][:52]}")
-            if r["note"]:
-                print(f"      note: {r['note'][:70]}")
+            print(f"  {r['labeller'][:12]:<12} {r['human']:>4.1f}  ensemble {r['ensemble']:>4.1f}  "
+                  f"{r['category']:<15} {r['query_text'][:44]}")
     conn.close()
     return 0
 
@@ -555,6 +567,7 @@ def main() -> int:
 
     r = sub.add_parser("report", help="judge-vs-human agreement")
     r.add_argument("--set", help="calibration set id (default: most recent)")
+    r.add_argument("--labeller", help="report only this labeller")
     r.add_argument("--show", type=int, default=12)
     r.set_defaults(func=cmd_report)
 
