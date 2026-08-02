@@ -31,6 +31,12 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # "unknown", which is the truth. Backfilling them to 'manual' would be a
     # guess written into the evidence layer.
     ("runs", "trigger", "TEXT"),
+    # 'human' or 'model'. The calibration set exists to measure whether the LLM
+    # judges track human judgement; a label produced by a model answers a
+    # different question entirely, and the two must never pool. Deliberately
+    # without a DEFAULT so rows written before this column read NULL — unknown,
+    # which is the truth — rather than being backfilled to 'human' on a guess.
+    ("human_labels", "labeller_kind", "TEXT"),
 ]
 
 
