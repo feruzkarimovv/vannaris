@@ -299,7 +299,7 @@ def cmd_import(args: argparse.Namespace) -> int:
     if not known:
         raise SystemExit(f"no calibration set {set_id} in this database")
 
-    rows, skipped = [], 0
+    rows, skipped, seconds = [], 0, []
     for lab in payload["labels"]:
         rid = lab["response_id"]
         if rid not in known:
@@ -309,23 +309,32 @@ def cmd_import(args: argparse.Namespace) -> int:
             skipped += 1  # an unfinished item is absent data, not a zero
             continue
         rows.append((
-            uuid.uuid4().hex, set_id, rid, args.labeller,
+            uuid.uuid4().hex, set_id, rid, args.labeller, args.labeller_kind,
             lab.get("relevance"), lab.get("freshness"), lab.get("citation_quality"),
             lab["overall"], lab.get("note"), lab.get("seconds"), _now(),
         ))
+        # Collected here rather than read back out of the tuple by index. It was
+        # read as rows[i][9], which silently became `note` the moment a column
+        # was inserted ahead of it — a positional index into a row built three
+        # lines earlier is a bug with a delay fuse.
+        if lab.get("seconds"):
+            seconds.append(lab["seconds"])
     conn.executemany(
         "INSERT OR REPLACE INTO human_labels (id, set_id, response_id, labeller, "
-        "relevance, freshness, citation_quality, overall, note, seconds, labelled_at) "
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        "labeller_kind, relevance, freshness, citation_quality, overall, note, "
+        "seconds, labelled_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         rows,
     )
     conn.commit()
-    secs = [r[9] for r in rows if r[9]]
-    print(f"imported {len(rows)} label(s) for set {set_id} by {args.labeller}"
+    print(f"imported {len(rows)} label(s) for set {set_id} by {args.labeller} "
+          f"[{args.labeller_kind}]"
           + (f"; skipped {skipped} unlabelled/unknown" if skipped else ""))
-    if secs:
-        print(f"  median {statistics.median(secs):.0f}s per item; "
-              f"{sum(1 for s in secs if s < 10)} labelled in under 10s")
+    if seconds:
+        print(f"  median {statistics.median(seconds):.0f}s per item; "
+              f"{sum(1 for s in seconds if s < 10)} labelled in under 10s")
+    elif args.labeller_kind == "human":
+        print("  no time-on-task recorded — a gold set with no timings cannot be "
+              "audited for rushing")
     conn.close()
     return 0
 
@@ -391,7 +400,7 @@ def collect(conn: sqlite3.Connection, set_id: str) -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = defaultdict(list)
     for r in conn.execute(
         """
-        SELECT hl.response_id, hl.overall AS human, hl.labeller, hl.note,
+        SELECT hl.response_id, hl.overall AS human, hl.labeller, hl.labeller_kind, hl.note,
                ci.stratum, rr.vendor, q.category, q.text AS query_text
         FROM human_labels hl
         JOIN calibration_items ci
@@ -449,13 +458,32 @@ def cmd_report(args: argparse.Namespace) -> int:
         print("nothing labelled yet — open the task and import the result.")
         return 0
 
+    # A model's labels are not calibration and the report must not let them read
+    # as such. Kinds are reported separately and the headline framing is withheld
+    # unless a human produced the labels — an LLM grading LLMs measures agreement
+    # between models, which is a different question and a much less interesting one.
+    kinds = {r.get("labeller_kind") or "unknown"
+             for rs in strata.values() for r in rs}
+    is_human = kinds == {"human"}
+    if not is_human:
+        print("!" * 78)
+        print(f"LABELLER KIND: {', '.join(sorted(kinds))} — NOT A HUMAN CALIBRATION")
+        print("These numbers describe agreement between models. They do not measure")
+        print("whether the judges track human judgement, which is what docs/04 requires")
+        print("and what the site's caveat is about. Do not publish them as calibration.")
+        print("!" * 78)
+        print()
+
     for stratum, headline in (("random", True), ("disagreement", False)):
         rows = strata.get(stratum) or []
         if not rows:
             continue
-        title = ("RANDOM STRATUM — this is the headline agreement figure"
-                 if headline else
-                 "DISAGREEMENT STRATUM — the judge's worst moments, diagnostic only")
+        if headline:
+            title = ("RANDOM STRATUM — this is the headline agreement figure"
+                     if is_human else
+                     "RANDOM STRATUM — model-vs-model agreement, NOT a calibration figure")
+        else:
+            title = "DISAGREEMENT STRATUM — the judge's worst moments, diagnostic only"
         print("=" * 78)
         print(title)
         print("=" * 78)
@@ -517,6 +545,12 @@ def main() -> int:
     i = sub.add_parser("import", help="load a completed labels.json")
     i.add_argument("labels")
     i.add_argument("--labeller", required=True)
+    # Required, with no default. A default of "human" would mean the one field
+    # that decides whether this is calibration or a curiosity gets set by
+    # whoever forgot to pass a flag.
+    i.add_argument("--labeller-kind", required=True, choices=["human", "model"],
+                   help="'model' labels are never calibration — they measure "
+                        "agreement between models, not against human judgement")
     i.set_defaults(func=cmd_import)
 
     r = sub.add_parser("report", help="judge-vs-human agreement")
