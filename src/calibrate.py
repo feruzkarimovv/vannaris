@@ -149,7 +149,32 @@ def draw(rows: list[dict], n: int, seed: int, disagreement_share: float) -> list
     n_rand = min(n - n_dis, len(rows) - n_dis)
 
     pool = sorted(rows, key=lambda r: r["id"])  # stable order before any shuffle
-    random_pick = rng.sample(pool, n_rand)
+
+    # The random stratum is allocated evenly across categories rather than drawn
+    # uniformly over responses. The population is already balanced — 25 queries
+    # in each of six categories, times the same vendors — so even allocation is
+    # proportional and introduces no bias; it only removes variance. That matters
+    # at small n and not at large: a 150-item uniform draw lands within a few of
+    # even, while a 40-item one produced 13 multi-hop against 1 general-facts,
+    # and an agreement figure whose category mix is an accident is a figure that
+    # moves when you redraw it.
+    by_cat: dict[str, list[dict]] = defaultdict(list)
+    for r in pool:
+        by_cat[r["category"]].append(r)
+    cats = sorted(by_cat)
+    random_pick: list[dict] = []
+    # Deterministic remainder: categories take the extra item in a fixed order,
+    # so the draw stays a pure function of (rows, seed).
+    for i, cat in enumerate(cats):
+        want = n_rand // len(cats) + (1 if i < n_rand % len(cats) else 0)
+        available = by_cat[cat]
+        random_pick.extend(rng.sample(available, min(want, len(available))))
+    # A category with too few responses leaves the quota short; top up from
+    # whatever is left rather than silently returning a smaller set.
+    if len(random_pick) < n_rand:
+        chosen = {r["id"] for r in random_pick}
+        rest = [r for r in pool if r["id"] not in chosen]
+        random_pick.extend(rng.sample(rest, min(n_rand - len(random_pick), len(rest))))
     picked = {r["id"] for r in random_pick}
 
     # Highest inter-judge spread first; ties broken by id so the draw is a pure
