@@ -47,7 +47,10 @@ Do this **before** buying a domain, filing anything, or putting a public URL any
       `docs/03` says explicitly that this is the highest-value dollar spent before going public and
       that it is not a substitute for counsel.
 - [ ] **Confirm the vendor set one more time** against each vendor's *current* terms. Terms change,
-      and the readings in `docs/03` were taken on 2026-07-30.
+      and the readings in `docs/03` were taken on 2026-07-30. **Two of five are done:** Linkup and
+      Serper — the two `docs/03` flagged as unverified — were read in full on 2026-08-02, and both
+      clear the benchmark (`docs/11`). Exa, Perplexity and You.com still want a re-read. Note that
+      Serper reserves the right to change its terms without notice, so this expires.
 - [ ] **Decide on Tavily and Brave.** Approach them for written consent, or launch without them and
       say why. Both run public self-benchmarks of their own, which is real leverage in that
       conversation. Either answer is defensible; leaving it undecided while publishing is not.
