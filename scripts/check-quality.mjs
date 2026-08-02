@@ -107,10 +107,23 @@ for (const page of PAGES) {
     const v = el.getAttribute("src") || el.getAttribute("href") || "";
     if (/^(https?:)?\/\//i.test(v)) {
       // Anchors to other sites are content, not a load-time dependency. Only
-      // subresources — anything the browser fetches to render — are the claim.
-      const isSubresource = el.tagName !== "A" ||
-        (el.getAttribute("rel") || "").includes("stylesheet");
-      if (isSubresource) external.push(`${el.tagName.toLowerCase()} ${v}`);
+      // subresources — anything the browser fetches or opens a connection for —
+      // are the claim being enforced.
+      //
+      // <link> is the subtle one. rel="canonical" and friends are metadata and
+      // must be absolute to work at all; rel="stylesheet"/"preload"/"preconnect"
+      // are real network activity. So links are judged by rel, against an
+      // allowlist of the metadata ones — an unrecognised rel is treated as a
+      // fetch, because failing closed is the right default for the check that
+      // guards "this page talks to nobody".
+      const METADATA_RELS = new Set(["canonical", "alternate", "me", "author",
+                                     "license", "next", "prev", "help"]);
+      const rel = (el.getAttribute("rel") || "").toLowerCase().trim();
+      let isSubresource;
+      if (el.tagName === "A") isSubresource = false;
+      else if (el.tagName === "LINK") isSubresource = !METADATA_RELS.has(rel);
+      else isSubresource = true;
+      if (isSubresource) external.push(`${el.tagName.toLowerCase()}[rel=${rel || "-"}] ${v}`);
     }
   });
   external.forEach((e) => fail(page, `external subresource: ${e}`));
@@ -148,9 +161,24 @@ for (const page of PAGES) {
   // Relative og:image previews blank on most platforms. It cannot be made
   // absolute until a canonical URL exists, so this is a warning that turns into
   // a launch blocker rather than a silent bad first impression.
+  // Absolute since 2026-08-02, when the domain was bought. This was a warning
+  // while there was no canonical URL to be absolute against; it is a failure now
+  // because a relative og:image previews blank on most platforms, and the launch
+  // post is exactly the moment nobody gets to re-share.
   const og = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
   if (!og) fail(page, "no og:image");
-  else if (!/^https?:\/\//i.test(og)) warn(page, `og:image is relative (${og}) — previews blank until absolute`);
+  else if (!/^https:\/\//i.test(og)) fail(page, `og:image must be absolute, got "${og}"`);
+
+  const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
+  if (!ogUrl) fail(page, "no og:url");
+  else if (!/^https:\/\//i.test(ogUrl)) fail(page, `og:url must be absolute, got "${ogUrl}"`);
+
+  // One canonical per page, absolute, and matching og:url — two URLs claiming to
+  // be the same page is how a site with four pages gets indexed as eight.
+  const canon = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+  if (!canon) fail(page, "no canonical link");
+  else if (!/^https:\/\//i.test(canon)) fail(page, `canonical must be absolute, got "${canon}"`);
+  else if (ogUrl && canon !== ogUrl) fail(page, `canonical (${canon}) and og:url (${ogUrl}) disagree`);
 
   // --- accessibility --------------------------------------------------------
   // jsdom has no layout, so colour-contrast and any rule needing geometry are
