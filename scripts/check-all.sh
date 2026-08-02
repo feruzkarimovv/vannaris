@@ -166,6 +166,32 @@ fi
 if [ "$claims" = "0" ]; then printf '\033[32m   ok\033[0m\n'; passed=$((passed + 1)); else
   printf '\033[31m   FAILED (forbidden claims)\033[0m\n'; failed=$((failed + 1)); fi
 
+# Committed labels are scores and analysis, never retrieved content. The task a
+# labeller sees necessarily shows vendor titles, URLs and snippets, and the risk
+# is that a note quotes one back into a file that is in git.
+printf '\n\033[1m── labels carry no vendor content\033[0m\n'
+if [ -d labels ] && ls labels/*.json >/dev/null 2>&1; then
+  if $PY - <<'EOF'
+import json, pathlib, re, sys
+bad = []
+for f in pathlib.Path("labels").glob("*.json"):
+    for l in json.loads(f.read_text()).get("labels", []):
+        n = l.get("note") or ""
+        if re.search(r"https?://", n):
+            bad.append(f"{f.name}: note contains a URL")
+        for k in ("title", "url", "snippet", "results", "answer"):
+            if k in l:
+                bad.append(f"{f.name}: label carries a {k!r} field")
+for b in sorted(set(bad)):
+    print("  " + b)
+sys.exit(1 if bad else 0)
+EOF
+  then printf '\033[32m   ok\033[0m\n'; passed=$((passed + 1))
+  else printf '\033[31m   FAILED (labels carry vendor content)\033[0m\n'; failed=$((failed + 1)); fi
+else
+  skip "labels" "no labels/ exported yet"
+fi
+
 # Secrets must never reach a commit. The history was clean when this was
 # written; this keeps it that way without anyone remembering to look.
 printf '\n\033[1m── no secrets staged\033[0m\n'
