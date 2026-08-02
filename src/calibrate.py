@@ -539,6 +539,54 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    """Write a set's labels to the repository as JSON.
+
+    Labels live in the database, and the database is never committed — it holds
+    raw vendor payloads. So an hour of labelling survives exactly as long as one
+    laptop does, which is the same failure the run history had before per-week
+    JSON was committed. Labels are scores, not vendor content, so unlike the
+    task itself they are safe to keep in git.
+    """
+    conn = storage.connect(Path(args.db))
+    conn.row_factory = sqlite3.Row
+    meta = conn.execute("SELECT * FROM calibration_sets WHERE id = ?", (args.set,)).fetchone()
+    if not meta:
+        raise SystemExit(f"no calibration set {args.set} in this database")
+
+    items = {r["response_id"]: r["stratum"] for r in conn.execute(
+        "SELECT response_id, stratum FROM calibration_items WHERE set_id = ?", (args.set,))}
+    labels = []
+    for r in conn.execute(
+            "SELECT * FROM human_labels WHERE set_id = ? ORDER BY labeller, response_id",
+            (args.set,)):
+        labels.append({
+            "response_id": r["response_id"],
+            "stratum": items.get(r["response_id"]),
+            "labeller": r["labeller"],
+            "labeller_kind": r["labeller_kind"],
+            "relevance": r["relevance"], "freshness": r["freshness"],
+            "citation_quality": r["citation_quality"], "overall": r["overall"],
+            "seconds": r["seconds"], "note": r["note"],
+        })
+    payload = {
+        "set_id": meta["id"], "run_id": meta["run_id"], "seed": meta["seed"],
+        "created_at": meta["created_at"], "blinding": meta["blinding"],
+        "notes": meta["notes"], "n_items": len(items), "labels": labels,
+    }
+    out = Path(args.out) / f"{args.set}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, indent=1) + "\n")
+    kinds = {}
+    for l in labels:
+        kinds[(l["labeller"], l["labeller_kind"])] = kinds.get((l["labeller"], l["labeller_kind"]), 0) + 1
+    print(f"wrote {out} — {len(labels)} label(s)")
+    for (who, kind), n in sorted(kinds.items()):
+        print(f"  {who} [{kind}]: {n}")
+    conn.close()
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -570,6 +618,11 @@ def main() -> int:
     r.add_argument("--labeller", help="report only this labeller")
     r.add_argument("--show", type=int, default=12)
     r.set_defaults(func=cmd_report)
+
+    e = sub.add_parser("export", help="write a set's labels to the repository")
+    e.add_argument("--set", required=True)
+    e.add_argument("--out", default=str(ROOT / "labels"))
+    e.set_defaults(func=cmd_export)
 
     args = ap.parse_args()
     return args.func(args)
