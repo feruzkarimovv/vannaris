@@ -96,6 +96,17 @@ not before. Before launch:
 
 ## 5. Hosting
 
+**Deployed as a private preview on 2026-08-02** to `vannaris.com` (Vercel, static, no build
+step). It is reachable by anyone who knows the URL — "I won't share it" is not a control — so
+two crawler blocks are in place and **both must be removed deliberately at launch**:
+
+- [ ] Delete `site/robots.txt`, which currently sends `Disallow: /`.
+- [ ] Remove the `X-Robots-Tag: noindex, nofollow, noarchive` header from `vercel.json`.
+
+Forgetting either one launches a site search engines have been told to ignore, which is the
+kind of mistake that stays invisible for weeks. They are paired on purpose: the header covers
+anything already crawled, the file covers anything that never fetches a page.
+
 `site/` is static with no build step and no external requests, so GitHub Pages serving from the
 `site/` directory works with no configuration. Two things to check after the first deploy:
 

@@ -26,3 +26,5 @@ node_modules/
 # Calibration tasks show the vendors' actual retrieved content to the labeller.
 # docs/03: retrieved content is stored for reproducibility, never republished.
 calibration/
+.vercel
+.env*
