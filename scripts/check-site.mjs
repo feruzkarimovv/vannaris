@@ -12,13 +12,22 @@
  * Needs jsdom. If it is not installed the script says so and exits 0, so it
  * never becomes the reason a machine without it cannot work on the repo.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = process.argv[2] ? resolve(process.argv[2]) : join(ROOT, "site");
-const PAGES = ["index.html", "results.html", "methodology.html", "data.html"];
+
+// The per-vendor pages are generated (scripts/make_vendor_pages.py), so they
+// are discovered rather than listed: a list here would be one more place to
+// forget when the vendor set changes, which is exactly the failure the check
+// below exists to catch.
+const VENDOR_DIR = join(SITE, "vendors");
+const VENDOR_PAGES = existsSync(VENDOR_DIR)
+  ? readdirSync(VENDOR_DIR).filter((f) => f.endsWith(".html")).sort().map((f) => join("vendors", f))
+  : [];
+const PAGES = ["index.html", "results.html", "methodology.html", "data.html", ...VENDOR_PAGES];
 
 const STRICT = process.env.CHECK_STRICT === "1" || process.argv.includes("--strict");
 
@@ -38,9 +47,29 @@ try {
 let failures = 0;
 const fail = (page, msg) => { failures++; console.error(`  FAIL  ${page}: ${msg}`); };
 
+// One page per vendor in the published data, and no page for a vendor that is
+// not in it. Getting this wrong is silent in every other gate: the site would
+// simply be missing the page for a newly-added vendor, or still be serving a
+// page for one that was pulled — which for a benchmark scoped by contract is
+// the worse of the two.
+try {
+  const bundle = readFileSync(join(SITE, "data", "bundle.js"), "utf8");
+  const data = JSON.parse(bundle.slice(bundle.indexOf("{"), bundle.lastIndexOf("}") + 1));
+  const want = new Set(data.latest.vendors.map((v) => `vendors/${v.vendor}.html`));
+  const have = new Set(VENDOR_PAGES);
+  for (const p of want) if (!have.has(p)) fail("vendors/", `no page for vendor in the export: ${p} — run scripts/make_vendor_pages.py`);
+  for (const p of have) if (!want.has(p)) fail("vendors/", `page for a vendor not in the export: ${p} — run scripts/make_vendor_pages.py`);
+} catch (e) {
+  fail("vendors/", `could not compare vendor pages against the export: ${e.message}`);
+}
+
 for (const page of PAGES) {
   const path = join(SITE, page);
   if (!existsSync(path)) { fail(page, "missing"); continue; }
+  // Relative hrefs resolve against the page's own directory, not the site
+  // root. Those are the same thing only for pages that sit at the root, which
+  // every page did until the per-vendor ones were added.
+  const here = dirname(path);
 
   const errors = [];
   const dom = new JSDOM(readFileSync(path, "utf8"), {
@@ -60,7 +89,7 @@ for (const page of PAGES) {
     const src = node.getAttribute("src");
     let code;
     if (src) {
-      const file = join(SITE, src);
+      const file = join(here, src);
       if (!existsSync(file)) { fail(page, `script not found: ${src}`); continue; }
       code = readFileSync(file, "utf8");
     } else {
@@ -99,7 +128,7 @@ for (const page of PAGES) {
   for (const a of doc.querySelectorAll("a[href]")) {
     const href = a.getAttribute("href");
     if (/^(https?:|mailto:|#)/.test(href)) continue;
-    const target = join(SITE, href.split("#")[0]);
+    const target = join(here, href.split("#")[0]);
     if (!existsSync(target)) fail(page, `dead link: ${href}`);
   }
 
@@ -109,9 +138,9 @@ for (const page of PAGES) {
     if (/^https?:/.test(href)) continue;
     const [file, frag] = href.split("#");
     if (!frag) continue;
-    if (file && !existsSync(join(SITE, file))) continue; // already reported as a dead link
+    if (file && !existsSync(join(here, file))) continue; // already reported as a dead link
     const targetDoc = file
-      ? new JSDOM(readFileSync(join(SITE, file), "utf8")).window.document
+      ? new JSDOM(readFileSync(join(here, file), "utf8")).window.document
       : doc;
     if (!targetDoc.getElementById(frag)) fail(page, `dead anchor: ${href}`);
   }

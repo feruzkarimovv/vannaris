@@ -193,25 +193,36 @@ node scripts/check-site.mjs
 It fails the build on an unresolved figure, a chart that rendered nothing, a chart with no table
 equivalent, a dead link or anchor, or a missing accessibility floor.
 
-Design notes worth knowing before editing it. The palette is dark by default and deliberately warm —
-a near-black with a warm cast rather than the slate-and-indigo every developer-tool site ships —
-which puts a warm ground under a cool blue data ramp so measurements sit forward of the surface.
-Light is available through the toggle. Measurements are presented on the deepest "ink" field and
-prose about them one step up; `[data-field="ink"]` re-declares the colour tokens locally, so charts
-drawn inside a dark band resolve dark-surface steps without knowing where they are. One blue
-sequential ramp carries every quantity; vermilion marks the one thing worth looking at on a page and
-never means "series 2".
+Design notes worth knowing before editing it. The ground is warm off-white rather than white, so
+cards sit on it in true white and read as cards without a heavy border; dark is available through
+the toggle and is declared in the same role tokens, which is why one attribute on `<html>` repaints
+the page and the charts inside it. Two colour systems, kept apart on purpose: one orange accent
+marks the live thing on a page — the ping dot, the primary action, the single figure a section is
+about — and one blue sequential ramp carries every quantity. The accent never means "series 2" and
+the ramp never means "click here", so a chart cannot be mistaken for a call to action.
 
 **The motion contract.** Every entrance animation is additive: the finished state is the default and
 the observer only adds a flag. Nothing on this site is ever hidden waiting for an animation that
-might not run. Reveals are also differentiated by what they reveal — rules draw, figures settle,
-chart marks count in — because one identical fade applied to every section is the tell this project
-is trying not to be. A `data-done` stamp removes each animation a few seconds after entry, so a
+might not run. Reveals are also differentiated by what they reveal — headings rise in reading order,
+single figures settle, chart marks count in one at a time — because one identical fade applied to
+every section is the tell this project is trying not to be. Hover states are mechanisms rather than
+light sources: a sheen crosses a button, a card lifts a pixel or two, nothing glows. A `data-done`
+stamp removes each animation a few seconds after entry, so a
 paused frame loop leaves plain finished markup rather than a half-drawn page.
 
-The share card at `site/assets/og.png` is generated from the same export
-(`python scripts/make_og_image.py`), so a link preview cannot show a result the site no longer
-reports.
+**Generated pages.** `site/vendors/<id>.html` is one page per vendor in the published run, written by
+`python scripts/make_vendor_pages.py`. They exist because the question people actually arrive with is
+about one vendor, and because a per-vendor URL is what a vendor links to when it cites this
+benchmark. No number is baked into them: they carry the vendor's id and fill every figure from
+`site/data/bundle.js` at load, exactly like the hand-written pages, so they cannot go stale between
+runs. `scripts/check-site.mjs` asserts that the set of pages matches the vendors in the export, so a
+vendor added or dropped without regenerating is a failed gate rather than a missing page — and the
+weekly workflow regenerates them anyway.
+
+The share cards at `site/assets/og.png` and `site/assets/og-<vendor>.png` are generated from the same
+export (`python scripts/make_og_image.py`), so a link preview cannot show a result the site no longer
+reports. Both generators take `--site <root>`, matching `python -m src.export --out`, which is how
+the whole publish pipeline gets exercised against a generated fixture without touching `site/`.
 
 ## Data
 

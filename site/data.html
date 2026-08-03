@@ -8,113 +8,123 @@
 <link rel="canonical" href="https://vannaris.com/data.html">
 <meta property="og:title" content="Data export — Vannaris">
 <meta property="og:description" content="Every judge score, response timing and aggregate cell, CC BY 4.0, with the column dictionary and a worked recomputation.">
-<meta property="og:url" content="https://vannaris.com/data.html"
-    <meta property="og:type" content="website">
+<meta property="og:url" content="https://vannaris.com/data.html">
+<meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314140f'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
+<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <header class="masthead">
   <div class="shell">
-    <div class="masthead__row">
-      <a class="wordmark" href="index.html">Vannaris</a>
-      <span class="masthead__now" data-now aria-live="polite"></span>
-      <nav class="nav" aria-label="Primary">
+    <div class="navbar">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
         <a href="https://github.com/" data-repo>Source</a>
       </nav>
-      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+      <div class="navbar__actions">
+        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
+                aria-expanded="false" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
+        <a class="btn btn--sm" href="index.html#contact">Get in touch</a>
+      </div>
     </div>
-    <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
   </div>
-  <div class="progress" aria-hidden="true"></div>
 </header>
+<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<section style="padding-bottom:2.5rem">
+<section class="hero" style="padding-bottom:clamp(2rem,4vw,3rem)">
+  <div class="bloom" style="width:460px;height:460px;right:-200px;top:-80px"></div>
   <div class="shell">
-    <h1>Data export</h1>
-    <p class="hero__lede">
+    <span class="eyebrow eyebrow--accent">Data export</span>
+    <h1 style="margin-top:1rem;max-width:17ch">Take the whole thing. Check it yourself.</h1>
+    <p class="lead" style="margin-top:1.35rem">
       Everything behind the published numbers, down to what each individual judge said about each
       individual response. Licensed <strong>CC BY 4.0</strong>. If you think a number here is
       wrong, this is what you need to prove it.
     </p>
-  </div>
-</section>
-
-<section id="files">
-  <div class="shell">
-    <div class="section-head">
-      <h2>Files</h2>
-      <p>Week <span data-val="latest.week"></span>, generated <span data-val="generated_at" data-fmt="date"></span>.</p>
-          <span class="label">CC BY 4.0</span>
-    </div>
-    <div class="table-wrap">
-      <table id="file-table">
-        <thead>
-          <tr>
-            <th scope="col">File</th>
-            <th scope="col" class="num">Rows</th>
-            <th scope="col">Contents</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="grid-3" data-reveal="rows" style="margin-top:2rem">
-      <div class="panel">
-        <div class="panel__head"><h3>JSON, this week</h3></div>
-        <div class="panel__body">
-          <p class="note note--body" style="margin-bottom:0.8rem">
-            The full payload the dashboard reads: cells, vendor roll-ups, judge statistics and
-            per-response scores.
-          </p>
-          <a class="btn btn--ghost" href="data/latest.json" download>latest.json</a>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel__head"><h3>JSON, by week</h3></div>
-        <div class="panel__body">
-          <p class="note note--body" style="margin-bottom:0.8rem">
-            One file per published week, so a historical figure stays retrievable after the latest
-            pointer moves on.
-          </p>
-          <a class="btn btn--ghost" id="week-json" href="#" download>week file</a>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel__head"><h3>Manifest</h3></div>
-        <div class="panel__body">
-          <p class="note note--body" style="margin-bottom:0.8rem">
-            Which run produced this export, the query-set hash it used, and the publication policy
-            in machine-readable form.
-          </p>
-          <a class="btn btn--ghost" href="export/manifest.json" download>manifest.json</a>
-        </div>
-      </div>
+    <div class="cta-row" style="margin-top:1.8rem">
+      <a class="btn" href="data/latest.json" download>Download latest.json <span class="arrow" aria-hidden="true">↓</span></a>
+      <a class="link-arrow" href="#recompute">See it recomputed <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
 
-<section id="excluded">
+<section id="files" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>What is deliberately not in here</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Files</span>
+      <h2>What is in the export</h2>
       <p>
-        The harness stores raw vendor responses for reproducibility. They are never published.
+        Week <span data-val="latest.week"></span>, generated
+        <span data-val="generated_at" data-fmt="date"></span>, licensed CC BY 4.0.
       </p>
-          <span class="label">publication policy</span>
+    </div>
+    <div class="panel panel--flush">
+      <div class="table-wrap">
+        <table id="file-table">
+          <thead>
+            <tr>
+              <th scope="col">File</th>
+              <th scope="col" class="num">Rows</th>
+              <th scope="col">Contents</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-3" data-reveal="rows" style="margin-top:1.5rem">
+      <div class="card card--pad card--hover">
+        <h3>JSON, this week</h3>
+        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
+          The full payload the dashboard reads: cells, vendor roll-ups, judge statistics and
+          per-response scores.
+        </p>
+        <a class="btn btn--ghost btn--sm" href="data/latest.json" download>latest.json</a>
+      </div>
+      <div class="card card--pad card--hover">
+        <h3>JSON, by week</h3>
+        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
+          One file per published week, so a historical figure stays retrievable after the latest
+          pointer moves on.
+        </p>
+        <a class="btn btn--ghost btn--sm" id="week-json" href="#" download>week file</a>
+      </div>
+      <div class="card card--pad card--hover">
+        <h3>Manifest</h3>
+        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
+          Which run produced this export, the query-set hash it used, and the publication policy
+          in machine-readable form.
+        </p>
+        <a class="btn btn--ghost btn--sm" href="export/manifest.json" download>manifest.json</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="excluded" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Publication policy</span>
+      <h2>What is deliberately not in here</h2>
+      <p>The harness stores raw vendor responses for reproducibility. They are never published.</p>
     </div>
     <div class="grid-2">
-      <div>
-        <ul id="excluded-list" class="prose" style="padding-left:1.1em"></ul>
+      <div class="card card--pad">
+        <ul id="excluded-list" class="prose" style="padding-left:1.15em;margin:0"></ul>
       </div>
       <div class="prose">
         <p>
@@ -133,79 +143,86 @@
   </div>
 </section>
 
-<section id="columns">
+<section id="columns" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Reference</span>
       <h2>Column dictionary</h2>
-          <span class="label">three tables</span>
+      <p>Three tables, and what every column in them means.</p>
     </div>
 
-    <h3 style="margin-bottom:0.8rem">judge-scores.csv</h3>
-    <div class="table-wrap" style="margin-bottom:2.5rem">
-      <table>
-        <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">week</td><td>ISO week of the run.</td></tr>
-          <tr><td class="mono">query_id</td><td>Joins to <code>queries.csv</code>.</td></tr>
-          <tr><td class="mono">category</td><td>One of the six taxonomy buckets.</td></tr>
-          <tr><td class="mono">vendor</td><td>The search API that produced the response being scored.</td></tr>
-          <tr><td class="mono">judge_family</td><td>anthropic, openai or google.</td></tr>
-          <tr><td class="mono">judge_model</td><td>Exact pinned model string. A change here is a methodology change.</td></tr>
-          <tr><td class="mono">relevance</td><td>0–10. Do the results address the query?</td></tr>
-          <tr><td class="mono">freshness</td><td>0–10. Current enough for this specific query?</td></tr>
-          <tr><td class="mono">citation_quality</td><td>0–10. Authoritative sources, or content farms?</td></tr>
-          <tr><td class="mono">overall</td><td>0–10. The holistic score. This is the one that aggregates.</td></tr>
-          <tr><td class="mono">scored_chars</td><td>Size of the vendor payload the judge saw. Published so verbosity outliers are visible.</td></tr>
-          <tr><td class="mono">prompt_tokens</td><td>Judge input tokens, for cost auditing.</td></tr>
-          <tr><td class="mono">output_tokens</td><td>Judge output tokens.</td></tr>
-        </tbody>
-      </table>
+    <div class="panel panel--flush" style="margin-bottom:1.2rem">
+      <div class="panel__head"><h3 class="mono">judge-scores.csv</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">week</td><td>ISO week of the run.</td></tr>
+            <tr><td class="mono">query_id</td><td>Joins to <code>queries.csv</code>.</td></tr>
+            <tr><td class="mono">category</td><td>One of the six taxonomy buckets.</td></tr>
+            <tr><td class="mono">vendor</td><td>The search API that produced the response being scored.</td></tr>
+            <tr><td class="mono">judge_family</td><td>anthropic, openai or google.</td></tr>
+            <tr><td class="mono">judge_model</td><td>Exact pinned model string. A change here is a methodology change.</td></tr>
+            <tr><td class="mono">relevance</td><td>0–10. Do the results address the query?</td></tr>
+            <tr><td class="mono">freshness</td><td>0–10. Current enough for this specific query?</td></tr>
+            <tr><td class="mono">citation_quality</td><td>0–10. Authoritative sources, or content farms?</td></tr>
+            <tr><td class="mono">overall</td><td>0–10. The holistic score. This is the one that aggregates.</td></tr>
+            <tr><td class="mono">scored_chars</td><td>Size of the vendor payload the judge saw. Published so verbosity outliers are visible.</td></tr>
+            <tr><td class="mono">prompt_tokens</td><td>Judge input tokens, for cost auditing.</td></tr>
+            <tr><td class="mono">output_tokens</td><td>Judge output tokens.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <h3 style="margin-bottom:0.8rem">responses.csv</h3>
-    <div class="table-wrap" style="margin-bottom:2.5rem">
-      <table>
-        <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">response_mode</td><td><code>ranked_results</code>, <code>synthesized_answer</code> or <code>both</code>. Recorded per response, not per vendor.</td></tr>
-          <tr><td class="mono">n_results</td><td>How many results the response carried after top-10 normalisation.</td></tr>
-          <tr><td class="mono">latency_ms</td><td>Wall-clock request-to-response time measured by the harness.</td></tr>
-          <tr><td class="mono">cost_usd</td><td>Vendor-reported where available, list price otherwise.</td></tr>
-          <tr><td class="mono">complete_ensemble</td><td>1 if all three judges scored this response. Only these contribute to aggregates.</td></tr>
-          <tr><td class="mono">median_overall</td><td>Median of the three <code>overall</code> scores, or blank.</td></tr>
-          <tr><td class="mono">error</td><td>Non-empty if the vendor call itself failed.</td></tr>
-        </tbody>
-      </table>
+    <div class="panel panel--flush" style="margin-bottom:1.2rem">
+      <div class="panel__head"><h3 class="mono">responses.csv</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">response_mode</td><td><code>ranked_results</code>, <code>synthesized_answer</code> or <code>both</code>. Recorded per response, not per vendor.</td></tr>
+            <tr><td class="mono">n_results</td><td>How many results the response carried after top-10 normalisation.</td></tr>
+            <tr><td class="mono">latency_ms</td><td>Wall-clock request-to-response time measured by the harness.</td></tr>
+            <tr><td class="mono">cost_usd</td><td>Vendor-reported where available, list price otherwise.</td></tr>
+            <tr><td class="mono">complete_ensemble</td><td>1 if all three judges scored this response. Only these contribute to aggregates.</td></tr>
+            <tr><td class="mono">median_overall</td><td>Median of the three <code>overall</code> scores, or blank.</td></tr>
+            <tr><td class="mono">error</td><td>Non-empty if the vendor call itself failed.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <h3 style="margin-bottom:0.8rem">weekly-scores.csv</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">score</td><td>Mean of the response medians in this cell. Blank if coverage fell below the floor.</td></tr>
-          <tr><td class="mono">n_queries</td><td>Queries attempted in this cell.</td></tr>
-          <tr><td class="mono">n_scored</td><td>Queries with a complete three-judge ensemble. The real sample size.</td></tr>
-          <tr><td class="mono">coverage</td><td><code>n_scored / n_queries</code>. Publish threshold is <span data-val="config.min_cell_coverage" data-fmt="pct0"></span>.</td></tr>
-          <tr><td class="mono">delta_from_best</td><td>Points behind the best vendor in the same category.</td></tr>
-          <tr><td class="mono">pct_of_best</td><td>Share of the category-leading score. This is the routing-relevant number.</td></tr>
-        </tbody>
-      </table>
+    <div class="panel panel--flush">
+      <div class="panel__head"><h3 class="mono">weekly-scores.csv</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">score</td><td>Mean of the response medians in this cell. Blank if coverage fell below the floor.</td></tr>
+            <tr><td class="mono">n_queries</td><td>Queries attempted in this cell.</td></tr>
+            <tr><td class="mono">n_scored</td><td>Queries with a complete three-judge ensemble. The real sample size.</td></tr>
+            <tr><td class="mono">coverage</td><td><code>n_scored / n_queries</code>. Publish threshold is <span data-val="config.min_cell_coverage" data-fmt="pct0"></span>.</td></tr>
+            <tr><td class="mono">delta_from_best</td><td>Points behind the best vendor in the same category.</td></tr>
+            <tr><td class="mono">pct_of_best</td><td>Share of the category-leading score. This is the routing-relevant number.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="recompute">
+<section id="recompute" class="seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Verify it</span>
       <h2>Recompute the headline number</h2>
       <p>
         Two of the CSVs and a few lines of Python reproduce the cost-versus-quality finding on the
         front page, with no API keys and no trust required.
       </p>
-          <span class="label">no keys needed</span>
     </div>
-    <pre class="mono" style="background:var(--surface-2);padding:1.1rem;border-radius:3px;overflow-x:auto;font-size:0.82rem;line-height:1.65;margin:0">import csv, statistics
+    <pre class="code">import csv, statistics
 from collections import defaultdict
 
 # One row per (query, vendor, judge). Keep only responses all three judges scored,
@@ -226,16 +243,18 @@ for (vendor, category), score in sorted(means.items()):
     print(f"{vendor:&lt;11}{category:&lt;16}{score:5.2f}  {100 * score / best[category]:5.1f}% of best")</pre>
     <p class="note" style="margin-top:1rem;max-width:78ch">
       The output matches <code>weekly-scores-<span data-val="latest.week"></span>.csv</code> to
-      three decimal places. If it does not, the discrepancy is a bug worth reporting.
+      three decimal places. Any discrepancy is a bug —
+      <a href="index.html#contact">report it</a>.
     </p>
   </div>
 </section>
 
-<section id="licence">
+<section id="licence" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Licence</span>
       <h2>Licence and citation</h2>
-          <span class="label">data + code</span>
+      <p>Free to use commercially. Attribution is the only requirement.</p>
     </div>
     <div class="grid-2">
       <div class="prose">
@@ -257,9 +276,12 @@ for (vendor, category), score in sorted(means.items()):
       </div>
       <div>
         <div class="panel">
-          <div class="panel__head"><h3>Cite this</h3></div>
-          <div class="panel__body">
-            <pre class="mono" id="citation" style="margin:0;font-size:0.8rem;line-height:1.6;white-space:pre-wrap"></pre>
+          <div class="panel__head">
+            <h3>Cite this</h3>
+            <span class="label">week, not just project</span>
+          </div>
+          <div class="panel__body" style="padding:0">
+            <pre class="code" id="citation" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
           <div class="panel__foot">
             Cite the week, not just the project: these numbers are a snapshot and will move.
@@ -275,16 +297,21 @@ for (vendor, category), score in sorted(means.items()):
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <p style="margin:0">
-        Vannaris, independent benchmark of web-search APIs.<br>
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <p style="margin:0;max-width:42ch">
+        Independent benchmark of web-search APIs.<br>
         Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
       </p>
     </div>
     <div>
-      <p style="margin:0">
-        <a href="index.html">Overview</a> ·
-        <a href="results.html">Results</a> ·
+      <p class="foot__links" style="margin:0 0 0.8rem">
+        <a href="index.html">Overview</a>
+        <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
+        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
+      </p>
+      <p class="mono note" style="margin:0">
+        week <span data-val="latest.week"></span>
       </p>
     </div>
   </div>
@@ -299,7 +326,12 @@ window.SBPage = {
     D.export.files.forEach(function (f) {
       var tr = document.createElement("tr");
       var name = document.createElement("td");
-      name.innerHTML = '<a class="mono" href="export/' + f.file + '" download>' + f.file + "</a>";
+      var a = document.createElement("a");
+      a.className = "mono";
+      a.href = "export/" + f.file;
+      a.setAttribute("download", "");
+      a.textContent = f.file;
+      name.appendChild(a);
       var rows = document.createElement("td");
       rows.className = "num";
       rows.textContent = f.rows.toLocaleString();

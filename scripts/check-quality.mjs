@@ -28,7 +28,14 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = process.argv[2] ? resolve(process.argv[2]) : join(ROOT, "site");
-const PAGES = ["index.html", "results.html", "methodology.html", "data.html"];
+
+// Generated per-vendor pages are discovered, not listed — see check-site.mjs,
+// which owns the assertion that the set of them matches the published vendors.
+const VENDOR_DIR = join(SITE, "vendors");
+const VENDOR_PAGES = existsSync(VENDOR_DIR)
+  ? readdirSync(VENDOR_DIR).filter((f) => f.endsWith(".html")).sort().map((f) => join("vendors", f))
+  : [];
+const PAGES = ["index.html", "results.html", "methodology.html", "data.html", ...VENDOR_PAGES];
 
 // Budgets in KB. Set from the measured size at the time of writing plus room to
 // grow, not from a round number: a budget nobody can hit is a budget nobody
@@ -96,6 +103,10 @@ for (const page of PAGES) {
   if (!existsSync(file)) { fail(page, "missing"); continue; }
 
   const html = readFileSync(file, "utf8");
+  // Relative hrefs resolve against the page's own directory. Identical to the
+  // site root for every page that sits at the root, which is why this went
+  // unnoticed until the per-vendor pages moved into a subdirectory.
+  const here = dirname(file);
   if (kb(sizeOf(file)) > BUDGET.html) fail(page, `html ${kb(sizeOf(file))}KB over budget ${BUDGET.html}KB`);
 
   const dom = new JSDOM(html, { url: "http://localhost/", pretendToBeVisual: true });
@@ -133,7 +144,7 @@ for (const page of PAGES) {
   document.querySelectorAll("[src],link[href]").forEach((el) => {
     const v = el.getAttribute("src") || el.getAttribute("href") || "";
     if (!v || /^(https?:)?\/\//i.test(v) || v.startsWith("data:") || v.startsWith("#")) return;
-    const target = join(SITE, v.split(/[?#]/)[0]);
+    const target = join(here, v.split(/[?#]/)[0]);
     if (!existsSync(target)) return fail(page, `missing asset: ${v}`);
     pageBytes += sizeOf(target);
   });
@@ -153,7 +164,7 @@ for (const page of PAGES) {
       }
       return;
     }
-    const target = join(SITE, href.split(/[?#]/)[0]);
+    const target = join(here, href.split(/[?#]/)[0]);
     if (!existsSync(target)) fail(page, `dead link: ${href}`);
   });
 

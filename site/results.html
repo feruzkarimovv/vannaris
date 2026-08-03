@@ -8,165 +8,186 @@
 <link rel="canonical" href="https://vannaris.com/results.html">
 <meta property="og:title" content="Results — Vannaris">
 <meta property="og:description" content="Quality by vendor and category, cost, latency, judge agreement, and every individual query score.">
-<meta property="og:url" content="https://vannaris.com/results.html"
-    <meta property="og:type" content="website">
+<meta property="og:url" content="https://vannaris.com/results.html">
+<meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314140f'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
+<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <header class="masthead">
   <div class="shell">
-    <div class="masthead__row">
-      <a class="wordmark" href="index.html">Vannaris</a>
-      <span class="masthead__now" data-now aria-live="polite"></span>
-      <nav class="nav" aria-label="Primary">
+    <div class="navbar">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
         <a href="https://github.com/" data-repo>Source</a>
       </nav>
-      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+      <div class="navbar__actions">
+        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
+                aria-expanded="false" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
+        <a class="btn btn--sm" href="index.html#contact">Get in touch</a>
+      </div>
     </div>
-    <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
   </div>
-  <div class="progress" aria-hidden="true"></div>
 </header>
+<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<section style="padding-bottom:2rem">
+<section class="hero" style="padding-bottom:clamp(2rem,4vw,3rem)">
+  <div class="bloom" style="width:460px;height:460px;right:-200px;top:-80px"></div>
   <div class="shell">
-    <h1>Results, <span data-val="latest.week"></span></h1>
-    <p class="hero__lede" style="margin-bottom:2rem">
-      One complete run of <span data-val="latest.n_queries" data-fmt="int"></span> queries against
+    <span class="eyebrow eyebrow--accent">Results</span>
+    <h1 style="margin-top:1rem;max-width:16ch">Every vendor, every category, one run.</h1>
+    <p class="lead" style="margin-top:1.35rem">
+      <span data-val="latest.n_queries" data-fmt="int"></span> queries against
       <span data-val="latest.n_vendors"></span> APIs, scored by
-      <span data-val="latest.n_judges"></span> judges. Every figure below is computed from the export
-      on <a href="data.html">the data page</a>, and every chart has a table view.
+      <span data-val="latest.n_judges"></span> judges from
+      <span data-val="d.n_judge_families"></span> labs. Every figure below is computed from the
+      export on <a href="data.html">the data page</a>, and every chart has a table view.
     </p>
 
-    <div class="claim" style="margin-bottom:2rem">
-      <span class="label">Read this first</span>
+    <div class="stamp" data-stamp role="group" aria-label="Current run" style="margin-top:1.6rem"></div>
+
+    <div class="callout" style="margin-top:2rem;max-width:74ch">
+      <span class="eyebrow">Scope</span>
       <p>
-        This is <strong>one run</strong>, not a trend. Vendor rankings within a category are the
-        part of this data that holds up; individual scores carry roughly
+        <strong>One run, not a trend.</strong> Ordering within a category is what holds. Individual
+        scores carry roughly
         <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span> points of
-        judge-to-judge disagreement, and the judge families differ from each other by
-        <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span> points on average.
-        <a href="#judging">The disagreement data is below</a>.
+        judge-to-judge disagreement, and the judge families differ by
+        <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span> points on the
+        same responses. <a href="#judging">Disagreement data</a>.
       </p>
     </div>
 
-    <div class="readout" data-reveal="rows">
-      <div class="readout__item">
-        <div class="label readout__label">queries</div>
-        <div class="readout__value" data-count data-val="latest.n_queries" data-fmt="int"></div>
-        <div class="readout__note"><span data-val="d.n_categories"></span> categories</div>
+    <div class="metrics" data-reveal="rows">
+      <div class="metric">
+        <span class="eyebrow metric__label">queries</span>
+        <div class="metric__value" data-count data-val="latest.n_queries" data-fmt="int"></div>
+        <div class="metric__note"><span data-val="d.n_categories"></span> categories</div>
       </div>
-      <div class="readout__item">
-        <div class="label readout__label">judgements</div>
-        <div class="readout__value" data-count data-val="latest.n_judgements" data-fmt="int"></div>
-        <div class="readout__note">3 models, 3 families</div>
+      <div class="metric">
+        <span class="eyebrow metric__label">judgements</span>
+        <div class="metric__value" data-count data-val="latest.n_judgements" data-fmt="int"></div>
+        <div class="metric__note"><span data-val="d.n_judges"></span> models, <span data-val="d.n_judge_families"></span> families</div>
       </div>
-      <div class="readout__item">
-        <div class="label readout__label">complete ensembles</div>
-        <div class="readout__value"><span data-count data-val="latest.completeness.pct" data-fmt="n1"></span><span class="unit">%</span></div>
-        <div class="readout__note">
+      <div class="metric">
+        <span class="eyebrow metric__label">complete ensembles</span>
+        <div class="metric__value"><span data-count data-val="latest.completeness.pct" data-fmt="n1"></span><span class="unit">%</span></div>
+        <div class="metric__note">
           <span data-val="latest.completeness.complete_ensembles" data-fmt="int"></span> of
           <span data-val="latest.completeness.responses" data-fmt="int"></span> responses
         </div>
       </div>
-      <div class="readout__item">
-        <div class="label readout__label">vendor errors</div>
-        <div class="readout__value" data-count data-val="latest.completeness.vendor_errors" data-fmt="int"></div>
-        <div class="readout__note">failed API calls</div>
+      <div class="metric">
+        <span class="eyebrow metric__label">vendor errors</span>
+        <div class="metric__value" data-count data-val="latest.completeness.vendor_errors" data-fmt="int"></div>
+        <div class="metric__note">failed API calls</div>
       </div>
-      <div class="readout__item">
-        <div class="label readout__label">vendor spend</div>
-        <div class="readout__value" data-count data-val="latest.vendor_spend_usd" data-fmt="money"></div>
-        <div class="readout__note">this run, all vendors</div>
+      <div class="metric">
+        <span class="eyebrow metric__label">vendor spend</span>
+        <div class="metric__value" data-count data-val="latest.vendor_spend_usd" data-fmt="money"></div>
+        <div class="metric__note">this run, all vendors</div>
       </div>
-      <div class="readout__item">
-        <div class="label readout__label">published weeks</div>
-        <div class="readout__value" data-count data-val="d.weeks"></div>
-        <div class="readout__note" data-val="d.schedule_note"></div>
+      <div class="metric">
+        <span class="eyebrow metric__label">published weeks</span>
+        <div class="metric__value" data-count data-val="d.weeks"></div>
+        <div class="metric__note" data-val="d.schedule_note"></div>
       </div>
     </div>
   </div>
 </section>
 
-<div class="band" data-field="ink">
-<section id="quality">
+<section id="quality" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Quality</span>
       <h2>Quality by vendor and category</h2>
       <p>
         Each cell is the mean, across that category's queries, of the median score from the
-        three-judge ensemble. Queries without a complete ensemble are excluded rather than
-        scored on a partial panel.
+        three-judge ensemble. Queries without a complete ensemble are excluded rather than scored
+        on a partial panel.
       </p>
-          <span class="label"><span data-val="d.n_vendors"></span> vendors · <span data-val="d.n_categories"></span> categories</span>
     </div>
 
-    <div class="panel" style="margin-bottom:1.4rem">
+    <div class="panel" style="margin-bottom:1.2rem">
       <div class="panel__head">
         <h3>Score matrix</h3>
-          <span class="label">0–10</span>
+        <span class="label">0&ndash;10</span>
       </div>
       <div class="panel__body" id="fig-heatmap"></div>
     </div>
 
-    <div class="panel" style="margin-bottom:1.4rem">
+    <div class="panel" style="margin-bottom:1.2rem">
       <div class="panel__head">
         <h3>Where each vendor's queries land</h3>
         <span class="label">share of scored queries</span>
       </div>
       <div class="panel__body" id="fig-distribution"></div>
       <div class="panel__foot">
-        The score column above is a mean; this is the spread behind it. Almost everything lands in
+        The score column below is a mean; this is the spread behind it. Almost everything lands in
         the top three bands, which is why the query set is listed as a known limitation.
       </div>
     </div>
 
-    <div class="table-wrap">
-      <table id="vendor-table">
-        <caption>
-          Overall score is the mean of a vendor's category scores. "Queries won" counts queries where
-          that vendor took the highest ensemble median.
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Vendor</th>
-            <th scope="col" class="num">Score</th>
-            <th scope="col" class="num">Cost / query</th>
-            <th scope="col" class="num">Run cost</th>
-            <th scope="col" class="num">p50 latency</th>
-            <th scope="col" class="num">Won</th>
-            <th scope="col" class="num">Scored</th>
-            <th scope="col">Returns</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel panel--flush">
+      <div class="panel__head">
+        <h3>Vendor summary</h3>
+        <span class="label">this run</span>
+      </div>
+      <div class="panel__body">
+        <div class="table-wrap">
+          <table id="vendor-table">
+            <caption>
+              Overall score is the mean of a vendor's category scores. "Won" counts queries where
+              that vendor took the highest ensemble median.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Vendor</th>
+                <th scope="col" class="num">Score</th>
+                <th scope="col" class="num">Cost / query</th>
+                <th scope="col" class="num">Run cost</th>
+                <th scope="col" class="num">p50 latency</th>
+                <th scope="col" class="num">Won</th>
+                <th scope="col" class="num">Scored</th>
+                <th scope="col">Returns</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </section>
-</div>
 
-<section id="cost">
+<section id="cost" class="seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Cost</span>
       <h2>Cost against quality</h2>
       <p>
         The spread that makes routing worth building. Cost is on a log scale because the cheapest
         and most expensive APIs in this set are more than an order of magnitude apart.
       </p>
-          <span class="label">list price per query</span>
     </div>
-    <div class="panel" style="margin-bottom:1.4rem">
-      <div class="panel__head"><h3>Cost per query vs score</h3></div>
+    <div class="panel" style="margin-bottom:1.2rem">
+      <div class="panel__head">
+        <h3>Cost per query vs score</h3>
+        <span class="label">list price per query</span>
+      </div>
       <div class="panel__body" id="fig-cost"></div>
       <div class="panel__foot">
         Cost is what the vendor reported for this run where the API returns it, and list price
@@ -192,19 +213,22 @@
   </div>
 </section>
 
-<section id="latency">
+<section id="latency" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>Latency</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Latency</span>
+      <h2>How long each API takes to answer</h2>
       <p>
         Median wall-clock time from request to response, measured by the harness rather than
         reported by the vendor. For an agent making several sequential retrieval calls this
         compounds, and no vendor benchmark publishes it.
       </p>
-          <span class="label">p50, measured</span>
     </div>
     <div class="panel">
-      <div class="panel__head"><h3>Median response time</h3></div>
+      <div class="panel__head">
+        <h3>Median response time</h3>
+        <span class="label">p50, measured</span>
+      </div>
       <div class="panel__body" id="fig-latency"></div>
       <div class="panel__foot">
         Measured over a residential connection during a single run. Treat the ordering as the
@@ -214,17 +238,17 @@
   </div>
 </section>
 
-<section id="judging">
+<section id="judging" class="seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The judges</span>
       <h2>How much the judges disagree</h2>
       <p>
-        Published because it is the largest caveat on everything above. If one judge family had
-        been used alone, every absolute number on this page would be different.
+        The largest caveat on every number above. A single judge family would produce different
+        absolute scores for the same responses.
       </p>
-          <span class="label">3 models · 3 labs</span>
     </div>
-    <div class="panel" style="margin-bottom:1.5rem">
+    <div class="panel" style="margin-bottom:1.2rem">
       <div class="panel__head">
         <h3>How far apart the three judges were</h3>
         <span class="label">per response</span>
@@ -240,7 +264,7 @@
       <div class="panel">
         <div class="panel__head">
           <h3>Mean score by judge family</h3>
-          <span class="label">same 750 responses</span>
+          <span class="label">same responses</span>
         </div>
         <div class="panel__body" id="fig-judges"></div>
         <div class="panel__foot">
@@ -248,21 +272,21 @@
         </div>
       </div>
       <div>
-        <div class="readout" data-reveal="rows" style="margin-bottom:1.4rem">
-          <div class="readout__item">
-            <div class="label readout__label">family spread</div>
-            <div class="readout__value" data-count data-val="latest.judging.family_spread" data-fmt="n2"></div>
-            <div class="readout__note">points, highest to lowest family mean</div>
+        <div class="metrics" data-reveal="rows" style="margin-top:0;margin-bottom:1.4rem">
+          <div class="metric">
+            <span class="eyebrow metric__label">family spread</span>
+            <div class="metric__value" data-count data-val="latest.judging.family_spread" data-fmt="n2"></div>
+            <div class="metric__note">points, highest to lowest family mean</div>
           </div>
-          <div class="readout__item">
-            <div class="label readout__label">mean disagreement</div>
-            <div class="readout__value" data-count data-val="latest.judging.mean_disagreement" data-fmt="n2"></div>
-            <div class="readout__note">points, max minus min per response</div>
+          <div class="metric">
+            <span class="eyebrow metric__label">mean disagreement</span>
+            <div class="metric__value" data-count data-val="latest.judging.mean_disagreement" data-fmt="n2"></div>
+            <div class="metric__note">points, max minus min per response</div>
           </div>
-          <div class="readout__item">
-            <div class="label readout__label">differ by &gt; 3 points</div>
-            <div class="readout__value" data-val="latest.judging.responses_over_3pts" data-fmt="int"></div>
-            <div class="readout__note">of <span data-val="latest.judging.n_compared" data-fmt="int"></span> responses</div>
+          <div class="metric">
+            <span class="eyebrow metric__label">differ by &gt; 3 points</span>
+            <div class="metric__value" data-val="latest.judging.responses_over_3pts" data-fmt="int"></div>
+            <div class="metric__note">of <span data-val="latest.judging.n_compared" data-fmt="int"></span> responses</div>
           </div>
         </div>
         <p class="prose">
@@ -271,8 +295,8 @@
           10" is a statement about this ensemble, not about the vendor.
         </p>
         <p class="prose">
-          The fix is a human-labelled calibration set, scored monthly against the ensemble. It has
-          not been built yet, and until it exists these judges are unaudited.
+          The fix is a human-labelled calibration set, scored monthly against the ensemble. It is
+          not built, and until it exists these judges are unaudited.
           <a href="methodology.html#judges">Judge design and model pins</a>.
         </p>
       </div>
@@ -280,15 +304,15 @@
   </div>
 </section>
 
-<section id="queries">
+<section id="queries" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The evidence</span>
       <h2>Every query, every score</h2>
       <p>
         The full evidence behind the tables above. Each cell is the ensemble median for one vendor
         on one query; hover or focus a cell for the three individual judge scores.
       </p>
-          <span class="label"><span data-val="latest.n_queries" data-fmt="int"></span> queries</span>
     </div>
 
     <div class="controls">
@@ -301,13 +325,15 @@
       <span class="tag" id="q-count"></span>
     </div>
 
-    <div class="table-wrap" id="query-table-wrap">
-      <table id="query-table">
-        <thead><tr id="query-head"></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel panel--flush">
+      <div class="table-wrap" id="query-table-wrap">
+        <table id="query-table">
+          <thead><tr id="query-head"></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty" id="query-empty" hidden>No query matches that filter.</p>
     </div>
-    <p class="empty" id="query-empty" hidden>No query matches that filter.</p>
     <p class="note" style="margin-top:1rem;max-width:78ch">
       Blank cells are responses that did not receive all three judge scores, usually a rate limit.
       They are excluded from every aggregate on this page.
@@ -321,18 +347,20 @@
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <p style="margin:0">
-        Vannaris, independent benchmark of web-search APIs.<br>
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <p style="margin:0;max-width:42ch">
+        Independent benchmark of web-search APIs.<br>
         Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
       </p>
     </div>
     <div>
-      <p style="margin:0">
-        <a href="index.html">Overview</a> ·
-        <a href="methodology.html">Methodology</a> ·
+      <p class="foot__links" style="margin:0 0 0.8rem">
+        <a href="index.html">Overview</a>
+        <a href="methodology.html">Methodology</a>
         <a href="data.html">Data export</a>
+        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
       </p>
-      <p class="mono note" style="margin:0.3rem 0 0">
+      <p class="mono note" style="margin:0">
         run <span data-val="latest.run_id"></span>
       </p>
     </div>
@@ -383,7 +411,6 @@ window.SBPage = {
       if (v.vendor === cheapest.vendor) o.selected = true;
       sel.appendChild(o);
     });
-    var self = this;
     sel.addEventListener("change", function () {
       var host = document.getElementById("fig-retained");
       host.innerHTML = "";
@@ -411,8 +438,12 @@ window.SBPage = {
         return e;
       }
       var name = document.createElement("td");
-      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") +
-        '</span><span class="vendor-name">' + v.label + "</span>";
+      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") + "</span>";
+      var link = document.createElement("a");
+      link.className = "vendor-name";
+      link.href = "vendors/" + v.vendor + ".html";
+      link.textContent = v.label;
+      name.appendChild(link);
       tr.appendChild(name);
       var sc = td(h.fmt(v.score), i === 0 ? "num meter best" : "num meter");
       sc.style.setProperty("--pct", meterPct(v.score).toFixed(1));
@@ -485,7 +516,8 @@ window.SBPage = {
         tr.appendChild(qc);
 
         var cc = document.createElement("td");
-        cc.innerHTML = '<span class="tag">' + (h.catLabel[q.c] || q.c) + "</span>";
+        cc.innerHTML = '<span class="tag"></span>';
+        cc.querySelector(".tag").textContent = h.catLabel[q.c] || q.c;
         tr.appendChild(cc);
 
         // Highlight the winner only when there is one. On easy queries four

@@ -63,15 +63,6 @@
     } catch (e) { /* fall through */ }
     return v || FALLBACK[name] || "currentColor";
   }
-  function onInk() {
-    var el = CTX;
-    while (el && el.nodeType === 1) {
-      if (el.getAttribute("data-field") === "ink") return true;
-      if (el.getAttribute("data-field") === "paper") return false;
-      el = el.parentNode;
-    }
-    return false;
-  }
   function fmt(v, dp) {
     return v == null ? "—" : Number(v).toFixed(dp == null ? 2 : dp);
   }
@@ -90,9 +81,9 @@
   /* Ink or paper on top of a ramp fill, picked by how dark the step is so a
    * label inside a cell always clears contrast. */
   function onRamp(step) {
-    // Dark unless the page is explicitly stamped light: the OS preference does
+    // Light unless the page is explicitly stamped dark: the OS preference does
     // not decide this site's theme.
-    var dark = document.documentElement.getAttribute("data-theme") !== "light";
+    var dark = document.documentElement.getAttribute("data-theme") === "dark";
     // On the dark ramp the light steps are the high scores, so the polarity of
     // the label colour inverts with it.
     if (dark) return step >= 4 ? "#0e0e10" : "#f6f6f3";
