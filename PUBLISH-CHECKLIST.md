@@ -1,8 +1,17 @@
 # Publish checklist
 
-The site in `site/` is complete and correct. It is **not cleared to go live.** This file is the gate
-between "built" and "published", and the items in the first section are founder decisions, not
-engineering tasks — none of them should be resolved by whoever happens to be doing the next commit.
+The site in `site/` is complete and correct. This file is the gate between "built" and "published",
+and the items in the first section are founder decisions, not engineering tasks — none of them
+should be resolved by whoever happens to be doing the next commit.
+
+> **The site went public on 2026-08-03**, on the founder's explicit instruction, with the blocking
+> items in §1, §2 and §3 below **still open**. Both crawler blocks (§5) were removed deliberately as
+> the launch step. This note exists so that an unchecked box below is read as what it is — an open
+> item on a live site — rather than as an oversight nobody noticed. Specifically still open at
+> launch: the USPTO search on `VANNARIS`, an attorney reading the methodology, a re-read of Exa's,
+> Perplexity's and You.com's current terms, the Tavily/Brave decision, and `REPO_URL`, which is
+> still unset — so the "Source" link on every page renders as inert text reading "not public yet"
+> on a site whose central claim is that you can check the work.
 
 ---
 
@@ -97,11 +106,13 @@ not before. Before launch:
 ## 5. Hosting
 
 **Deployed as a private preview on 2026-08-02** to `vannaris.com` (Vercel, static, no build
-step). It is reachable by anyone who knows the URL — "I won't share it" is not a control — so
-two crawler blocks are in place and **both must be removed deliberately at launch**:
+step), then **made public on 2026-08-03.** Both crawler blocks were removed together, which is
+how they were always meant to come off:
 
-- [ ] Delete `site/robots.txt`, which currently sends `Disallow: /`.
-- [ ] Remove the `X-Robots-Tag: noindex, nofollow, noarchive` header from `vercel.json`.
+- [x] Delete `site/robots.txt`, which sent `Disallow: /`. Removed 2026-08-03.
+- [x] Remove the `X-Robots-Tag: noindex, nofollow, noarchive` header from `vercel.json`. Removed
+      2026-08-03, in the same commit — they cover different failure modes and taking off only one
+      leaves the site invisible in a way that stays invisible.
 
 Forgetting either one launches a site search engines have been told to ignore, which is the
 kind of mistake that stays invisible for weeks. They are paired on purpose: the header covers
