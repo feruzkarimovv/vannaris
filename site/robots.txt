@@ -1,8 +1,0 @@
-# Private preview. Nothing here is published yet — see PUBLISH-CHECKLIST.md.
-# Removing this file is a deliberate launch step, not housekeeping.
-User-agent: *
-Disallow: /
-
-# Paired with the X-Robots-Tag header in vercel.json. The header covers anything
-# already crawled; this file covers anything that never fetches a page. Both come
-# off together, deliberately, as a launch step.
