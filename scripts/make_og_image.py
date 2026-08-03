@@ -17,26 +17,37 @@ also writes `og.png`, which is what social platforms actually accept:
 
 from __future__ import annotations
 
+import argparse
 import html
 import json
 import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "site" / "data" / "latest.json"
-OUT_SVG = ROOT / "site" / "assets" / "og.svg"
-OUT_PNG = ROOT / "site" / "assets" / "og.png"
+
+
+def rel(p: Path) -> str:
+    """Repo-relative where possible; a fixture site root is outside it."""
+    try:
+        return str(p.relative_to(ROOT))
+    except ValueError:
+        return str(p)
 
 W, H = 1200, 630
 
-# The site's default (dark) tokens from site.css. Hard-coded rather than
+# The site's default (light) tokens from site.css. Hard-coded rather than
 # parsed: the card is one fixed image, and a CSS parser here would be more
 # moving parts than the thing it renders. Keep in step with site.css — a share
 # card in last season's palette is the first thing anyone sees.
-SURFACE, INK, INK2, INK3 = "#0d0c0b", "#f6f3ed", "#c8c1b6", "#948c80"
-SIGNAL = "#e2622f"
-# Stepped for the dark surface: light is high, as on the site.
-RAMP = ["#12284a", "#16386b", "#1c5cab", "#2a78d6", "#3987e5", "#6da7ec", "#9ec5f4"]
+SURFACE, CARD = "#f5f4f2", "#ffffff"
+INK, INK2, INK3 = "#0a0a0a", "#52504b", "#78736c"
+SIGNAL = "#ff6b00"
+# Stepped for the light surface: dark is high, as on the site.
+RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
+# Where the label inside a cell flips from ink to paper. Mirrors onRamp() in
+# site/assets/charts.js; the two have to agree or the card is unreadable at
+# exactly the steps the site handles fine.
+RAMP_FLIP = 3
 
 # Same families as the site. A renderer without them falls back through the
 # stack rather than failing, and the card still reads correctly.
@@ -53,6 +64,114 @@ VENDOR_LABEL = {"exa": "Exa", "perplexity": "Perplexity", "serper": "Serper",
 
 def esc(s: object) -> str:
     return html.escape(str(s), quote=True)
+
+
+def category_labels(site: Path) -> dict:
+    """Full category labels, read from the export rather than retyped.
+
+    CATEGORY_SHORT above is a deliberate abbreviation for the matrix card, where
+    six column headers have to fit in 160px each. The per-vendor card has a full
+    row per category and room for the real name, and the real name lives in the
+    export — so it is read from there and only falls back to the short map if
+    the bundle is unreadable.
+    """
+    try:
+        text = (site / "data" / "bundle.js").read_text()
+        data = json.loads(text[text.index("{"):text.rindex("}") + 1])
+        return {c["id"]: c["label"] for c in data["categories"]}
+    except Exception:
+        return dict(CATEGORY_SHORT)
+
+
+def wordmark(x: int, y: int, size: int = 26) -> str:
+    """The masthead mark: an ink tile with the signal dot, then the wordmark."""
+    tile = size + 10
+    return (
+        f'<rect x="{x}" y="{y}" width="{tile}" height="{tile}" rx="{tile // 3}" fill="{INK}"/>'
+        f'<circle cx="{x + tile / 2:.0f}" cy="{y + tile / 2:.0f}" r="{tile / 5:.0f}" fill="{SIGNAL}"/>'
+        f'<text x="{x + tile + 14}" y="{y + tile * 0.74:.0f}" font-family="{SANS}" '
+        f'font-size="{size}" font-weight="700" letter-spacing="-0.9" fill="{INK}">Vannaris</text>'
+    )
+
+
+def build_vendor(latest: dict, vendor_id: str, site: Path) -> str | None:
+    """A share card for one vendor: standing, headline numbers, category bars.
+
+    This is the image that previews when someone links a vendor page, so it has
+    to say what that page says without being read: who it is, where it placed,
+    and the shape of its category profile — which is the part a single score
+    hides. Returns None when the run has no row for the vendor, because a card
+    with blanks in it is worse than no card.
+    """
+    vendors = latest["vendors"]
+    me = next((v for v in vendors if v["vendor"] == vendor_id), None)
+    if not me:
+        return None
+    rank = vendors.index(me) + 1
+    labels = category_labels(site)
+
+    # Export order, so the card and the site's own chart list the categories
+    # the same way round.
+    rows = [c for c in latest["cells"]
+            if c["vendor"] == vendor_id and c.get("pct_of_best") is not None]
+
+    parts: list[str] = [
+        f'<rect width="{W}" height="{H}" fill="{SURFACE}"/>',
+        f'<rect width="{W}" height="6" fill="{SIGNAL}"/>',
+        wordmark(64, 46),
+    ]
+
+    parts.append(
+        f'<text x="64" y="168" font-family="{SANS}" font-size="60" font-weight="650" '
+        f'letter-spacing="-2.2" fill="{INK}">{esc(me["label"])}</text>'
+    )
+
+    standing = (f'#{rank} of {len(vendors)}   ·   {me["score"]:.2f} / 10 overall   ·   '
+                f'${me["cost_per_query_usd"]:.5f} per query   ·   '
+                f'{me["p50_latency_ms"] / 1000:.1f}s p50   ·   '
+                f'{me["wins"]} of {latest["n_queries"]} queries won')
+    parts.append(
+        f'<text x="64" y="208" font-family="{MONO}" font-size="19" fill="{INK2}">'
+        f'{esc(standing)}</text>'
+    )
+
+    # Category bars: share of the category-leading score, on the same 70-100
+    # scale and the same accent-below-90 rule as the chart on the site.
+    x0, x1 = 300, 1040
+    top, step = 262, 50
+    if rows:
+        parts.append(
+            f'<text x="64" y="{top - 22}" font-family="{MONO}" font-size="16" fill="{INK3}">'
+            f'SHARE OF THE CATEGORY-LEADING SCORE</text>'
+        )
+    for i, c in enumerate(rows):
+        y = top + i * step
+        pct = max(70.0, min(100.0, float(c["pct_of_best"])))
+        w = max(5.0, (x1 - x0) * (pct - 70.0) / 30.0)
+        fill = SIGNAL if c["pct_of_best"] < 90 else "#c9c3b6"
+        parts.append(
+            f'<text x="{x0 - 20}" y="{y + 15}" font-family="{SANS}" font-size="19" '
+            f'fill="{INK2}" text-anchor="end">'
+            f'{esc(labels.get(c["category"], c["category"]))}</text>'
+            f'<rect x="{x0}" y="{y}" width="{x1 - x0}" height="20" rx="4" fill="#e7e3da"/>'
+            f'<rect x="{x0}" y="{y}" width="{w:.0f}" height="20" rx="4" fill="{fill}"/>'
+            f'<text x="{x0 + w + 12:.0f}" y="{y + 15}" font-family="{MONO}" font-size="17" '
+            f'fill="{INK2}">{c["pct_of_best"]:.0f}%</text>'
+        )
+
+    foot = top + max(len(rows), 1) * step + 26
+    stamp = (f'{latest["week"]} · {latest["n_queries"]} queries × '
+             f'{latest["n_vendors"]} vendors × {latest["n_judges"]} judges · '
+             f'{latest["completeness"]["pct"]}% complete ensembles')
+    parts.append(
+        f'<text x="64" y="{min(foot, H - 60)}" font-family="{MONO}" font-size="18" '
+        f'fill="{INK3}">{esc(stamp)}</text>'
+        f'<text x="64" y="{min(foot + 28, H - 32)}" font-family="{MONO}" font-size="18" '
+        f'fill="{INK3}">independent · open methodology · open data, CC BY 4.0</text>'
+    )
+
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
+            f'viewBox="0 0 {W} {H}">' + "".join(parts) + "</svg>")
 
 
 def build(latest: dict) -> str:
@@ -77,12 +196,14 @@ def build(latest: dict) -> str:
         f'<rect width="{W}" height="6" fill="{SIGNAL}"/>',
     ]
 
-    # Identity. The dot is placed past a conservative estimate of the wordmark's
-    # width — there is no text measurement available here, so it errs wide.
+    # Identity: the same mark the site's masthead uses — an ink tile with the
+    # signal dot in it — set before the wordmark. Drawn rather than measured,
+    # because the mark leads and nothing after it depends on text width.
     parts.append(
-        f'<text x="64" y="96" font-family="{SANS}" font-size="32" font-weight="700" '
+        f'<rect x="64" y="66" width="36" height="36" rx="11" fill="{INK}"/>'
+        f'<circle cx="82" cy="84" r="7" fill="{SIGNAL}"/>'
+        f'<text x="114" y="96" font-family="{SANS}" font-size="32" font-weight="700" '
         f'letter-spacing="-1.1" fill="{INK}">Vannaris</text>'
-        f'<circle cx="285" cy="86" r="5" fill="{SIGNAL}"/>'
     )
 
     for i, line in enumerate(["An independent benchmark of the",
@@ -115,7 +236,7 @@ def build(latest: dict) -> str:
             t = (cell["score"] - lo) / (hi - lo) if hi > lo else 0.5
             step = max(0, min(len(RAMP) - 1, round(t * (len(RAMP) - 1))))
             fill = RAMP[step]
-            ink = SURFACE if step >= 4 else INK
+            ink = CARD if step >= RAMP_FLIP else INK
             x = grid_x + j * cell_w
             parts.append(
                 f'<rect x="{x}" y="{y}" width="{cell_w - gap}" height="{cell_h - gap}" '
@@ -131,7 +252,7 @@ def build(latest: dict) -> str:
              f'{latest["completeness"]["pct"]}% complete ensembles')
     parts.append(
         f'<text x="{grid_x}" y="{foot + 30}" font-family="{SANS}" font-size="18" '
-        f'fill="{INK3}">Ensemble median, 0–10. Lighter is better.</text>'
+        f'fill="{INK3}">Ensemble median, 0–10. Darker is better.</text>'
         f'<text x="64" y="{foot + 66}" font-family="{MONO}" font-size="19" '
         f'fill="{INK3}">{esc(stamp)}</text>'
         f'<text x="64" y="{foot + 94}" font-family="{MONO}" font-size="19" '
@@ -143,19 +264,40 @@ def build(latest: dict) -> str:
 
 
 def main() -> int:
-    if not DATA.exists():
-        print(f"{DATA} not found — run `python -m src.export` first")
+    # Same shape as `python -m src.export --out`: a site root, so the cards can
+    # be regenerated against a fixture export without touching the real site/.
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--site", default=str(ROOT / "site"), help="site root")
+    args = ap.parse_args()
+    site = Path(args.site).resolve()
+    data_file = site / "data" / "latest.json"
+    out_svg = site / "assets" / "og.svg"
+
+    if not data_file.exists():
+        print(f"{data_file} not found — run `python -m src.export` first")
         return 1
 
-    svg = build(json.loads(DATA.read_text()))
-    OUT_SVG.write_text(svg + "\n")
-    print(f"wrote {OUT_SVG.relative_to(ROOT)}")
+    latest = json.loads(data_file.read_text())
+
+    # The site card, plus one per vendor — the image that previews when a vendor
+    # page is linked. Every one is built from this run, so a share card cannot
+    # advertise a result the page it links to no longer shows.
+    cards: list[tuple[Path, str]] = [(out_svg, build(latest))]
+    for v in latest["vendors"]:
+        svg = build_vendor(latest, v["vendor"], site)
+        if svg:
+            cards.append((out_svg.with_name(f"og-{v['vendor']}.svg"), svg))
+
+    out_svg.parent.mkdir(parents=True, exist_ok=True)
+    for path, svg in cards:
+        path.write_text(svg + "\n")
+        print(f"wrote {rel(path)}")
 
     try:
         import resvg_py  # type: ignore
     except ImportError:
-        print("no SVG renderer installed; og.png not regenerated.\n"
-              "  pip install resvg-py   (or convert og.svg with rsvg-convert / Inkscape)")
+        print("no SVG renderer installed; the PNGs were not regenerated.\n"
+              "  pip install resvg-py   (or convert the SVGs with rsvg-convert / Inkscape)")
         return 0
 
     # A renderer that cannot find a font drops every glyph *silently* and still
@@ -170,9 +312,20 @@ def main() -> int:
     if os.environ.get("SB_OG_MONO"):
         opts["monospace_family"] = os.environ["SB_OG_MONO"]
 
-    OUT_PNG.write_bytes(bytes(resvg_py.svg_to_bytes(svg_string=svg, **opts)))
-    print(f"wrote {OUT_PNG.relative_to(ROOT)}")
-    print("check the card renders its text — a renderer with no fonts installed "
+    for path, svg in cards:
+        png = path.with_suffix(".png")
+        png.write_bytes(bytes(resvg_py.svg_to_bytes(svg_string=svg, **opts)))
+        print(f"wrote {rel(png)}")
+
+    # A vendor pulled from the set leaves its card behind otherwise, and a stale
+    # card is a published comparison the cleared set no longer covers.
+    keep = {p.stem for p, _ in cards}
+    for stale in sorted(out_svg.parent.glob("og-*.*")):
+        if stale.stem not in keep and stale.suffix in (".svg", ".png"):
+            stale.unlink()
+            print(f"removed {rel(stale)} (no longer in the export)")
+
+    print("check the cards render their text — a renderer with no fonts installed "
           "drops every glyph without erroring.")
     return 0
 

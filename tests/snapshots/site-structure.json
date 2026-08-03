@@ -1,33 +1,38 @@
 {
   "index.html": {
-    "title": "Vannaris — a neutral benchmark of web-search APIs for AI agents",
+    "title": "Vannaris — an independent benchmark of the search APIs your agents call",
     "landmarks": [
       "header",
-      "nav \"Primary\"",
-      "div[role=group] \"Current run\"",
+      "nav#site-nav \"Primary\"",
       "main",
-      "section#record",
+      "div[role=group] \"Current run\"",
+      "section#vendors",
       "section#finding",
+      "section#picks",
       "section#how",
+      "section#router",
       "section#limits",
-      "section#use",
+      "section#contact",
       "footer"
     ],
     "outline": [
-      "h1 Search APIs are not interchangeable, and no vendor will tell you where they differ.",
-      "h2 The current record",
+      "h1 Pick the search API your agent should be calling. On evidence.",
+      "h2 Current standings",
+      "h2 Every vendor gets the identical query set.",
       "h3 Quality by vendor and category",
-      "h2 The finding a vendor benchmark cannot produce",
+      "h2 The cheapest API is not worse everywhere. It is worse in specific places.",
       "h3 Share of the best score",
-      "h2 How a score gets made",
+      "h2 Four jobs an agent actually does, and what this run says to use for each.",
+      "h2 Four steps, all of them inspectable.",
       "h3 The same queries, to every vendor",
       "h3 Three judges, three model families",
       "h3 Median, and only when complete",
       "h3 Everything published, including the holes",
-      "h2 What this benchmark cannot tell you",
+      "h2 The benchmark measures it. The router acts on it.",
+      "h2 Known limits",
       "h3 The judges disagree, measurably",
       "h3 The scores cluster high",
-      "h2 Use the data. Check the work."
+      "h2 Questions, corrections, early access."
     ],
     "figures": [
       "#fig-heatmap",
@@ -36,32 +41,29 @@
       "#fig-distribution"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Queries won\" counts the queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | p50 latency | Queries won | Returns]"
+      "#leaderboard [Vendor | Score | Cost / query | p50]"
     ],
     "controls": [
-      "button[type=button][data-theme-toggle] \"dark\""
+      "button[type=button] \"Menu\"",
+      "button[type=button][data-theme-toggle] \"Switch theme\""
     ],
     "slots": [
+      "config.top_k",
       "d.cheap_cost|money",
       "d.cheap_vendor ×2",
       "d.cost_ratio|ratio ×2",
-      "d.n_categories ×3",
-      "d.n_vendors ×3",
+      "d.n_categories ×2",
+      "d.n_judge_families",
+      "d.n_judges ×2",
+      "d.n_vendors ×2",
       "d.schedule_note",
-      "d.schedule_state",
-      "d.strong_hi|pct0",
-      "d.strong_lo|pct0",
-      "d.strong_n",
+      "d.spread_note",
       "d.top_cost|money",
       "d.top_vendor",
       "d.track_dd",
       "d.track_dt",
-      "d.trend_note",
-      "d.weak_cats",
-      "d.weak_hi|pct0",
-      "d.weak_lo|pct0",
-      "d.weeks ×2",
-      "d.weeks_plural",
+      "d.weeks ×3",
+      "d.weeks_plural ×2",
       "generated_at|date",
       "latest.completeness.complete_ensembles|int",
       "latest.completeness.pct|n1",
@@ -70,26 +72,30 @@
       "latest.judging.mean_disagreement|n2",
       "latest.n_judgements|int",
       "latest.n_queries|int ×2",
-      "latest.ran_at|date ×2",
-      "latest.vendor_spend_usd|money"
+      "latest.ran_at|date",
+      "latest.vendor_spend_usd|money",
+      "latest.week"
     ],
     "links": [
+      "#contact",
+      "#limits",
+      "#router",
       "data.html",
       "index.html",
       "methodology.html",
+      "methodology.html#changelog",
       "methodology.html#vendors",
       "results.html",
-      "results.html#judging",
-      "results.html#queries"
+      "results.html#judging"
     ]
   },
   "results.html": {
     "title": "Results — Vannaris",
     "landmarks": [
       "header",
-      "nav \"Primary\"",
-      "div[role=group] \"Current run\"",
+      "nav#site-nav \"Primary\"",
       "main",
+      "div[role=group] \"Current run\"",
       "section#quality",
       "section#cost",
       "section#latency",
@@ -98,14 +104,15 @@
       "footer"
     ],
     "outline": [
-      "h1 Results, {latest.week}",
+      "h1 Every vendor, every category, one run.",
       "h2 Quality by vendor and category",
       "h3 Score matrix",
       "h3 Where each vendor's queries land",
+      "h3 Vendor summary",
       "h2 Cost against quality",
       "h3 Cost per query vs score",
       "h3 Share of the best score, by category",
-      "h2 Latency",
+      "h2 How long each API takes to answer",
       "h3 Median response time",
       "h2 How much the judges disagree",
       "h3 How far apart the three judges were",
@@ -122,18 +129,20 @@
       "#fig-judges"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Queries won\" counts queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won | Scored | Returns]",
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won\" counts queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won | Scored | Returns]",
       "#query-table []"
     ],
     "controls": [
-      "button[type=button][data-theme-toggle] \"dark\"",
+      "button[type=button] \"Menu\"",
+      "button[type=button][data-theme-toggle] \"Switch theme\"",
       "select#retained-vendor \"Vendor to compare against the best score\"",
       "select#q-category \"all\"",
       "input#q-search[type=search] \"filter query text\""
     ],
     "slots": [
-      "d.n_categories ×2",
-      "d.n_vendors",
+      "d.n_categories",
+      "d.n_judge_families ×2",
+      "d.n_judges",
       "d.schedule_note",
       "d.weeks",
       "latest.completeness.complete_ensembles|int",
@@ -146,16 +155,16 @@
       "latest.judging.responses_over_3pts|int",
       "latest.n_judgements|int",
       "latest.n_judges",
-      "latest.n_queries|int ×3",
+      "latest.n_queries|int ×2",
       "latest.n_vendors",
       "latest.run_id",
-      "latest.vendor_spend_usd|money",
-      "latest.week"
+      "latest.vendor_spend_usd|money"
     ],
     "links": [
       "#judging",
       "data.html",
       "index.html",
+      "index.html#contact",
       "methodology.html",
       "methodology.html#judges",
       "results.html"
@@ -165,8 +174,7 @@
     "title": "Methodology — Vannaris",
     "landmarks": [
       "header",
-      "nav \"Primary\"",
-      "div[role=group] \"Current run\"",
+      "nav#site-nav \"Primary\"",
       "main",
       "section#queries",
       "section#vendors",
@@ -179,17 +187,17 @@
       "footer"
     ],
     "outline": [
-      "h1 Methodology",
-      "h2 The query set",
+      "h1 Everything here is meant to be checked.",
+      "h2 Six categories that fail differently",
       "h3 Where the queries come from",
       "h3 Breaking-news queries carry no expected answer",
-      "h2 The vendor set, and who is missing",
+      "h2 Scoped by contract, not by popularity",
       "h2 Making responses comparable",
       "h3 Uniform depth",
       "h3 Two shapes of answer",
       "h3 Cost",
       "h3 Latency",
-      "h2 The judge ensemble",
+      "h2 Three models, three labs, one rubric",
       "h3 Why three families",
       "h3 Median, and only when complete",
       "h3 Salvaging truncated replies",
@@ -198,9 +206,9 @@
       "h3 Response score",
       "h3 Category cell",
       "h3 Vendor score",
-      "h3 One run per week is published",
+      "h3 One run per cycle is published",
       "h2 Open gaps",
-      "h2 Reproduce it",
+      "h2 Run the whole thing yourself",
       "h2 Methodology changelog"
     ],
     "figures": [],
@@ -210,20 +218,21 @@
       "#judge-table \"Model versions are pinned. Changing one is a methodology change and appears in the changelog below.\" [Family | Model | Mean score, this run | Coverage]"
     ],
     "controls": [
-      "button[type=button][data-theme-toggle] \"dark\""
+      "button[type=button] \"Menu\"",
+      "button[type=button][data-theme-toggle] \"Switch theme\""
     ],
     "slots": [
       "config.min_cell_coverage|pct0",
       "config.min_queries_per_category",
       "config.rubric",
-      "config.top_k ×2",
+      "config.top_k",
       "d.n_categories",
       "d.record_note",
       "d.unbuilt",
       "d.weeks",
       "d.weeks_plural",
       "latest.judging.family_spread|n2",
-      "latest.n_queries|int ×4",
+      "latest.n_queries|int ×3",
       "latest.query_set_hash",
       "latest.vendor_spend_usd|money",
       "latest.week"
@@ -233,6 +242,7 @@
       "data.html",
       "data.html#recompute",
       "index.html",
+      "index.html#contact",
       "methodology.html",
       "results.html"
     ]
@@ -241,8 +251,7 @@
     "title": "Data export — Vannaris",
     "landmarks": [
       "header",
-      "nav \"Primary\"",
-      "div[role=group] \"Current run\"",
+      "nav#site-nav \"Primary\"",
       "main",
       "section#files",
       "section#excluded",
@@ -252,8 +261,8 @@
       "footer"
     ],
     "outline": [
-      "h1 Data export",
-      "h2 Files",
+      "h1 Take the whole thing. Check it yourself.",
+      "h2 What is in the export",
       "h3 JSON, this week",
       "h3 JSON, by week",
       "h3 Manifest",
@@ -277,19 +286,22 @@
       "table [Column | Meaning]"
     ],
     "controls": [
-      "button[type=button][data-theme-toggle] \"dark\""
+      "button[type=button] \"Menu\"",
+      "button[type=button][data-theme-toggle] \"Switch theme\""
     ],
     "slots": [
       "config.min_cell_coverage|pct0",
       "generated_at|date",
-      "latest.week ×3"
+      "latest.week ×4"
     ],
     "links": [
       "#",
+      "#recompute",
       "data.html",
       "data/latest.json",
       "export/manifest.json",
       "index.html",
+      "index.html#contact",
       "methodology.html",
       "methodology.html#changelog",
       "results.html"

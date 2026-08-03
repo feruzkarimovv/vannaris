@@ -8,132 +8,150 @@
 <link rel="canonical" href="https://vannaris.com/methodology.html">
 <meta property="og:title" content="Methodology — Vannaris">
 <meta property="og:description" content="The query set, the vendor set, the judge ensemble, the aggregation rules, and what is deliberately not claimed.">
-<meta property="og:url" content="https://vannaris.com/methodology.html"
-    <meta property="og:type" content="website">
+<meta property="og:url" content="https://vannaris.com/methodology.html">
+<meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314140f'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
+<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <header class="masthead">
   <div class="shell">
-    <div class="masthead__row">
-      <a class="wordmark" href="index.html">Vannaris</a>
-      <span class="masthead__now" data-now aria-live="polite"></span>
-      <nav class="nav" aria-label="Primary">
+    <div class="navbar">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
         <a href="https://github.com/" data-repo>Source</a>
       </nav>
-      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+      <div class="navbar__actions">
+        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
+                aria-expanded="false" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
+        <a class="btn btn--sm" href="index.html#contact">Get in touch</a>
+      </div>
     </div>
-    <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
   </div>
-  <div class="progress" aria-hidden="true"></div>
 </header>
+<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<section style="padding-bottom:2.5rem">
+<section class="hero" style="padding-bottom:clamp(2rem,4vw,3rem)">
+  <div class="bloom" style="width:460px;height:460px;right:-200px;top:-80px"></div>
   <div class="shell">
-    <h1>Methodology</h1>
-    <p class="hero__lede">
-      A benchmark is only worth as much as the parts of it you can check. This page describes what
+    <span class="eyebrow eyebrow--accent">Methodology</span>
+    <h1 style="margin-top:1rem;max-width:18ch">Everything here is meant to be checked.</h1>
+    <p class="lead" style="margin-top:1.35rem">
+      A benchmark is only worth as much as the parts of it you can verify. This page describes what
       is measured, how, and where the measurement is weak. The code that implements all of it is in
       the repository, and the scores it produced are on <a href="data.html">the data page</a>.
     </p>
 
-    <div class="claim" style="margin-top:2rem">
-      <span class="label">Not yet done</span>
+    <div class="callout" style="margin-top:2rem;max-width:74ch">
+      <span class="eyebrow">Open items</span>
       <p>
         <span data-val="d.unbuilt"></span>
-        Listed in <a href="#gaps">open gaps</a> rather than described as if already running.
+        Tracked in <a href="#gaps">open gaps</a>.
       </p>
     </div>
   </div>
 </section>
 
-<section id="queries">
+<section id="queries" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>The query set</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The query set</span>
+      <h2>Six categories that fail differently</h2>
       <p>
         <span data-val="latest.n_queries" data-fmt="int"></span> queries in
         <span data-val="d.n_categories"></span> categories, chosen so that the categories fail
         differently rather than all measuring the same thing.
       </p>
-          <span class="label"><span data-val="latest.n_queries" data-fmt="int"></span> queries</span>
     </div>
 
-    <div class="table-wrap">
-      <table id="cat-table">
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col" class="num">Queries</th>
-            <th scope="col">What it tests</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel panel--flush" style="margin-bottom:2rem">
+      <div class="table-wrap">
+        <table id="cat-table">
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col" class="num">Queries</th>
+              <th scope="col">What it tests</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="prose" style="margin-top:2rem">
-      <h3>Where the queries come from</h3>
-      <p>
-        Every query is authored for this benchmark rather than lifted from an existing dataset.
-        That is a deliberate trade: an academic set would carry more external validity, but the
-        licences on the obvious candidates are either restrictive, unresolved, or built around a
-        fixed pre-indexed corpus rather than the live web. Authoring the set means it ships with
-        the export under an open licence from day one, and it means nobody has to take on trust
-        that the questions were not chosen to favour a result.
-      </p>
-      <p>
-        The general-facts and multi-hop sets are written in the style of SimpleQA and HotpotQA
-        respectively, without reusing either corpus. The trade-off worth naming: an authored set is
-        easier to accuse of being unrepresentative, and the honest answer is that the whole set is
-        published, so that accusation is checkable rather than rhetorical.
-      </p>
-
-      <h3>Breaking-news queries carry no expected answer</h3>
-      <p>
-        A freshness question with a fixed answer decays into a general-knowledge question within
-        weeks, which quietly turns the freshness column into a second facts column. So those
-        queries are written in perpetually-current form ("what is the latest…", "who currently
-        holds…") and the judge grades them on source recency and internal consistency instead of
-        answer match. Those queries are also flagged to rotate every cycle, so vendors cannot
-        overfit to a static list of breaking-news questions.
-      </p>
+    <div class="grid-2">
+      <div class="prose">
+        <h3>Where the queries come from</h3>
+        <p>
+          Every query is authored for this benchmark rather than lifted from an existing dataset.
+          That is a deliberate trade: an academic set would carry more external validity, but the
+          licences on the obvious candidates are either restrictive, unresolved, or built around a
+          fixed pre-indexed corpus rather than the live web. Authoring the set means it ships with
+          the export under an open licence from day one, and it means nobody has to take on trust
+          that the questions were not chosen to favour a result.
+        </p>
+        <p>
+          The general-facts and multi-hop sets are written in the style of SimpleQA and HotpotQA
+          respectively, without reusing either corpus. The trade-off worth naming: an authored set
+          is easier to accuse of being unrepresentative, and the honest answer is that the whole set
+          is published, so that accusation is checkable rather than rhetorical.
+        </p>
+      </div>
+      <div class="prose">
+        <h3>Breaking-news queries carry no expected answer</h3>
+        <p>
+          A freshness question with a fixed answer decays into a general-knowledge question within
+          weeks, which quietly turns the freshness column into a second facts column. So those
+          queries are written in perpetually-current form ("what is the latest…", "who currently
+          holds…") and the judge grades them on source recency and internal consistency instead of
+          answer match.
+        </p>
+        <p>
+          Those queries are also flagged to rotate every cycle, so vendors cannot overfit to a
+          static list of breaking-news questions.
+        </p>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="vendors">
+<section id="vendors" class="seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>The vendor set, and who is missing</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The vendor set</span>
+      <h2>Scoped by contract, not by popularity</h2>
       <p>
-        The set is scoped by contract, not by popularity. Several search APIs have terms of service
-        that restrict third-party benchmarking, and this project's position is that the rule
-        applies to it too.
+        Several search APIs have terms of service that restrict third-party benchmarking, and this
+        project's position is that the rule applies to it too.
       </p>
-          <span class="label">scoped by contract</span>
     </div>
 
-    <div class="table-wrap" style="margin-bottom:2rem">
-      <table id="vendor-meta-table">
-        <thead>
-          <tr>
-            <th scope="col">Vendor</th>
-            <th scope="col">Returns</th>
-            <th scope="col">Notes</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel panel--flush" style="margin-bottom:2rem">
+      <div class="table-wrap">
+        <table id="vendor-meta-table">
+          <thead>
+            <tr>
+              <th scope="col">Vendor</th>
+              <th scope="col">Returns</th>
+              <th scope="col">Notes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <dl class="deflist" data-reveal="rows">
@@ -171,14 +189,23 @@
         </dd>
       </div>
     </dl>
+
+    <p class="note" style="margin-top:1.5rem">
+      Vendors: written consent is the only route into the published set.
+      <a href="index.html#contact">Get in touch</a>.
+    </p>
   </div>
 </section>
 
-<section id="normalisation">
+<section id="normalisation" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Normalisation</span>
       <h2>Making responses comparable</h2>
-          <span class="label">top <span data-val="config.top_k"></span>, uniform</span>
+      <p>
+        Vendors answer in different shapes and different lengths. Four rules make the comparison
+        fair before a judge ever sees a response.
+      </p>
     </div>
     <div class="grid-2">
       <div class="prose">
@@ -216,30 +243,32 @@
   </div>
 </section>
 
-<section id="judges">
+<section id="judges" class="seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>The judge ensemble</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The judges</span>
+      <h2>Three models, three labs, one rubric</h2>
       <p>
         Three models from three different vendors score every response independently against one
         rubric. The published score is the median.
       </p>
-          <span class="label">3 models · 3 labs</span>
     </div>
 
-    <div class="table-wrap" style="margin-bottom:2rem">
-      <table id="judge-table">
-        <caption>Model versions are pinned. Changing one is a methodology change and appears in the changelog below.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Family</th>
-            <th scope="col">Model</th>
-            <th scope="col" class="num">Mean score, this run</th>
-            <th scope="col" class="num">Coverage</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel panel--flush" style="margin-bottom:2rem">
+      <div class="table-wrap">
+        <table id="judge-table">
+          <caption>Model versions are pinned. Changing one is a methodology change and appears in the changelog below.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Family</th>
+              <th scope="col">Model</th>
+              <th scope="col" class="num">Mean score, this run</th>
+              <th scope="col" class="num">Coverage</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="grid-2">
@@ -281,10 +310,10 @@
         <div class="panel">
           <div class="panel__head">
             <h3>The rubric, as the code sends it</h3>
-          <span class="label">read from the export, not retyped</span>
+            <span class="label">read from the export</span>
           </div>
           <div class="panel__body" style="padding:0">
-            <pre class="mono" data-val="config.rubric" style="margin:0;padding:1.1rem;font-size:0.78rem;line-height:1.55;white-space:pre-wrap;overflow-x:auto"></pre>
+            <pre class="code" data-val="config.rubric" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
           <div class="panel__foot">
             Placeholders in braces are filled per response. The length-normalisation and
@@ -296,76 +325,67 @@
   </div>
 </section>
 
-<section id="aggregation">
+<section id="aggregation" class="band seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Aggregation</span>
       <h2>From scores to a published table</h2>
-          <span class="label">four stages</span>
+      <p>Four stages, each of which can drop a number rather than publish a weak one.</p>
     </div>
     <ol class="steps" data-reveal="rows">
       <li>
-        <div>
-          <h3>Response score</h3>
-          <p>Median of the three judges' overall scores. Dropped if any judge is missing.</p>
-        </div>
+        <h3>Response score</h3>
+        <p>Median of the three judges' overall scores. Dropped if any judge is missing.</p>
       </li>
       <li>
-        <div>
-          <h3>Category cell</h3>
-          <p>
-            Mean of the response scores for that vendor in that category. A cell whose coverage
-            falls below <span data-val="config.min_cell_coverage" data-fmt="pct0"></span> of its
-            queries is published as missing rather than as a number computed from a thin sample.
-          </p>
-        </div>
+        <h3>Category cell</h3>
+        <p>
+          Mean of the response scores for that vendor in that category. A cell whose coverage
+          falls below <span data-val="config.min_cell_coverage" data-fmt="pct0"></span> of its
+          queries is published as missing rather than as a number computed from a thin sample.
+        </p>
       </li>
       <li>
-        <div>
-          <h3>Vendor score</h3>
-          <p>
-            Mean of that vendor's category cells, so every category weighs the same regardless of
-            how many of its queries scored cleanly.
-          </p>
-        </div>
+        <h3>Vendor score</h3>
+        <p>
+          Mean of that vendor's category cells, so every category weighs the same regardless of
+          how many of its queries scored cleanly.
+        </p>
       </li>
       <li>
-        <div>
-          <h3>One run per week is published</h3>
-          <p>
-            A week can contain smoke tests and aborted runs. The published run is chosen
-            explicitly: it must cover at least
-            <span data-val="config.min_queries_per_category"></span> queries in every category, and
-            among those that qualify the one with the most complete judge ensembles wins. Every
-            candidate run and its completeness ships in the export.
-          </p>
-        </div>
+        <h3>One run per cycle is published</h3>
+        <p>
+          A cycle can contain smoke tests and aborted runs. The published run is chosen explicitly:
+          it must cover at least <span data-val="config.min_queries_per_category"></span> queries in
+          every category, and among those that qualify the one with the most complete judge
+          ensembles wins. Every candidate run and its completeness ships in the export.
+        </p>
       </li>
     </ol>
   </div>
 </section>
 
-<section id="gaps">
+<section id="gaps" class="seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Open gaps</span>
       <h2>Open gaps</h2>
       <p>
-        Things this methodology should have and does not. Listed here rather than discovered later
-        by someone reading the code.
+        Known distance between the design and what currently runs. If one of these blocks your use
+        of the data, <a href="index.html#contact">say so</a>.
       </p>
-          <span class="label">six, named</span>
     </div>
     <dl class="deflist" data-reveal="rows">
       <div>
         <dt>No human calibration</dt>
         <dd>
           The design calls for 100–200 examples labelled by hand, compared against the ensemble
-          monthly, with the rubric refined against the specific disagreements found. None of that
-          exists yet. Until it does, the judges are unaudited, and this is the first thing a sharp
-          reviewer should attack.
+          monthly, with the rubric refined against the disagreements found. None of it is built.
+          Until it is, the judges are unaudited.
         </dd>
       </div>
       <div>
-        <dt>No elapsed track record</dt>
+        <dt>Short track record</dt>
         <dd>
           <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> of data.
           <span data-val="d.record_note"></span>
@@ -407,19 +427,19 @@
   </div>
 </section>
 
-<section id="reproduce">
+<section id="reproduce" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>Reproduce it</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Reproduce it</span>
+      <h2>Run the whole thing yourself</h2>
       <p>
-        You need your own API keys for the five vendors and the three judge models. A full run of
+        You need your own API keys for the vendors and the judge models. A full run of
         <span data-val="latest.n_queries" data-fmt="int"></span> queries cost
         <span class="mono" data-val="latest.vendor_spend_usd" data-fmt="money"></span> in vendor
         calls.
       </p>
-          <span class="label">your own keys</span>
     </div>
-    <pre class="mono" style="background:var(--surface-2);padding:1.1rem;border-radius:3px;overflow-x:auto;font-size:0.82rem;line-height:1.7;margin:0">git clone &lt;repository&gt; &amp;&amp; cd vannaris
+    <pre class="code">git clone &lt;repository&gt; &amp;&amp; cd vannaris
 python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
 cp .env.example .env          # add your keys
 .venv/bin/python scripts/check_keys.py       # verify all eight, one cheap call each
@@ -432,15 +452,15 @@ cp .env.example .env          # add your keys
   </div>
 </section>
 
-<section id="changelog">
+<section id="changelog" class="seam">
   <div class="shell">
-    <div class="section-head">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Changelog</span>
       <h2>Methodology changelog</h2>
       <p>
         A judge model swap or a rubric edit changes scores without anything changing about the
         vendors. Those changes belong in a log, not in a silent commit.
       </p>
-          <span class="label">since <span data-val="latest.week"></span></span>
     </div>
     <dl class="deflist" data-reveal="rows">
       <div>
@@ -455,18 +475,17 @@ cp .env.example .env          # add your keys
         <dt><span class="mono">2026-W31</span> · judge pin reverted</dt>
         <dd>
           A newer Google judge model was trialled and reverted before publication: it truncated its
-          JSON on roughly a third of calls under the real, much longer judge prompt, having passed
-          a short probe. The lesson is recorded in the code: validate a judge model against a
-          production-length prompt, never a toy one.
+          JSON on roughly a third of calls under the production-length judge prompt, having passed
+          a short probe. Judge models are now validated against a full-length prompt before pinning.
         </dd>
       </div>
       <div>
         <dt><span class="mono">2026-W31</span> · aggregate layer guarded</dt>
         <dd>
-          A two-query smoke test was found to have overwritten one category's published cells,
-          which looked identical to a real result. Aggregation now refuses to overwrite a cell
-          computed from more queries, records which run produced each cell, and the published site
-          recomputes from the per-judge scores of one explicitly chosen run.
+          A two-query smoke test overwrote one category's published cells, and the result was
+          indistinguishable from a real one. Aggregation now refuses to overwrite a cell computed
+          from more queries, records which run produced each cell, and the site recomputes from the
+          per-judge scores of one explicitly chosen run.
         </dd>
       </div>
     </dl>
@@ -478,16 +497,21 @@ cp .env.example .env          # add your keys
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <p style="margin:0">
-        Vannaris, independent benchmark of web-search APIs.<br>
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <p style="margin:0;max-width:42ch">
+        Independent benchmark of web-search APIs.<br>
         Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
       </p>
     </div>
     <div>
-      <p style="margin:0">
-        <a href="index.html">Overview</a> ·
-        <a href="results.html">Results</a> ·
+      <p class="foot__links" style="margin:0 0 0.8rem">
+        <a href="index.html">Overview</a>
+        <a href="results.html">Results</a>
         <a href="data.html">Data export</a>
+        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
+      </p>
+      <p class="mono note" style="margin:0">
+        since <span data-val="latest.week"></span>
       </p>
     </div>
   </div>
@@ -522,9 +546,15 @@ window.SBPage = {
     var vt = document.querySelector("#vendor-meta-table tbody");
     D.vendors.forEach(function (v) {
       var name = document.createElement("td");
-      name.innerHTML = v.docs
-        ? '<a href="' + v.docs + '" rel="nofollow noopener">' + v.label + "</a>"
-        : v.label;
+      if (v.docs) {
+        var a = document.createElement("a");
+        a.href = v.docs;
+        a.rel = "nofollow noopener";
+        a.textContent = v.label;
+        name.appendChild(a);
+      } else {
+        name.textContent = v.label;
+      }
       var m = byId[v.id];
       row(vt, [name, cell(m ? (modes[m.response_mode] || m.response_mode) : "—"),
                cell(v.note || "—")]);

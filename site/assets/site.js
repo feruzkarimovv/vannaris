@@ -26,23 +26,35 @@
     document.documentElement.setAttribute("data-theme", stored);
   }
 
+  // Two glyphs, inlined rather than fetched, because the page's own claim is
+  // that it makes no external request. A moon offers dark; a sun offers light.
+  var ICON = {
+    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    sun:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4' +
+          'M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+  };
+
   function wireTheme() {
     var btn = document.querySelector("[data-theme-toggle]");
     if (!btn) return;
-    // Dark is the unconditional default now, not a response to the OS setting,
-    // so the only thing that can make the page light is an explicit stamp.
-    // Reading prefers-color-scheme here would make the button offer "dark" on a
-    // page that is already dark.
+    // Light is the unconditional default, not a response to the OS setting, so
+    // the only thing that can make the page dark is an explicit stamp. Reading
+    // prefers-color-scheme here would make the button offer "light" on a page
+    // that is already light.
     function current() {
-      return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+      return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
     }
     function paint() {
       var mode = current();
       btn.setAttribute("aria-label", "Switch to " + (mode === "dark" ? "light" : "dark") + " theme");
-      btn.textContent = mode === "dark" ? "light" : "dark";
+      btn.innerHTML = mode === "dark" ? ICON.sun : ICON.moon;
     }
     btn.addEventListener("click", function () {
-      var next = current() === "dark" ? "light" : "dark";
+      var next = current() === "light" ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", next);
       try { localStorage.setItem("sb-theme", next); } catch (e) { /* ignore */ }
       paint();
@@ -72,7 +84,101 @@
     D.categories.forEach(function (c) { catLabel[c.id] = c.label; });
     var tr = D.track_record;
 
+    function joinList(items) {
+      if (items.length <= 1) return items.join("");
+      if (items.length === 2) return items[0] + " and " + items[1];
+      return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
+    }
+    var weakNames = joinList(weak.map(function (c) { return catLabel[c.category].toLowerCase(); }));
+    function span(group) {
+      return Math.round(group[0].pct_of_best) + "–" +
+             Math.round(group[group.length - 1].pct_of_best) + "%";
+    }
+
+    /* The cost/quality spread, written as a whole sentence rather than assembled
+     * from six slots in the markup. The markup version assumed a shape the data
+     * does not guarantee: on a run where the cheap vendor clears 90% of the
+     * leader everywhere — or nowhere — half those slots resolve to nothing and
+     * the sentence on the landing page reads "reaches —–— of the best score".
+     * Composing it here means every branch of the data still produces English. */
+    var spreadNote;
+    if (!cells.length) {
+      spreadNote = "No category on this run carries a complete enough sample to compare the two.";
+    } else if (!weak.length) {
+      spreadNote = "It reaches " + span(strong) + " of the best available score in every one of " +
+        "the " + D.categories.length + " categories.";
+    } else if (!strong.length) {
+      spreadNote = "It reaches " + span(weak) + " of the best available score, and gets within " +
+        "10% of the category leader nowhere.";
+    } else {
+      spreadNote = "On " + strong.length + " of " + D.categories.length + " categories it reaches " +
+        span(strong) + " of the best available score. On " + weakNames + " that falls to " +
+        span(weak) + ".";
+    }
+
+    /* The vendor a per-vendor page is about, if this is one.
+     *
+     * Those pages are generated (scripts/make_vendor_pages.py) and carry only
+     * an id — every figure on them still resolves through data-val against the
+     * same export as every other page, so the smoke test catches a broken one
+     * the same way it catches a broken landing page. A page that names a vendor
+     * the export does not have leaves this null, and check-site.mjs reports the
+     * unresolved slots rather than the page rendering blanks.
+     */
+    var V = null;
+    var wanted = window.SB_VENDOR;
+    if (wanted) {
+      var self = vs.filter(function (v) { return v.vendor === wanted; })[0];
+      if (self) {
+        var rank = vs.indexOf(self) + 1;
+        var mine = D.latest.cells
+          .filter(function (c) { return c.vendor === wanted && c.pct_of_best != null; })
+          .sort(function (a, b) { return b.pct_of_best - a.pct_of_best; });
+        var leads = mine.filter(function (c) { return c.pct_of_best >= 99.999; });
+        var modes = { ranked_results: "a ranked list of results",
+                      both: "a synthesized answer and a ranked list",
+                      synthesized_answer: "a synthesized answer" };
+        var ord = function (n) {
+          var s = ["th", "st", "nd", "rd"], m = n % 100;
+          return n + (s[(m - 20) % 10] || s[m] || s[0]);
+        };
+        V = {
+          id: self.vendor,
+          label: self.label,
+          score: self.score,
+          cost_per_query_usd: self.cost_per_query_usd,
+          cost_usd: self.cost_usd,
+          p50_latency_ms: self.p50_latency_ms,
+          wins: self.wins,
+          n_scored: self.n_scored,
+          n_queries: self.n_queries,
+          coverage_pct: 100 * self.n_scored / self.n_queries,
+          rank: rank,
+          rank_of: vs.length,
+          standing: ord(rank) + " of " + vs.length,
+          returns: modes[self.response_mode] || self.response_mode,
+          strength: !mine.length
+            ? "No category published a comparable cell for it on this run."
+            : leads.length
+              ? "Leads " + joinList(leads.map(function (c) { return catLabel[c.category].toLowerCase(); })) +
+                " outright."
+              : "Comes closest on " + catLabel[mine[0].category].toLowerCase() + ", at " +
+                Math.round(mine[0].pct_of_best) + "% of the category leader.",
+          weakness: mine.length < 2
+            ? "Too few comparable cells this run to say where it falls furthest behind."
+            : "Furthest behind on " + catLabel[mine[mine.length - 1].category].toLowerCase() +
+              ", at " + Math.round(mine[mine.length - 1].pct_of_best) + "% of the leader.",
+          gap_note: rank === 1
+            ? "Leads the overall table."
+            : (vs[0].score - self.score).toFixed(2) + " points behind " + vs[0].label +
+              ", which leads the overall table."
+        };
+      }
+    }
+
     return {
+      v: V,
+      spread_note: spreadNote,
       top_vendor: top.label,
       top_score: top.score,
       cheap_vendor: cheap.label,
@@ -86,10 +192,17 @@
       strong_n: strong.length,
       weak_lo: weak.length ? weak[0].pct_of_best : null,
       weak_hi: weak.length ? weak[weak.length - 1].pct_of_best : null,
-      weak_cats: weak.map(function (c) { return catLabel[c.category].toLowerCase(); }).join(" and "),
+      weak_cats: weakNames,
       n_categories: D.categories.length,
       n_vendors: D.vendors.length,
       n_judges: D.judges.length,
+      // Counted rather than assumed equal to the judge count: the cross-family
+      // claim on the landing page is only true while it is, and the day two
+      // judges share a lab the sentence should stop saying otherwise.
+      n_judge_families: D.judges.reduce(function (acc, j) {
+        if (acc.indexOf(j.family) === -1) acc.push(j.family);
+        return acc;
+      }, []).length,
       fastest: vs.slice().sort(function (a, b) { return a.p50_latency_ms - b.p50_latency_ms; })[0],
       slowest: vs.slice().sort(function (a, b) { return b.p50_latency_ms - a.p50_latency_ms; })[0],
       weeks: tr.weeks_published,
@@ -103,26 +216,25 @@
         ? "has not started yet"
         : "has been running since " + tr.first_scheduled_week,
       schedule_note: !tr.schedule_started
-        ? "the schedule has not started"
-        : tr.scheduled_weeks + " " + (tr.scheduled_weeks === 1 ? "week" : "weeks") + " on schedule",
+        ? "scheduled runs not started"
+        : tr.scheduled_weeks + " on schedule",
       trend_note: tr.weeks_published < 3
-        ? "Nothing here is a trend, and this site will not call itself continuously run until it is."
-        : "Week-over-week movement is visible, and every published week stays in the data export.",
+        ? "Too few runs to show movement."
+        : "Every published week stays in the data export.",
       // The open-gaps copy. Both pages list the scheduled run as unbuilt; once
       // it has run, saying so is the same overclaim in reverse.
       unbuilt: !tr.schedule_started
-        ? "Two things this methodology calls for are not implemented: a human-labelled calibration set scored against the judge ensemble monthly, and a scheduled weekly run."
-        : "One thing this methodology calls for is not implemented: a human-labelled calibration set scored against the judge ensemble monthly.",
+        ? "Two items in this methodology are not yet running: a human-labelled calibration set scored against the judge ensemble monthly, and the scheduled weekly run."
+        : "One item in this methodology is not yet running: a human-labelled calibration set scored against the judge ensemble monthly.",
       track_dt: tr.weeks_published < 2
-        ? "One week is not a track record"
-        : tr.weeks_published + " weeks is a short track record",
+        ? "Single run"
+        : tr.weeks_published + " weeks of history",
       track_dd: tr.weeks_published < 2
-        ? "One complete run exists. Week-over-week movement, the thing this benchmark is actually for, cannot be shown yet."
-        : tr.weeks_published + " complete runs exist. Week-over-week movement is only ever as good as the number of weeks behind it, and this is a small number.",
+        ? "One complete run. Week-over-week movement is not measurable until there are more."
+        : tr.weeks_published + " complete runs. Movement is only as reliable as the number of weeks behind it.",
       record_note: !tr.schedule_started
-        ? "The weekly schedule has not started. The whole premise of this benchmark is elapsed public running time, and that clock has not started ticking."
-        : "The weekly schedule has been running since " + tr.first_scheduled_week +
-          ". The premise of this benchmark is elapsed public running time, and that is measured in weeks, not commits."
+        ? "Scheduled runs have not started. Elapsed public running time is what the schedule is for, and it is measured in weeks."
+        : "Scheduled since " + tr.first_scheduled_week + ". Elapsed public running time is measured in weeks, not commits."
     };
   }
 
@@ -144,7 +256,18 @@
     pct0: function (v) { return Number(v).toFixed(0) + "%"; },
     pct1: function (v) { return Number(v).toFixed(1) + "%"; },
     ratio: function (v) { return Number(v).toFixed(0) + "×"; },
-    money: function (v) { return "$" + Number(v).toFixed(v < 0.01 ? 4 : 2); },
+    /* Two figures live in this formatter and they have different needs: run
+     * totals in dollars, and per-query costs three or four orders of magnitude
+     * smaller. A fixed 4dp printed the second badly and, under $0.0001, printed
+     * it as $0.0000 — a real number rendered as free. Sub-cent values now get
+     * at least the 5dp the tables use, extended for anything smaller. */
+    money: function (v) {
+      v = Number(v);
+      if (!isFinite(v)) return "—";
+      if (v >= 0.01) return "$" + v.toFixed(2);
+      if (v <= 0) return "$" + v.toFixed(2);
+      return "$" + v.toFixed(Math.max(5, Math.min(8, Math.ceil(-Math.log10(v)) + 1)));
+    },
     ms: function (v) { return Number(v).toLocaleString() + " ms"; },
     sec: function (v) { return (Number(v) / 1000).toFixed(1) + "s"; },
     date: function (v) { return String(v).slice(0, 10); }
@@ -204,9 +327,40 @@
       span.textContent = a.textContent;
       span.className = (a.className ? a.className + " " : "") + "inert";
       span.title = "the repository is not public yet";
-      span.style.opacity = "0.55";
       a.parentNode.replaceChild(span, a);
     });
+  }
+
+  /* The narrow-screen menu. Everything it does is also expressed in the markup
+   * (aria-expanded, data-menu) so the CSS, the screen reader and the pointer
+   * are all reading the same state rather than three approximations of it. */
+  function wireMenu() {
+    var bar = document.querySelector(".navbar");
+    var btn = bar && bar.querySelector(".nav-toggle");
+    var menu = bar && bar.querySelector(".nav");
+    if (!bar || !btn || !menu) return;
+
+    function set(open) {
+      if (open) bar.setAttribute("data-menu", "open");
+      else bar.removeAttribute("data-menu");
+      btn.setAttribute("aria-expanded", String(open));
+    }
+    btn.addEventListener("click", function () {
+      set(bar.getAttribute("data-menu") !== "open");
+    });
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) set(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") set(false);
+    });
+    document.addEventListener("click", function (e) {
+      if (!bar.contains(e.target)) set(false);
+    });
+    // A resize past the breakpoint leaves the panel open behind a nav bar that
+    // is no longer a panel, so the state is cleared rather than left dangling.
+    window.addEventListener("resize", function () { set(false); }, { passive: true });
+    set(false);
   }
 
   /* -------------------------------------------------------------- reveal */
@@ -375,6 +529,7 @@
     fillValues();
     stamp();
     nav();
+    wireMenu();
     scrollState();
     // Page figures are built before the scan, so charts created here are
     // observed rather than missed.

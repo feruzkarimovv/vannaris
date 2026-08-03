@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vannaris — a neutral benchmark of web-search APIs for AI agents</title>
-<meta name="description" content="An independent, reproducible benchmark of the web-search APIs that AI agents depend on. Every score, every judge, and every limitation published in full.">
+<title>Vannaris — an independent benchmark of the search APIs your agents call</title>
+<meta name="description" content="Independent, reproducible scoring of the web-search APIs behind AI agents. Quality, cost and latency per vendor and per query type — with the methodology, the raw data and the limitations all published.">
 <link rel="canonical" href="https://vannaris.com/">
-<meta property="og:title" content="Vannaris — a neutral benchmark of web-search APIs">
-<meta property="og:description" content="Five search APIs, 150 queries, six categories, a three-model judge ensemble. Open methodology, open data, published limitations.">
-<meta property="og:url" content="https://vannaris.com/"
-    <meta property="og:type" content="website">
+<meta property="og:title" content="Vannaris — an independent benchmark of web-search APIs">
+<meta property="og:description" content="The same query set, sent to every major search API, scored by three models from three labs. Open methodology, open data, published limitations.">
+<meta property="og:url" content="https://vannaris.com/">
+<meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23121210'/><circle cx='16' cy='16' r='6' fill='%23d1521c'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
 <link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -20,161 +20,187 @@
 
 <header class="masthead">
   <div class="shell">
-    <div class="masthead__row">
-      <a class="wordmark" href="index.html">Vannaris</a>
-      <span class="masthead__now" data-now aria-live="polite"></span>
-      <nav class="nav" aria-label="Primary">
+    <div class="navbar">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
         <a href="https://github.com/" data-repo>Source</a>
       </nav>
-      <button class="icon-btn" data-theme-toggle type="button">dark</button>
+      <div class="navbar__actions">
+        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
+                aria-expanded="false" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
+        <a class="btn btn--sm" href="#contact">Get in touch</a>
+      </div>
     </div>
-    <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
   </div>
-  <div class="progress" aria-hidden="true"></div>
 </header>
+<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<!-- The record, on the ink field. The argument for this project is that it
-     produces results nobody else publishes, so the result is the first thing on
-     the page and the pitch comes after it. When the page is showing you
-     measurements, the lights go down. -->
-<div class="band" data-field="ink">
-  <section class="hero">
-    <div class="shell">
-      <div class="hero__grid">
-        <div>
-          <h1>Search APIs are not interchangeable, and no vendor will tell you where they differ.</h1>
-          <p class="hero__lede">
-            The same <span data-val="latest.n_queries" data-fmt="int"></span> queries, sent to
-            <span data-val="d.n_vendors"></span> web-search APIs, scored by three models from three
-            different labs. The methodology, the individual judge scores and the gaps in the data
-            are all public, including the ones that make the results look worse.
-          </p>
-          <div class="cta-row">
-            <a class="btn" href="results.html">See the results</a>
-            <a class="btn btn--ghost" href="methodology.html">How it works</a>
-          </div>
-        </div>
-
-        <div class="stack">
-          <div class="claim">
-            <span class="label">Status</span>
-            <p>
-              <strong><span data-val="d.weeks"></span> published <span data-val="d.weeks_plural"></span></strong>
-              of data, most recently on <span class="mono" data-val="latest.ran_at" data-fmt="date"></span>. The
-              weekly schedule <strong data-val="d.schedule_state"></strong>.
-              <span data-val="d.trend_note"></span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="readout readout--strip" data-reveal="rows">
-        <div class="readout__item">
-          <div class="label readout__label">Judgements</div>
-          <div class="readout__value" data-count data-val="latest.n_judgements" data-fmt="int"></div>
-          <div class="readout__note">3 judges scored every response</div>
-        </div>
-        <div class="readout__item">
-          <div class="label readout__label">Complete ensembles</div>
-          <div class="readout__value"><span data-count data-val="latest.completeness.pct" data-fmt="n1"></span><span class="unit">%</span></div>
-          <div class="readout__note">of <span data-val="latest.completeness.responses" data-fmt="int"></span> responses</div>
-        </div>
-        <div class="readout__item">
-          <div class="label readout__label">Cost to run</div>
-          <div class="readout__value" data-count data-val="latest.vendor_spend_usd" data-fmt="money"></div>
-          <div class="readout__note">all vendors, one full cycle</div>
-        </div>
-        <div class="readout__item">
-          <div class="label readout__label">Published weeks</div>
-          <div class="readout__value" data-count data-val="d.weeks"></div>
-          <div class="readout__note" data-val="d.schedule_note"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="record">
-    <div class="shell">
-      <div class="section-head">
-        <h2>The current record</h2>
-        <p>
-          Every vendor against every category, from the run stamped at the top of this page.
-          Hover a cell for its sample size, or switch any figure to a table.
-        </p>
-        <span class="label"><span data-val="d.n_vendors"></span> vendors · <span data-val="d.n_categories"></span> categories</span>
-      </div>
-
-      <div class="panel" style="margin-bottom:1.6rem">
-        <div class="panel__head">
-          <h3>Quality by vendor and category</h3>
-          <span class="label">ensemble median, 0–10</span>
-        </div>
-        <div class="panel__body" id="fig-heatmap"></div>
-        <div class="panel__foot">
-          <span data-val="latest.completeness.complete_ensembles" data-fmt="int"></span> of
-          <span data-val="latest.completeness.responses" data-fmt="int"></span> responses carry a
-          complete three-judge score. Each cell is the mean over the queries that do.
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table id="vendor-table">
-          <caption>
-            Overall score is the mean of a vendor's category scores. "Queries won" counts the queries
-            where that vendor took the highest ensemble median.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Vendor</th>
-              <th scope="col" class="num">Score</th>
-              <th scope="col" class="num">Cost / query</th>
-              <th scope="col" class="num">p50 latency</th>
-              <th scope="col" class="num">Queries won</th>
-              <th scope="col">Returns</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- The finding. -->
-<section id="finding">
+<!-- Hero. The pitch on the left, the actual current standings on the right:
+     the fastest way to stop reading like a landing page is to put the product's
+     real output next to the sentence describing it. -->
+<section class="hero">
+  <div class="bloom" style="width:520px;height:520px;left:-220px;top:-60px"></div>
   <div class="shell">
-    <div class="section-head">
-      <h2>The finding a vendor benchmark cannot produce</h2>
+    <div class="hero__grid">
+      <div>
+        <span class="badge">
+          <span class="dot" aria-hidden="true"></span>
+          Run <b data-val="latest.week"></b> · <b data-val="d.weeks"></b> published <span data-val="d.weeks_plural"></span>
+        </span>
+
+        <h1>Pick the search API your agent should be calling. On evidence.</h1>
+
+        <p class="hero__sub">
+          Every major web-search API, scored on the same questions, by the same judges, every run.
+        </p>
+
+        <p class="hero__accent">Open method. Open data. No vendor pays to be here.</p>
+
+        <p class="hero__note">
+          <span data-val="latest.n_queries" data-fmt="int"></span> queries across
+          <span data-val="d.n_categories"></span> categories go to
+          <span data-val="d.n_vendors"></span> vendors and are scored by
+          <span data-val="d.n_judges"></span> models from
+          <span data-val="d.n_judge_families"></span> different labs. Quality, cost per query and
+          measured latency, per vendor and per category.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn" href="results.html">See the results <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn--ghost" href="#router">Router early access</a>
+        </div>
+      </div>
+
+      <div class="stack" data-reveal="settle">
+        <div class="panel panel--flush">
+          <div class="panel__head">
+            <h2>Current standings</h2>
+            <span class="label">ensemble median, 0&ndash;10</span>
+          </div>
+          <div class="panel__body">
+            <div class="table-wrap">
+              <table id="leaderboard">
+                <thead>
+                  <tr>
+                    <th scope="col">Vendor</th>
+                    <th scope="col" class="num">Score</th>
+                    <th scope="col" class="num">Cost / query</th>
+                    <th scope="col" class="num">p50</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel__foot">
+            Run <span data-val="latest.ran_at" data-fmt="date"></span>. Ordering is the signal;
+            absolute scores move with judge choice. <a href="results.html#judging">See the spread</a>.
+          </div>
+        </div>
+        <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
+      </div>
+    </div>
+
+    <div class="metrics" data-reveal="rows">
+      <div class="metric">
+        <span class="eyebrow metric__label">Judgements</span>
+        <div class="metric__value" data-count data-val="latest.n_judgements" data-fmt="int"></div>
+        <div class="metric__note"><span data-val="d.n_judges"></span> judges scored every response</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Complete ensembles</span>
+        <div class="metric__value"><span data-count data-val="latest.completeness.pct" data-fmt="n1"></span><span class="unit">%</span></div>
+        <div class="metric__note">of <span data-val="latest.completeness.responses" data-fmt="int"></span> responses</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Cost to run</span>
+        <div class="metric__value" data-count data-val="latest.vendor_spend_usd" data-fmt="money"></div>
+        <div class="metric__note">all vendors, one full cycle</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Published weeks</span>
+        <div class="metric__value" data-count data-val="d.weeks"></div>
+        <div class="metric__note" data-val="d.schedule_note"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Who is in the set, and the whole record in one figure. -->
+<section id="vendors" class="band seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The set</span>
+      <h2>Every vendor gets the identical query set.</h2>
+      <p>
+        Vendor scope is set by terms of service, not by market share. Two well-known APIs are out
+        until their terms are cleared in writing.
+      </p>
+    </div>
+
+    <div class="numgrid" id="vendor-cards" data-reveal="rows"></div>
+
+    <p class="note" style="margin-top:1.1rem">
+      Tavily and Brave are excluded: their terms are broad enough to cover third-party
+      benchmarking, and consent has not been sought.
+      <a href="methodology.html#vendors">Vendor scope</a>.
+    </p>
+
+    <div class="panel" style="margin-top:clamp(2rem,4vw,3rem)">
+      <div class="panel__head">
+        <h3>Quality by vendor and category</h3>
+        <span class="label">ensemble median, 0&ndash;10</span>
+      </div>
+      <div class="panel__body" id="fig-heatmap"></div>
+      <div class="panel__foot">
+        <span data-val="latest.completeness.complete_ensembles" data-fmt="int"></span> of
+        <span data-val="latest.completeness.responses" data-fmt="int"></span> responses carry a
+        complete three-judge score. Each cell is the mean over the queries that do.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The finding. The one number a vendor benchmark structurally cannot publish. -->
+<section id="finding" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">The finding</span>
+      <!-- No count in this heading on purpose. "worse at two things" is a
+           figure, and figures on this site come from the export or not at all —
+           the sentence under it carries the actual numbers. -->
+      <h2>The cheapest API is not worse everywhere. It is worse in specific places.</h2>
       <p>
         The cheapest API in the set costs
         <span class="mono" data-val="d.cost_ratio" data-fmt="ratio"></span> less per query than the
-        best-scoring one. What that buys you depends entirely on the kind of question you ask.
+        best-scoring one. What that buys you depends entirely on the kind of question you ask —
+        the kind of result no vendor publishes about itself.
       </p>
-      <span class="label">measured <span data-val="latest.ran_at" data-fmt="date"></span></span>
     </div>
 
     <div class="grid-2">
       <div>
         <p class="figure-xl" data-reveal="settle" data-val="d.cost_ratio" data-fmt="ratio"></p>
-        <p style="max-width:44ch">
+        <p style="max-width:44ch;color:var(--text-2)">
           <strong><span data-val="d.cheap_vendor"></span></strong> costs
           <span class="mono" data-val="d.cheap_cost" data-fmt="money"></span> per query against
           <strong><span data-val="d.top_vendor"></span></strong>'s
-          <span class="mono" data-val="d.top_cost" data-fmt="money"></span>. On
-          <span data-val="d.strong_n"></span> of <span data-val="d.n_categories"></span> categories it
-          reaches <span class="mono" data-val="d.strong_lo" data-fmt="pct0"></span>–<span class="mono" data-val="d.strong_hi" data-fmt="pct0"></span>
-          of the best available score. On <span data-val="d.weak_cats"></span> that falls to
-          <span class="mono" data-val="d.weak_lo" data-fmt="pct0"></span>–<span class="mono" data-val="d.weak_hi" data-fmt="pct0"></span>.
+          <span class="mono" data-val="d.top_cost" data-fmt="money"></span>.
+          <span data-val="d.spread_note"></span>
         </p>
-        <p style="max-width:44ch">
+        <p style="max-width:44ch;color:var(--text-2)">
           That is not a ranking. It is a routing policy: use the cheap API by default, escalate on
-          the two categories where the gap actually opens. No vendor has any reason to publish it,
-          which is the entire argument for an independent benchmark existing.
+          the categories where the gap actually opens. Turning that into code is what the
+          <a href="#router">router</a> is for.
         </p>
       </div>
 
@@ -185,83 +211,144 @@
         </div>
         <div class="panel__body" id="fig-retained"></div>
         <div class="panel__foot">
-          Bars start at 70%. Vermilion marks the categories below 90% of the best available score.
+          Bars start at 70%. The accent marks the categories below 90% of the best available score.
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- A real sequence, so the numbers carry information. -->
-<section id="how">
+<!-- The payoff of the section above: the finding turned into four decisions.
+     Every name and number in these cards is read off the export at load. -->
+<section id="picks" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>How a score gets made</h2>
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Which one should you use</span>
+      <h2>Four jobs an agent actually does, and what this run says to use for each.</h2>
+      <p>
+        Read off the same export as every figure on this page. Match the card to what your agent
+        actually spends its search calls on.
+      </p>
+    </div>
+
+    <div class="picks" id="picks-grid" data-reveal="rows"></div>
+
+    <p class="note" style="margin-top:1.3rem;max-width:76ch">
+      Current data, <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> in.
+      Ordering is the finding; absolute scores move with judge choice.
+      <a href="#limits">Known limits</a> · <a href="results.html">Full table</a>
+    </p>
+  </div>
+</section>
+
+<!-- How a score is made. Four real steps, not four feature blurbs. -->
+<section id="how" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">How it works</span>
+      <h2>Four steps, all of them inspectable.</h2>
       <p>Every step is in the public repository, and every intermediate result is in the export.</p>
-      <span class="label">four steps</span>
     </div>
     <ol class="steps" data-reveal="rows">
       <li>
-        <div>
-          <h3>The same queries, to every vendor</h3>
-          <p>
-            <span data-val="latest.n_queries" data-fmt="int"></span> queries across
-            <span data-val="d.n_categories"></span> categories, sent to all
-            <span data-val="d.n_vendors"></span> APIs and normalised to the same top-10 depth.
-            Without that, the most verbose vendor wins on volume.
-          </p>
-        </div>
+        <h3>The same queries, to every vendor</h3>
+        <p>
+          <span data-val="latest.n_queries" data-fmt="int"></span> queries across
+          <span data-val="d.n_categories"></span> categories, sent to all
+          <span data-val="d.n_vendors"></span> APIs and normalised to the same top-<span data-val="config.top_k"></span>
+          depth. Without that, the most verbose vendor wins on volume.
+        </p>
       </li>
       <li>
-        <div>
-          <h3>Three judges, three model families</h3>
-          <p>
-            Each response is scored by one Anthropic, one OpenAI and one Google model against a
-            published rubric. LLM judges prefer text that reads like their own; using one family
-            would bake that preference into every number.
-          </p>
-        </div>
+        <h3>Three judges, three model families</h3>
+        <p>
+          Each response is scored by one Anthropic, one OpenAI and one Google model against a
+          published rubric. LLM judges prefer text that reads like their own; one family would bake
+          that preference into every number.
+        </p>
       </li>
       <li>
-        <div>
-          <h3>Median, and only when complete</h3>
-          <p>
-            The published score is the median of the three, and responses missing any judge are
-            dropped rather than averaged over what is left. A partly-computed number in the same
-            column as a complete one is worse than a missing one.
-          </p>
-        </div>
+        <h3>Median, and only when complete</h3>
+        <p>
+          The published score is the median of the three. Responses missing any judge are dropped
+          rather than averaged over what is left — a partly-computed number in the same column as a
+          complete one is worse than a missing one.
+        </p>
       </li>
       <li>
-        <div>
-          <h3>Everything published, including the holes</h3>
-          <p>
-            Individual judge scores, per-response latency and cost, and the coverage of every cell
-            ship as CSV. You can recompute every number on this site from the export.
-          </p>
-        </div>
+        <h3>Everything published, including the holes</h3>
+        <p>
+          Individual judge scores, per-response latency and cost, and the coverage of every cell
+          ship as CSV. You can recompute every number on this site from the export.
+        </p>
       </li>
     </ol>
   </div>
 </section>
 
-<!-- The limitations, at full weight and with the evidence attached. -->
-<section id="limits">
+<!-- The product on top of the benchmark. Stated as unbuilt, because it is. -->
+<section id="router" class="band seam">
   <div class="shell">
-    <div class="section-head">
-      <h2>What this benchmark cannot tell you</h2>
-      <p>
-        Printed here rather than in a footnote, with the charts that show it. A benchmark that only
-        publishes its strengths is marketing with a chart on it.
-      </p>
-      <span class="label">five known</span>
+    <div class="grid-2" style="align-items:center">
+      <div>
+        <div class="eyebrow-row">
+          <span class="eyebrow eyebrow--accent">The router</span>
+          <span class="tag tag--accent">In development</span>
+        </div>
+        <h2 style="margin-top:0.9rem">The benchmark measures it. The router acts on it.</h2>
+        <p class="lead" style="margin-top:1.1rem">
+          A drop-in routing SDK that picks the search API per query from these live scores, so the
+          policy above becomes one call instead of a spreadsheet you maintain by hand.
+        </p>
+        <p style="margin-top:1rem;color:var(--text-3);max-width:46ch">
+          Early access opens first to teams already routing search traffic in production.
+        </p>
+        <div class="cta-row" style="margin-top:1.6rem">
+          <a class="btn btn--accent" href="#contact">Request early access <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="link-arrow" href="data.html">Take the data <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <ul class="contact__list" style="gap:1.05rem">
+        <li>
+          <span class="tick-mark" aria-hidden="true">✓</span>
+          <span><strong>Bring your own keys.</strong> The router orchestrates calls with your own
+          vendor credentials. It never resells, proxies or marks up vendor access.</span>
+        </li>
+        <li>
+          <span class="tick-mark" aria-hidden="true">✓</span>
+          <span><strong>Routed on published numbers.</strong> The same per-category scores on this
+          page, not a private model you cannot inspect.</span>
+        </li>
+        <li>
+          <span class="tick-mark" aria-hidden="true">✓</span>
+          <span><strong>Cost you can predict.</strong> Every vendor's cost per query and p50 latency
+          is already measured and exported, so a policy change has a price attached before you ship it.</span>
+        </li>
+        <li>
+          <span class="tick-mark" aria-hidden="true">✓</span>
+          <span><strong>Schema-compatible.</strong> Built against the emerging <code>/v1/search</code>
+          shape so it drops into an existing stack rather than replacing one.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- The limitations, at full weight and with the evidence attached. -->
+<section id="limits" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Limitations</span>
+      <h2>Known limits</h2>
+      <p>What the data does not support, with the measurements behind each one.</p>
     </div>
 
     <div class="grid-2" style="margin-bottom:2.4rem">
       <div class="panel">
         <div class="panel__head">
           <h3>The judges disagree, measurably</h3>
-          <span class="label">750 responses</span>
+          <span class="label">per response</span>
         </div>
         <div class="panel__body" id="fig-disagreement"></div>
         <div class="panel__foot">
@@ -295,11 +382,10 @@
         </dd>
       </div>
       <div>
-        <dt>There is no human calibration yet</dt>
+        <dt>No human calibration</dt>
         <dd>
           The methodology calls for a human-labelled gold set scored monthly against the ensemble.
-          It has not been built. Until it is, the judges are unaudited, and this is the first thing
-          a sharp reviewer should attack.
+          It is not built. Until it is, the judges are unaudited.
         </dd>
       </div>
       <div>
@@ -307,60 +393,69 @@
         <dd data-val="d.track_dd"></dd>
       </div>
       <div>
-        <dt>Two well-known vendors are missing</dt>
+        <dt>Two vendors out of scope</dt>
         <dd>
-          Tavily and Brave are deliberately excluded: their terms of service are broad enough to
-          cover third-party benchmarking, and no written consent has been sought.
-          <a href="methodology.html#vendors">Why the set is what it is</a>.
+          Tavily and Brave are excluded: their terms of service are broad enough to cover
+          third-party benchmarking, and consent has not been sought.
+          <a href="methodology.html#vendors">Vendor scope</a>.
         </dd>
       </div>
       <div>
-        <dt>One place, one moment</dt>
+        <dt>Single region, single run</dt>
         <dd>
-          All queries were issued from a single location at a single time. Search results vary by
-          region and by hour, and this measures neither.
+          All queries were issued from one location at one time. Search results vary by region and
+          by hour, and neither is measured.
         </dd>
       </div>
     </dl>
   </div>
 </section>
 
-<div class="band" data-field="ink">
-  <section id="use">
-    <div class="shell">
-      <div class="section-head">
-        <h2>Use the data. Check the work.</h2>
-        <p>
-          Every judge score, timing and cost is published under CC BY 4.0. If you think a number
-          here is wrong, the fastest way to prove it is to recompute it.
+<!-- Contact. One address, and a plain statement of what it is for. -->
+<section id="contact" class="band seam">
+  <div class="shell">
+    <div class="contact">
+      <div>
+        <span class="eyebrow eyebrow--accent">Contact</span>
+        <h2 style="margin-top:0.9rem">Questions, corrections, early access.</h2>
+        <p class="lead" style="margin-top:1.1rem;max-width:44ch">
+          Every message reaches the maintainer directly. The fastest way to change what this
+          benchmark measures is to say what you need measured.
         </p>
-        <span class="label">CC BY 4.0</span>
+        <div class="cta-row" style="margin-top:1.6rem">
+          <a class="mail" href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+        </div>
       </div>
-      <div class="cta-row" style="margin-top:0">
-        <a class="btn" href="data.html">Download the export</a>
-        <a class="btn btn--ghost" href="results.html#queries">Browse per-query scores</a>
-      </div>
+
+      <ul class="contact__list">
+        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Router early access</strong> — the query mix you route, and what a good answer looks like for it.</span></li>
+        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Vendors</strong> — corrections, configuration issues, or written consent to join the set.</span></li>
+        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Researchers</strong> — the full export is <a href="data.html">already downloadable</a>; ask for a cut that is not in it.</span></li>
+        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Corrections</strong> — a methodology error that moves a published number gets a <a href="methodology.html#changelog">changelog entry</a>, not a silent edit.</span></li>
+      </ul>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
 </main>
 
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <p style="margin:0">
-        Vannaris, independent benchmark of web-search APIs.<br>
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
+      <p style="margin:0;max-width:42ch">
+        Independent benchmark of web-search APIs.<br>
         Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
       </p>
     </div>
     <div>
-      <p style="margin:0">
-        <a href="methodology.html">Methodology</a> ·
-        <a href="data.html">Data export</a> ·
+      <p class="foot__links" style="margin:0 0 0.8rem">
         <a href="results.html">Results</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="data.html">Data export</a>
+        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
       </p>
-      <p class="mono note" style="margin:0.4rem 0 0">
+      <p class="mono note" style="margin:0">
         generated <span data-val="generated_at" data-fmt="date"></span>
       </p>
     </div>
@@ -374,7 +469,7 @@
    time, so a theme change rebuilds them rather than leaving the previous
    palette in place. */
 window.SBPage = {
-  init: function () { this.redraw(); this.vendorTable(); },
+  init: function () { this.vendorCards(); this.leaderboard(); this.picks(); this.redraw(); },
 
   redraw: function () {
     ["fig-heatmap", "fig-retained", "fig-disagreement", "fig-distribution"].forEach(function (id) {
@@ -394,14 +489,259 @@ window.SBPage = {
     C.distribution(document.getElementById("fig-distribution").closest(".panel"));
   },
 
-  vendorTable: function () {
-    var D = window.SB_DATA, h = window.SBCharts.helpers;
+  /* The vendor set, drawn from the export rather than typed. Adding a vendor to
+     the benchmark is the only way one appears here, which is the point: the
+     cleared set and the published set cannot drift apart. */
+  vendorCards: function () {
+    var D = window.SB_DATA;
     var modes = { ranked_results: "ranked results", both: "answer + ranked results",
                   synthesized_answer: "synthesized answer" };
-    var body = document.querySelector("#vendor-table tbody");
-    // The bar under each score spans the range this run actually produced, not
-    // 0-10 and not a share of the leader. Both of those compress five vendors
-    // into near-identical bars, which is decoration rather than information.
+    var byId = {};
+    D.latest.vendors.forEach(function (v) { byId[v.vendor] = v; });
+    var host = document.getElementById("vendor-cards");
+    D.vendors.forEach(function (v, i) {
+      var m = byId[v.id];
+      // The card list is the cleared set (the registry). The link is only to a
+      // page that exists — pages are generated from the vendors in the
+      // published run, so a vendor in the set whose calls all failed this week
+      // still gets a card here and simply is not a link.
+      var a = document.createElement(m ? "a" : "div");
+      a.className = "numcard";
+      if (m) a.href = "vendors/" + v.id + ".html";
+      a.innerHTML =
+        '<span class="numcard__n">' + String(i + 1).padStart(2, "0") + "</span>" +
+        '<span class="numcard__name"></span>' +
+        '<span class="numcard__meta"></span>';
+      a.querySelector(".numcard__name").textContent = v.label;
+      a.querySelector(".numcard__meta").textContent =
+        m ? (modes[m.response_mode] || m.response_mode) : "in the set";
+      host.appendChild(a);
+    });
+  },
+
+  /* "Which one should I use" — the question a leaderboard does not answer.
+   *
+   * Four jobs, each resolved against the export at load. Nothing here is a
+   * typed recommendation: the vendor names, the numbers that justify them and
+   * the categories that trigger an escalation are all read from the same run
+   * the rest of the page shows, so a card cannot outlive the data behind it.
+   *
+   * Each profile returns null when the run cannot support it — a missing cost
+   * column, a taxonomy without a freshness category — and a null profile is
+   * dropped rather than rendered with a blank in it. Three honest cards beat
+   * four with a hole. */
+  picks: function () {
+    var D = window.SB_DATA, h = window.SBCharts.helpers;
+    var V = D.latest.vendors;                       // already ranked by score
+    var byId = {};
+    V.forEach(function (v) { byId[v.vendor] = v; });
+    var catLabel = {};
+    D.categories.forEach(function (c) { catLabel[c.id] = c.label; });
+
+    var perQuery = function (v) { return "$" + v.cost_per_query_usd.toFixed(5) + " / query"; };
+    var secs = function (v) { return (v.p50_latency_ms / 1000).toFixed(1) + "s p50"; };
+    var priced = V.filter(function (v) { return v.cost_per_query_usd; });
+    var top = V[0];
+    var cheap = priced.length
+      ? priced.reduce(function (a, b) { return a.cost_per_query_usd <= b.cost_per_query_usd ? a : b; })
+      : null;
+    var fast = V.slice().sort(function (a, b) { return a.p50_latency_ms - b.p50_latency_ms; })[0];
+
+    function joinList(items) {
+      if (items.length <= 1) return items.join("");
+      if (items.length === 2) return items[0] + " and " + items[1];
+      return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
+    }
+    // Highest-scoring vendor in one category, or null if the category published
+    // no cell at all this run.
+    function leaderIn(catId) {
+      var rows = D.latest.cells
+        .filter(function (c) { return c.category === catId && c.score != null; })
+        .sort(function (a, b) { return b.score - a.score; });
+      return rows.length ? { v: byId[rows[0].vendor], score: rows[0].score } : null;
+    }
+    // The freshness category, found by id rather than assumed to be present, so
+    // a change to the taxonomy drops this card instead of mislabelling one.
+    function freshnessCat() {
+      var ids = D.categories.map(function (c) { return c.id; });
+      if (ids.indexOf("breaking_news") !== -1) return "breaking_news";
+      for (var i = 0; i < ids.length; i++) {
+        if (/news|fresh|recen/.test(ids[i])) return ids[i];
+      }
+      return null;
+    }
+
+    var PROFILES = [
+      // 01. The routing policy, which is the whole argument of the page above —
+      // but only when the data actually describes one. Four other shapes are
+      // possible and each gets its own answer, because "default to the cheap
+      // one and escalate on all six categories" is not a routing policy, it is
+      // "use the other one" with extra steps.
+      function () {
+        if (!cheap || !priced.length) return null;
+        var TITLE = "Cost is the constraint";
+        var FOR = "High-volume agents that call search on almost every turn.";
+        var cheapCells = D.latest.cells.filter(function (c) {
+          return c.vendor === cheap.vendor && c.pct_of_best != null;
+        });
+        var weak = cheapCells.filter(function (c) { return c.pct_of_best < 90; })
+                             .sort(function (a, b) { return a.pct_of_best - b.pct_of_best; });
+        var ratio = top.cost_per_query_usd / cheap.cost_per_query_usd;
+        var times = Math.round(ratio) + "×";
+
+        if (cheap.vendor === top.vendor) {
+          return { title: TITLE, forWhom: FOR,
+            legs: [{ label: "Use", pick: top.label, why: perQuery(top) }],
+            note: top.label + " is both the cheapest per query and the highest-scoring this run, " +
+                  "so there is no cost-against-quality trade to make." };
+        }
+        // Under 1.5× apart, the cheaper option is not buying enough to be worth
+        // routing for, and calling it "1× cheaper" would be gibberish.
+        if (ratio < 1.5) {
+          return { title: TITLE, forWhom: FOR,
+            legs: [{ label: "Use", pick: top.label, why: h.fmt(top.score) + " / 10 overall" }],
+            note: "Cost is not a lever this run. " + cheap.label + " is the cheapest at " +
+                  perQuery(cheap).replace(" / query", "") + " against " + top.label + "'s " +
+                  perQuery(top).replace(" / query", "") + " — too close to trade quality for. " +
+                  "Pick on quality instead." };
+        }
+        if (!weak.length) {
+          return { title: TITLE, forWhom: FOR,
+            legs: [{ label: "Use", pick: cheap.label, why: perQuery(cheap) }],
+            note: cheap.label + " stays within 10% of the category leader in every category this " +
+                  "run, at " + times + " less per query than " + top.label + ". There is nothing " +
+                  "to escalate to." };
+        }
+        if (weak.length === cheapCells.length) {
+          return { title: TITLE, forWhom: FOR,
+            legs: [{ label: "Use", pick: top.label, why: h.fmt(top.score) + " / 10 overall" }],
+            note: cheap.label + " is " + times + " cheaper but falls more than 10% behind the " +
+                  "category leader in every category, so the saving is not buying a usable answer " +
+                  "anywhere. Not a routing case this run." };
+        }
+        var names = [];
+        var cats = [];
+        weak.forEach(function (c) {
+          var lead = leaderIn(c.category);
+          cats.push(catLabel[c.category].toLowerCase());
+          if (lead && names.indexOf(lead.v.label) === -1) names.push(lead.v.label);
+        });
+        return { title: TITLE, forWhom: FOR,
+          legs: [
+            { label: "Default", pick: cheap.label, why: perQuery(cheap) },
+            { label: "Escalate", pick: joinList(names), why: "on " + joinList(cats) }
+          ],
+          note: cheap.label + " is " + times + " cheaper per query than " + top.label + " and " +
+                "holds within 10% of the category leader everywhere except " + joinList(cats) +
+                ". Routing those is worth more than picking one vendor for everything." };
+      },
+
+      // 02. Latency, which is measured rather than judged — so this ordering
+      // does not carry the judge caveat the score columns do.
+      function () {
+        if (!fast) return null;
+        var gap = (top.score - fast.score).toFixed(2);
+        return {
+          title: "The user is waiting",
+          forWhom: "Voice and chat agents where the search call sits in the response path.",
+          legs: [{ label: "Use", pick: fast.label, why: secs(fast) }],
+          note: fast.vendor === top.vendor
+            ? fast.label + " is both the fastest measured response in the set and the " +
+              "highest-scoring, so this one needs no trade-off. Latency is measured directly " +
+              "rather than judged."
+            : "Fastest measured response in the set. It scores " + h.fmt(fast.score) + " against " +
+              top.label + "'s " + h.fmt(top.score) + ", so the speed costs about " + gap +
+              " points of quality. Latency is measured directly rather than judged."
+        };
+      },
+
+      // 03. Quality, with the cost of buying it stated in the same card.
+      function () {
+        var legs = [{ label: "Use", pick: top.label, why: h.fmt(top.score) + " / 10 overall" }];
+        var note = top.label + " took the most queries outright — " + top.wins + " of " +
+                   D.latest.n_queries + ".";
+        if (cheap && cheap.vendor !== top.vendor) {
+          var r = top.cost_per_query_usd / cheap.cost_per_query_usd;
+          note += r >= 1.5
+            ? " It costs " + Math.round(r) + "× what " + cheap.label + " does per query, which is " +
+              "the premium you are paying for not routing."
+            : " It costs about the same per query as " + cheap.label + ", so this pick is not " +
+              "buying you a cost problem.";
+        }
+        return {
+          title: "A wrong source is expensive",
+          forWhom: "Research, compliance, anything where one bad citation costs more than the query.",
+          legs: legs, note: note
+        };
+      },
+
+      // 04. Freshness, the axis where these APIs differ most visibly and where
+      // an overall ranking is least informative.
+      function () {
+        var cat = freshnessCat();
+        if (!cat) return null;
+        var lead = leaderIn(cat);
+        if (!lead) return null;
+        return {
+          title: "The answer changed this week",
+          forWhom: "Agents answering questions whose correct answer has a date on it.",
+          legs: [{ label: "Use", pick: lead.v.label, why: h.fmt(lead.score) + " on " + catLabel[cat].toLowerCase() }],
+          note: lead.v.vendor === top.vendor
+            ? lead.v.label + " leads this category and the overall table, so freshness is not a " +
+              "reason to route away from it on this run."
+            : lead.v.label + " leads " + catLabel[cat].toLowerCase() + " despite placing " +
+              ordinal(V.indexOf(lead.v) + 1) + " overall — the clearest case on this page for " +
+              "reading the category rather than the ranking."
+        };
+      }
+    ];
+
+    function ordinal(n) {
+      var s = ["th", "st", "nd", "rd"], v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
+    var host = document.getElementById("picks-grid");
+    if (!host) return;
+    PROFILES.forEach(function (build) {
+      var p;
+      try { p = build(); } catch (e) { p = null; }
+      if (!p) return;
+      var n = host.children.length + 1;
+      var card = document.createElement("article");
+      card.className = "pick";
+      card.innerHTML =
+        '<span class="pick__n">' + String(n).padStart(2, "0") + "</span>" +
+        '<h3 class="pick__title"></h3>' +
+        '<p class="pick__for"></p>' +
+        '<div class="pick__legs"></div>' +
+        '<p class="pick__note"></p>';
+      card.querySelector(".pick__title").textContent = p.title;
+      card.querySelector(".pick__for").textContent = p.forWhom;
+      card.querySelector(".pick__note").textContent = p.note;
+      var legs = card.querySelector(".pick__legs");
+      p.legs.forEach(function (leg) {
+        var el = document.createElement("div");
+        el.className = "pick__leg";
+        el.innerHTML = '<span class="pick__leg-label"></span>' +
+                       '<span class="pick__leg-pick"></span>' +
+                       '<span class="pick__leg-why"></span>';
+        el.querySelector(".pick__leg-label").textContent = leg.label;
+        el.querySelector(".pick__leg-pick").textContent = leg.pick;
+        el.querySelector(".pick__leg-why").textContent = leg.why;
+        legs.appendChild(el);
+      });
+      host.appendChild(card);
+    });
+  },
+
+  /* The hero standings table. The bar under each score spans the range this run
+     actually produced, not 0-10 and not a share of the leader: both of those
+     compress five vendors into near-identical bars, which is decoration rather
+     than information. */
+  leaderboard: function () {
+    var D = window.SB_DATA, h = window.SBCharts.helpers;
+    var body = document.querySelector("#leaderboard tbody");
     var scores = D.latest.vendors.map(function (v) { return v.score; });
     var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
     var span = function (v) { return 14 + 86 * (hi > lo ? (v - lo) / (hi - lo) : 1); };
@@ -415,19 +755,16 @@ window.SBPage = {
       }
       var name = document.createElement("td");
       name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") +
-        '</span><span class="vendor-name">' + v.label + "</span>";
+        '</span><span class="vendor-name"></span>';
+      name.querySelector(".vendor-name").textContent = v.label;
       tr.appendChild(name);
 
-      // The bar under a score is drawn relative to the leader, so the column
-      // reads as a comparison rather than as an absolute 0-10 scale.
       var score = td(h.fmt(v.score), i === 0 ? "num meter best" : "num meter");
       score.style.setProperty("--pct", span(v.score).toFixed(1));
       tr.appendChild(score);
 
       tr.appendChild(td("$" + v.cost_per_query_usd.toFixed(5), "num"));
-      tr.appendChild(td(v.p50_latency_ms.toLocaleString() + " ms", "num"));
-      tr.appendChild(td(v.wins + " / " + D.latest.n_queries, "num"));
-      tr.appendChild(td(modes[v.response_mode] || v.response_mode));
+      tr.appendChild(td((v.p50_latency_ms / 1000).toFixed(1) + "s", "num"));
       body.appendChild(tr);
     });
   }
