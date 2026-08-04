@@ -297,7 +297,8 @@
       "latest.payload_effect.within_vendor_r_min|n2",
       "latest.query_set_hash",
       "latest.vendor_spend_usd|money",
-      "latest.week"
+      "latest.week",
+      "repo_url"
     ],
     "links": [
       "#changelog",

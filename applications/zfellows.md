@@ -353,3 +353,168 @@ dispatch a run. None of the answers above depend on it, by design.
 9. **Links** — LinkedIn, X, personal site.
 10. **Confirm:** year and major at Rutgers, still freelancing, based in NJ, and whether the
     "learned to build in Uzbekistan" line is accurate.
+
+---
+
+## 7. Review of your filled form — 2026-08-04
+
+Read against the form's own instruction, *"Please try to write concise answers with no fluff,"* and
+against what Z Fellows publicly selects for (zfellows.com; Cory Levy's hiring post; the Causo 2026
+guide). Answers below transcribed from your screenshot — correct me where I misread.
+
+Verdict up front: the writing is good and the material is genuinely strong. The problems are not
+prose problems. Two are factual, and one of those is serious.
+
+### 7.1 CRITICAL — your headline cost number contradicts your own site
+
+You wrote "4 percent of the price" and "a 23x spread between APIs sold as equal."
+
+`site/data/latest.json` carries both ratios: `as_billed_ratio: 23.3` and
+`like_for_like_ratio: 7.0`. The 23× is Serper's *top volume tier* ($0.30/1,000) against Exa;
+like-for-like PAYG it is 7×. And every figure on the live site — `site/index.html:184`, `:196`,
+`:209`, `methodology.html:290` — renders `like_for_like_ratio`. **The site says 7×. The
+application says 23×.**
+
+You invite them to click vannaris.com in the same box. The one number they can check is the one
+where you quoted the flattering variant of your own finding — in an application whose entire
+argument is that you are the person who does not do that. Fix it, and it becomes an asset: quoting
+the conservative version of your own result is the trait, stated without having to claim it.
+
+### 7.2 Verified against the data (all fine, one improvable)
+
+- **2,151 judgements** — matches `n_judgements`. Correct.
+- **"One vendor leads every category"** — correct. Exa leads all six.
+- **"92% on four of six query types"** — true but understated. Serper is at 97.6, 93.0, 93.3 and
+  91.9% of best on those four. **"92–98%"** is both more accurate and stronger.
+- **No answer claims "weekly" or "continuous."** Correct, and it must stay that way:
+  `trigger` is null and `scheduled_weeks` is still 0.
+
+### 7.3 CRITICAL — two of your five links are dead
+
+| link | status |
+|---|---|
+| vannaris.com | 200, real site |
+| github.com/feruzkarimovv | 200 (**the Vannaris repo behind it is still private**) |
+| npmjs.com/package/vchk | live, maintainer `feruzkarimov` |
+| **joinvor.com.uz** | **NXDOMAIN — does not resolve.** `.uz`, `.com`, `www` all fail |
+| **feruz.karimov.dev** | **404.** Host answers, no page |
+
+joinvor.com.uz is cited *inside* the expertise answer as well as in the links box. A technical
+application to people who fund technical builders, with a dead link next to "it is live with 10+
+clinics" — that is the worst possible failure mode. Either fix DNS, or replace with a link that
+works (Telegram Mini App, App Store, a demo video, screenshots in the README).
+
+### 7.4 Cross-answer contradiction — the router
+
+Project box: *"a router that picks a vendor per query from those scores."*
+Competitors box: *"routing on quality is worthless… the real axis is cost."*
+
+Read together, the first describes the product your own data killed. Say the *post-finding* design
+in the project box and the two answers stop fighting: route to the cheapest vendor that clears the
+quality bar for that query type.
+
+### 7.5 The rewrites
+
+**Are you in school or working? Or both? Where at?** — you wrote *"took a leave of absence,
+graduating in 2028."* Passive, and it never answers *where at*. A leave of absence to build is one
+of the strongest signals you can send these people — Cory left UIUC. Say it plainly (122 chars):
+
+> Neither right now. I took a leave of absence from Rutgers (CS, class of 2028) and moved to SF to
+> build Vannaris full time.
+
+**Where are you based?** — "sf" → `San Francisco`. The in-person day is SF or NYC; you are already
+there. Don't lowercase it.
+
+**Project (494):**
+
+> Vannaris is an independent benchmark of the web-search APIs that AI agents run on: Exa,
+> Perplexity, Serper, You.com, Linkup. Same queries against every vendor, scored by three LLM
+> judges from three different labs, published free with the raw data. Every vendor here publishes
+> a benchmark and every one wins its own. I built the neutral one. It is live at vannaris.com. The
+> business on top is a router that sends each query to the cheapest vendor that clears the quality
+> bar for that query type.
+
+**Problem (478):**
+
+> Every AI agent that searches the web calls one of these APIs, and developers pick one based on
+> marketing. There is no neutral number in this category; the only benchmarks are published by the
+> vendors being compared. So teams overpay blind. My first run found the cheapest API returns
+> 92-98% of the best vendor's quality on four of six query types, at a seventh of the price
+> like-for-like and a twenty-third at volume pricing. Nobody selling search has a reason to tell
+> you that.
+
+**Expertise (496).** Your version proves you can build *something*; the question asks what makes
+you able to build *this*. Joinvor moves to the past-work box, where it isn't competing:
+
+> I built all of Vannaris myself: five vendor adapters, a three-model judge ensemble, the runner,
+> the export and the site, with 2,151 scored judgements inside the first day. The hard part is not
+> the plumbing, it is designing the measurement so nobody can dismiss it. So it uses cross-lab
+> judges, position-swap checks and length normalization, and it publishes the judge disagreement
+> that undercuts my own numbers. I also shipped vchk, an npm security scanner for AI code: 81%
+> precision, 87% recall.
+
+**Competitors (450)** — same answer, corrected ratio:
+
+> My competitors are the vendors themselves. Tavily, Seltz and Quercle each publish a benchmark
+> and each one wins it. LiteLLM unified the plumbing across 12+ providers but still makes you pick
+> the vendor yourself, with no quality signal. What they miss: routing on quality is worthless.
+> One vendor leads all six categories in my data, so route to the best just means use Exa. The
+> real axis is cost, a 7x spread like-for-like between APIs sold as equal.
+
+**Past work (472).** "20+ REST endpoints, 150+ tests" is the fluff the form warned about — those
+are intern résumé metrics, and they're the weakest lines on a form where everything else is
+founder-shaped. Trade them for the things only you have:
+
+> A) Joinvor, a pet-care platform in Uzbekistan. Co-founder, CTO and sole engineer: web, backend,
+> auth, Telegram Mini App and iOS, zero to launch in 10 weeks. Live with 10+ clinics, 30+ vets and
+> real bookings. B) Software engineering intern at EPAM Systems: five Spring Boot services, and a
+> 35% cut in build time. C) Four production web apps for small-business clients on Upwork.
+> D) VibeDuel, a realtime multiplayer AI coding arena judged by an LLM, built solo in two weeks.
+
+### 7.6 Keep exactly as written
+
+**What drives you** — the strongest thing on the form. Three gaps, three builds, "the gap is what
+pulls me." Don't touch it.
+
+**Nerdiest thing** — 74 hand-transcribed clips for a language with no speech data. Perfect answer
+to that question: unpaid, obsessive, and nobody else's.
+
+**Co-founder pick** — real name, specific evidence, and "he goes at the hard layer instead of
+around it" is the line that shows your taste. Keep.
+
+### 7.7 Needs one more fact from you
+
+**Risk / challenge (500).** Weakest of the long boxes, for two fixable reasons. First, it opens
+with "I taught myself to code at 12 and was freelancing three months later" — the same sentence
+that opens your non-traditional answer, in the box directly above. Duplicated text in adjacent
+boxes is the most expensive thing you can do with a 500-char limit. Second, the question has four
+parts and you answer three: what you risked, what happened, **how you behaved**, what it reflects.
+Yours gives a trajectory, not a behaviour. One concrete action — what you actually *did* in the
+worst month — is the whole answer. Skeleton, with the slot marked:
+
+> I moved from Uzbekistan to the US and started over. I finished high school in a language I was
+> still learning and worked at Walmart while I did it. [ONE CONCRETE THING YOU DID — the hours,
+> the schedule, the thing you built anyway, the thing you did when it wasn't working.] It worked,
+> slowly: freelance clients, then EPAM, then Joinvor. I don't stop when the work stops being
+> impressive, and I'd rather be measured than believed.
+
+Also: was the move your decision or your family's? A risk you *chose* is a different and stronger
+answer than one you absorbed. If it was your family's, the risk story is the leave of absence.
+
+**Non-traditional (no limit).** "Advanced level" is soft and the teaching is the buried lede — you
+were a paid teacher as a teenager. How many students, and were you paid? One number.
+
+**Achievements.** "several national and international piano competitions" — *several* is the only
+fluff word on your form. How many, what placings, which competitions? Conservatory-grade piano is
+the most differentiating fact you have outside of software; it is currently the vaguest sentence
+on the page.
+
+**How did you hear about Z Fellows?** "through Cory" is circular. Name the actual post or essay if
+you remember it.
+
+### 7.8 Before you press submit
+
+1. **Make `feruzkarimovv/vannaris` public.** Still private, confirmed today. Every claim you make
+   is checkable except the one that matters most to a technical judge.
+2. **Fix or replace joinvor.com.uz and feruz.karimov.dev.**
+3. **Fix the 23× → 7×** in the problem and competitors boxes, and in the video.
