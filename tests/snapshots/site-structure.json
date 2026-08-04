@@ -80,6 +80,10 @@
       "latest.n_judgements|int",
       "latest.n_queries|int ×3",
       "latest.ran_at|date",
+      "latest.robustness.n_families_that_invert_it|int",
+      "latest.robustness.n_families|int",
+      "latest.robustness.n_vendors|int",
+      "latest.robustness.stable_prefix_leave_one_out|int",
       "latest.vendor_spend_usd|money",
       "latest.week"
     ],
@@ -139,7 +143,7 @@
       "#fig-judges"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won\" counts queries where that vendor took the highest ensemble median.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won | Scored | Returns]",
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie — which is itself the most useful thing this table says.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
       "#query-table []"
     ],
     "controls": [
@@ -168,7 +172,9 @@
       "latest.n_queries|int ×2",
       "latest.n_vendors",
       "latest.run_id",
-      "latest.vendor_spend_usd|money"
+      "latest.vendor_spend_usd|money",
+      "latest.wins.n_queries_compared|int",
+      "latest.wins.n_tied|int"
     ],
     "links": [
       "#judging",

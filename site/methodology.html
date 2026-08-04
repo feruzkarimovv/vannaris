@@ -120,8 +120,19 @@
           answer match.
         </p>
         <p>
-          Those queries are also flagged to rotate every cycle, so vendors cannot overfit to a
-          static list of breaking-news questions.
+          <strong>The published set does not rotate.</strong> An earlier version of this page said
+          those queries were flagged to rotate every cycle so vendors could not overfit to them.
+          The flag exists in the data and nothing reads it — no code in this repository rotates
+          anything, and every run so far has used the same query-set hash. The sentence described
+          an intention as though it were a mechanism, which is the failure this project exists to
+          be an alternative to, so it is gone rather than softened.
+        </p>
+        <p>
+          Overfitting to the published list is instead what the
+          <a href="#heldout">withheld set</a> is for, and it is the honest place to look: the
+          published questions are all visible in the export, so a vendor that wanted to tune
+          against them could. The withheld set has not run yet, so it currently detects nothing —
+          that is stated there too.
         </p>
       </div>
     </div>

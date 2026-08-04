@@ -144,9 +144,9 @@ PAGE = """<!doctype html>
         <div class="metric__note">measured, not vendor-reported</div>
       </div>
       <div class="metric">
-        <span class="eyebrow metric__label">Queries won</span>
-        <div class="metric__value" data-count data-val="d.v.wins" data-fmt="int"></div>
-        <div class="metric__note">of <span data-val="latest.n_queries" data-fmt="int"></span> queries</div>
+        <span class="eyebrow metric__label">Won outright</span>
+        <div class="metric__value" data-count data-val="d.v.outright_wins" data-fmt="int"></div>
+        <div class="metric__note">of <span data-val="latest.n_queries" data-fmt="int"></span> queries; <span data-val="latest.wins.n_tied" data-fmt="int"></span> ended in a tie</div>
       </div>
       <div class="metric">
         <span class="eyebrow metric__label">Scored cleanly</span>
@@ -245,7 +245,8 @@ PAGE = """<!doctype html>
               <th scope="col" class="num">Score</th>
               <th scope="col" class="num">Cost / query</th>
               <th scope="col" class="num">p50 latency</th>
-              <th scope="col" class="num">Won</th>
+              <th scope="col" class="num">Won outright</th>
+              <th scope="col" class="num">Among best</th>
               <th scope="col">Returns</th>
             </tr>
           </thead>
@@ -269,7 +270,11 @@ PAGE = """<!doctype html>
         carry roughly <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span>
         points of judge-to-judge disagreement and the judge families differ by
         <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span> points on
-        the same responses, so the <em>ranking</em> is the finding and the absolute score is not.
+        the same responses. Neither the score nor the whole ranking is firm: drop any one judge
+        family and the top
+        <span class="mono" data-val="latest.robustness.stable_prefix_leave_one_out" data-fmt="int"></span>
+        of <span class="mono" data-val="latest.robustness.n_vendors" data-fmt="int"></span> places
+        hold, but scored by a single family alone even first place moves.
         There is no human-labelled calibration set yet.
         <a href="../index.html#limits">The full list of limitations</a>.
       </p>
@@ -411,7 +416,8 @@ window.SBPage = {{
       tr.appendChild(sc);
       tr.appendChild(td("$" + v.cost_per_query_usd.toFixed(5), "num"));
       tr.appendChild(td(v.p50_latency_ms.toLocaleString() + " ms", "num"));
-      tr.appendChild(td(v.wins, "num"));
+      tr.appendChild(td(v.outright_wins, "num"));
+      tr.appendChild(td(v.shared_best, "num"));
       tr.appendChild(td(modes[v.response_mode] || v.response_mode));
       body.appendChild(tr);
     }});
