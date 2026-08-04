@@ -37,6 +37,17 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # without a DEFAULT so rows written before this column read NULL — unknown,
     # which is the truth — rather than being backfilled to 'human' on a guess.
     ("human_labels", "labeller_kind", "TEXT"),
+    # Whether a query belongs to the withheld set (src/heldout.py). Published
+    # scores are computed from the public set alone, so this column is what
+    # keeps the two apart — without it a held-out question would silently enter
+    # a published cell and the table would stop being reproducible from the
+    # published questions. NULL on rows written before the column means public,
+    # which is true: every query that existed then was.
+    ("queries", "held_out", "INTEGER"),
+    # Which held-out set a run used, by id. Checkable against the manifest's
+    # pre-registered hash, so "this run included the set committed on that
+    # date" is a claim a reader can verify rather than take.
+    ("runs", "heldout_set", "TEXT"),
 ]
 
 

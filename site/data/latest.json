@@ -5,6 +5,7 @@
   "trigger": null,
   "query_set_hash": "208cb6d7e33aef9b",
   "n_queries": 150,
+  "n_heldout_queries": 0,
   "n_vendors": 5,
   "n_judges": 3,
   "n_judgements": 2151,
@@ -501,8 +502,72 @@
     "family_spread": 1.22,
     "mean_disagreement": 1.772,
     "responses_over_3pts": 98,
-    "n_compared": 750
+    "n_compared": 750,
+    "disagreement_rates": {
+      "over_1pt": 0.388,
+      "over_2pt": 0.176,
+      "over_3pt": 0.1307,
+      "unanimous": 0.148,
+      "median_spread": 1.0,
+      "p90_spread": 4.0
+    },
+    "disagreement_by_category": [
+      {
+        "category": "general_facts",
+        "mean": 0.648,
+        "over_2pt": 0.016,
+        "n": 125
+      },
+      {
+        "category": "breaking_news",
+        "mean": 2.992,
+        "over_2pt": 0.432,
+        "n": 125
+      },
+      {
+        "category": "local_shopping",
+        "mean": 1.384,
+        "over_2pt": 0.016,
+        "n": 125
+      },
+      {
+        "category": "code_technical",
+        "mean": 1.344,
+        "over_2pt": 0.056,
+        "n": 125
+      },
+      {
+        "category": "multi_hop",
+        "mean": 2.6,
+        "over_2pt": 0.384,
+        "n": 125
+      },
+      {
+        "category": "long_tail",
+        "mean": 1.664,
+        "over_2pt": 0.152,
+        "n": 125
+      }
+    ],
+    "family_pairs": [
+      {
+        "pair": "anthropic/google",
+        "mean_abs_diff": 1.388,
+        "n": 750
+      },
+      {
+        "pair": "anthropic/openai",
+        "mean_abs_diff": 1.192,
+        "n": 717
+      },
+      {
+        "pair": "google/openai",
+        "mean_abs_diff": 1.026,
+        "n": 717
+      }
+    ]
   },
+  "heldout": null,
   "detail": [
     {
       "q": "gf-012",
@@ -9512,11 +9577,13 @@
       "started_at": "2026-07-31T19:33:23.523358+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9526,11 +9593,13 @@
       "started_at": "2026-07-31T19:36:01.700170+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9540,11 +9609,13 @@
       "started_at": "2026-07-31T19:40:14.479152+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9554,11 +9625,13 @@
       "started_at": "2026-07-31T19:49:02.017446+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 100,
       "complete": 100,
       "completeness": 1.0,
       "queries": 20,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 10,
       "categories": 2
     },
@@ -9568,11 +9641,13 @@
       "started_at": "2026-07-31T20:05:04.628353+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": null,
+      "heldout_set": null,
       "responses": 750,
       "complete": 423,
       "completeness": 0.564,
       "queries": 150,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 25,
       "categories": 6
     },
@@ -9582,11 +9657,13 @@
       "started_at": "2026-07-31T20:17:08.955300+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": null,
+      "heldout_set": null,
       "responses": 750,
       "complete": 717,
       "completeness": 0.956,
       "queries": 150,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 25,
       "categories": 6
     },
@@ -9596,11 +9673,13 @@
       "started_at": "2026-07-31T20:56:04.123247+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 10,
       "completeness": 1.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9610,11 +9689,13 @@
       "started_at": "2026-08-01T06:22:58.556013+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": "manual",
+      "heldout_set": null,
       "responses": 10,
       "complete": 10,
       "completeness": 1.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },

@@ -24,7 +24,7 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
-from . import storage
+from . import heldout, storage
 from .judge.ensemble import JUDGES, median_overall, score_response
 from .vendors.adapters import build_all
 from .vendors.base import SearchResponse
@@ -72,6 +72,40 @@ def load_queries(path: Path) -> tuple[list[dict], str]:
         json.dumps(queries, sort_keys=True).encode()
     ).hexdigest()[:16]
     return queries, digest
+
+
+def load_heldout(mode: str) -> tuple[list[dict], str | None]:
+    """The withheld questions to run alongside the public set, if any.
+
+    Returns them tagged `held_out`, which is what keeps them out of every
+    published cell downstream. Three outcomes, and the difference between the
+    second and third matters:
+
+      - `--heldout off`      — deliberately not running it. Silent.
+      - text not on this machine — the ordinary case for anyone who is not the
+        maintainer. Says so and carries on, because the runner has to work for
+        a contributor who will never hold the set.
+      - text present         — verified against the hash committed to git
+        before the set ever ran, and refused outright if it does not match.
+    """
+    if mode == "off":
+        return [], None
+    a = heldout.active()
+    if not a:
+        print("  no held-out set is registered — running the public set alone")
+        return [], None
+
+    path = Path(mode) if mode not in ("auto",) else None
+    queries = heldout.load_queries(a["id"], path)
+    if queries is None:
+        print(f"  held-out set {a['id']} is registered but its questions are not on "
+              f"this machine — running the public set alone")
+        return [], None
+
+    # The commitment is only worth something if it is checked. A set edited
+    # after registration stops the run rather than quietly producing a number.
+    heldout.verify(a["id"], queries)
+    return [{**q, "held_out": True} for q in queries], a["id"]
 
 
 async def fetch_all(
@@ -125,21 +159,29 @@ async def judge_all(
 
 
 def persist(conn, run_id, week, digest, queries, responses, scored,
-            started_at, trigger) -> None:
+            started_at, trigger, heldout_set=None) -> None:
     cur = conn.cursor()
     # started_at is the real start, threaded in from main(). It used to be
     # stamped here, at persist time, which made every run look instantaneous
     # and put `ran_at` on the published site an hour or so late.
     cur.execute(
-        "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash, trigger) "
-        "VALUES (?,?,?,?,?,?)",
-        (run_id, started_at, now(), week, digest, trigger),
+        "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash, trigger, "
+        "heldout_set) VALUES (?,?,?,?,?,?,?)",
+        (run_id, started_at, now(), week, digest, trigger, heldout_set),
     )
     for q in queries:
         cur.execute(
-            "INSERT OR REPLACE INTO queries (id, category, text, source, gold_answer, rotates) "
-            "VALUES (?,?,?,?,?,0)",
-            (q["id"], q["category"], q["text"], q.get("source"), q.get("gold_answer")),
+            "INSERT OR REPLACE INTO queries "
+            "(id, category, text, source, gold_answer, rotates, held_out) "
+            "VALUES (?,?,?,?,?,?,?)",
+            # `rotates` was written as a literal 0 here, which quietly threw
+            # away the flag the query set carries — every freshness question in
+            # full-v1.json is marked rotates=1 and every one of them landed in
+            # the database as 0. Nothing published read it, so nothing caught
+            # it; the column exists to record which questions are meant to be
+            # regenerated each cycle, and it now records that.
+            (q["id"], q["category"], q["text"], q.get("source"), q.get("gold_answer"),
+             int(q.get("rotates", 0)), int(bool(q.get("held_out")))),
         )
 
     for r in responses:
@@ -289,6 +331,46 @@ def report(means, responses, scored, qmap, cats) -> None:
             print("  ensemble is the bias mitigation, not a nice-to-have. Do not publish.")
 
 
+def report_heldout(responses, scored, qmap) -> None:
+    """Public score against withheld score, per vendor.
+
+    This is the overfitting check made legible at the console. A vendor that
+    has tuned for the 150 published questions scores better on them than on
+    questions it has never seen a list of, and the difference shows up here as
+    a positive gap. One run of it proves nothing — the gap has to be read
+    across weeks, and a set only has to be big enough to move the mean, not to
+    be significant on its own. It is a smoke alarm, not a verdict.
+    """
+    def mean_for(vendor, held):
+        vals = []
+        for r in responses:
+            if r.vendor != vendor or bool(qmap[r.query_id].get("held_out")) != held:
+                continue
+            m = median_overall(scored.get(f"{r.query_id}::{r.vendor}", []))
+            if m is not None:
+                vals.append(m)
+        return statistics.mean(vals) if vals else None
+
+    vendors = sorted({r.vendor for r in responses})
+    rows = []
+    for v in vendors:
+        pub, priv = mean_for(v, False), mean_for(v, True)
+        if pub is not None and priv is not None:
+            rows.append((v, pub, priv, pub - priv))
+    if not rows:
+        return
+
+    print("\n" + "=" * 74)
+    print("PUBLIC vs HELD-OUT  (positive gap = better on the published questions)")
+    print("=" * 74)
+    print(f"  {'vendor':<13}{'public':<10}{'held-out':<11}gap")
+    print("  " + "-" * 54)
+    for v, pub, priv, gap in sorted(rows, key=lambda r: -r[3]):
+        print(f"  {v:<13}{pub:<10.2f}{priv:<11.2f}{gap:+.2f}")
+    print("\n  A single run cannot separate this from question difficulty.")
+    print("  It is only evidence once the same vendor shows the same sign for weeks.")
+
+
 def validity(scored: dict[str, list], responses: list[SearchResponse]) -> list[str]:
     """Reasons this run must not become published data. Empty means publishable.
 
@@ -334,6 +416,11 @@ async def main() -> int:
     ap.add_argument("--trigger", choices=("manual", "scheduled"),
                     default=os.environ.get("SB_TRIGGER", "manual"),
                     help="how this run was invoked; CI passes 'scheduled'")
+    # The withheld set runs by default. Making it opt-in would mean the honest
+    # configuration is the one nobody remembers to pass, and the overfitting
+    # check would exist in the repository rather than in the data.
+    ap.add_argument("--heldout", default="auto",
+                    help="'auto' (the registered active set), 'off', or a path")
     args = ap.parse_args()
     # argparse only validates `choices` for values that arrive on the command
     # line, so a typo'd SB_TRIGGER would sail through into the evidence layer.
@@ -351,6 +438,13 @@ async def main() -> int:
     queries, digest = load_queries(Path(args.queries))
     if args.limit:
         queries = queries[: args.limit]
+    # The public set's hash is computed before the withheld set is folded in,
+    # so it keeps identifying the published questions and nothing else. A
+    # reader recomputing it from queries.csv has to get the same string.
+    private, heldout_id = load_heldout(args.heldout)
+    if args.limit:
+        private = private[: args.limit]
+    queries = queries + private
     qmap = {q["id"]: q for q in queries}
     cats = list(dict.fromkeys(q["category"] for q in queries))
 
@@ -359,6 +453,8 @@ async def main() -> int:
     started_at = now()
 
     print(f"run {run_id[:8]}  week {week}  queryset {digest}  trigger {args.trigger}")
+    if heldout_id:
+        print(f"held-out set {heldout_id}: {len(private)} withheld questions, hash verified")
     print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
           f"= {len(queries) * len(adapters)} calls, {len(queries) * len(adapters) * len(JUDGES)} judgements\n")
 
@@ -369,11 +465,17 @@ async def main() -> int:
         scored = await judge_all(client, keys, responses, qmap)
 
     conn = connect()
-    persist(conn, run_id, week, digest, queries, responses, scored, started_at, args.trigger)
-    means = aggregate(conn, week, run_id, responses, scored, qmap)
+    persist(conn, run_id, week, digest, queries, responses, scored, started_at,
+            args.trigger, heldout_id)
+    # Public responses only. A published cell has to be recomputable from the
+    # published questions, so a withheld question must never enter one — the
+    # withheld set is reported separately, as a gap.
+    public = [r for r in responses if not qmap[r.query_id].get("held_out")]
+    means = aggregate(conn, week, run_id, public, scored, qmap)
     conn.close()
 
-    report(means, responses, scored, qmap, cats)
+    report(means, public, scored, qmap, cats)
+    report_heldout(responses, scored, qmap)
     print(f"\n  vendor spend this run: ${sum(r.cost_usd or 0 for r in responses):.4f}")
     print(f"  stored: {DB_PATH}")
 

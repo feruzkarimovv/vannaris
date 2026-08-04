@@ -325,6 +325,199 @@
   </div>
 </section>
 
+<!-- Disagreement as rates, not as a mean. The mean is the number that would
+     flatter this benchmark; the rates are the ones a critic would compute from
+     the export and then ask why they were not stated. -->
+<section id="disagreement" class="band seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Disagreement</span>
+      <h2>How often the judges disagree, and where</h2>
+      <p>
+        A mean spread of
+        <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span>
+        points reads as broad agreement. It is equally consistent with every response splitting
+        the judges slightly and with most agreeing exactly while a tenth split by five. Those are
+        different benchmarks, so the distribution is published rather than the average.
+      </p>
+    </div>
+
+    <div class="metrics" data-reveal="rows">
+      <div class="metric">
+        <span class="eyebrow metric__label">Unanimous</span>
+        <div class="metric__value" data-val="latest.judging.disagreement_rates.unanimous" data-fmt="share1"></div>
+        <div class="metric__note">all three judges landed on the same score</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Split by &gt; 2 points</span>
+        <div class="metric__value" data-val="latest.judging.disagreement_rates.over_2pt" data-fmt="share1"></div>
+        <div class="metric__note">of responses scored by all three</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Split by &gt; 3 points</span>
+        <div class="metric__value" data-val="latest.judging.disagreement_rates.over_3pt" data-fmt="share1"></div>
+        <div class="metric__note">on a 0–10 scale, on the same response</div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">90th percentile</span>
+        <div class="metric__value" data-val="latest.judging.disagreement_rates.p90_spread" data-fmt="n1"></div>
+        <div class="metric__note">points, median spread <span data-val="latest.judging.disagreement_rates.median_spread" data-fmt="n1"></span></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:2rem">
+      <div class="prose">
+        <h3>It concentrates by category</h3>
+        <p data-val="d.disagreement_note"></p>
+        <p>
+          This is the reason to read the table category by category rather than by overall score.
+          Where the ensemble is split, the ordering within a category is carrying less information
+          than the number of decimal places suggests, and the honest response is to discount that
+          category — not to discount the whole run, and not to hide the figure.
+        </p>
+        <h3>Which two families</h3>
+        <p>
+          The widest pair on this run is <span data-val="d.worst_pair"></span> of mean absolute
+          difference. Three judges from three labs is the bias mitigation; it is not a claim that
+          the three agree. The full pairwise matrix is in the export.
+        </p>
+      </div>
+
+      <div class="panel panel--flush">
+        <div class="panel__head">
+          <h3>Spread by category</h3>
+          <span class="label">mean max−min, this run</span>
+        </div>
+        <div class="panel__body">
+          <div class="table-wrap">
+            <table id="disagreement-table">
+              <thead>
+                <tr>
+                  <th scope="col">Category</th>
+                  <th scope="col" class="num">Mean spread</th>
+                  <th scope="col" class="num">Split &gt; 2 pts</th>
+                  <th scope="col" class="num">n</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel__foot">
+          Spread is max minus min across the three judges on one response, before the median is
+          taken. Every individual judge score is in the export.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The withheld set. The commitment is the product here, not the secrecy. -->
+<section id="heldout" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Withheld set</span>
+      <h2>Questions nobody can tune against, committed before they run</h2>
+      <p>
+        The published query set is public, which is right, and it means a vendor could in principle
+        tune against those exact questions. Alongside every run goes a second set that is not
+        published — and a hash of it that is, dated, before it is ever used.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <div class="prose">
+        <h3>Withheld, not hidden</h3>
+        <p>
+          A secret question set with a secret score would deserve exactly as much trust as a
+          vendor's own benchmark. Three things make this one checkable instead. Its SHA-256 is
+          committed to the repository before it first runs, so the questions cannot be swapped
+          after a result is seen. It retires on a fixed rotation — every
+          <span data-val="d.heldout_rotation"></span> weeks — and is published in full at that
+          point, hash included. And only the <em>text</em> is withheld: every withheld response's
+          scores, latency and cost are in the export already, flagged <span class="mono">held_out=1</span>.
+        </p>
+
+        <h3>What it measures</h3>
+        <p>
+          Not a second leaderboard. The withheld set is a fraction of the size of the public one,
+          so its absolute scores are too noisy to rank anyone by. What it measures is the gap
+          <em>within</em> one vendor: the same API, in the same run, on the same day, through the
+          same judges, scored on published questions against questions that were never published.
+          A vendor that has tuned for the public list scores better on it. Both sides are averaged
+          per category first, so a harder bucket cannot masquerade as a vendor-specific gap.
+        </p>
+
+        <h3>What it cannot do</h3>
+        <p>
+          A withheld question is not invisible to the vendor being asked it — vendors receive every
+          query this benchmark sends and can see them in their own logs. What this defeats is cheap
+          optimisation against a published list. What it does not defeat is a vendor that
+          deliberately identifies benchmark traffic and treats it differently; that would need
+          traffic mixing, which is not implemented. Stated here rather than left for someone else
+          to point out.
+        </p>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel__head">
+            <h3>The current commitment</h3>
+            <span class="label">read from the export</span>
+          </div>
+          <div class="panel__body">
+            <dl class="deflist">
+              <div>
+                <dt>Questions</dt>
+                <dd><span data-val="d.heldout_n"></span>, across all six categories</dd>
+              </div>
+              <div>
+                <dt>Committed</dt>
+                <dd><span data-val="d.heldout_committed"></span>, before first use</dd>
+              </div>
+              <div>
+                <dt>SHA-256</dt>
+                <dd><span class="mono" data-val="d.heldout_sha_short"></span></dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd data-val="d.heldout_state"></dd>
+              </div>
+            </dl>
+          </div>
+          <div class="panel__foot" data-val="d.heldout_reading"></div>
+        </div>
+
+        <div class="panel" style="margin-top:1.4rem">
+          <div class="panel__head">
+            <h3>Public minus withheld</h3>
+            <span class="label">positive = better on the published set</span>
+          </div>
+          <div class="panel__body">
+            <div class="table-wrap">
+              <table id="heldout-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Vendor</th>
+                    <th scope="col" class="num">Public</th>
+                    <th scope="col" class="num">Withheld</th>
+                    <th scope="col" class="num">Gap</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel__foot">
+            Retired sets are published in full in
+            <a href="data.html">the data export</a>, so every gap here becomes recomputable.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="aggregation" class="band seam">
   <div class="shell">
     <div class="section-head section-head--wide">
@@ -341,7 +534,7 @@
         <h3>Category cell</h3>
         <p>
           Mean of the response scores for that vendor in that category. A cell whose coverage
-          falls below <span data-val="config.min_cell_coverage" data-fmt="pct0"></span> of its
+          falls below <span data-val="config.min_cell_coverage" data-fmt="share0"></span> of its
           queries is published as missing rather than as a number computed from a thin sample.
         </p>
       </li>
@@ -427,6 +620,79 @@
   </div>
 </section>
 
+<!-- Published before anyone has disputed a score, which is the only time it is
+     worth anything. Mirrors docs/13-conflict-of-interest.md. -->
+<section id="conflicts" class="band seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Conflicts of interest</span>
+      <h2>Who pays for this, and what that could distort</h2>
+      <p>
+        This benchmark is free and intends to fund itself from products built on top of it. That
+        creates real incentives, and the useful time to write them down is before anyone has a
+        reason to ask.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <div class="prose">
+        <h3>The conflict that exists</h3>
+        <p>
+          The plan is to sell three things: a live score feed, private evaluations run against a
+          customer's own queries, and a routing client. One proposed pricing tier charges a share of
+          the spend a customer saves by routing — which would mean earning more when traffic moves
+          to cheaper vendors, while also publishing the ranking that says which vendors are good
+          enough to move to. That is a genuine conflict. It is disclosed here rather than denied,
+          the flat per-decision tier that pays the same whichever vendor is chosen is the default,
+          and the conflict will be stated on the pricing page itself.
+        </p>
+
+        <h3>The conflicts that do not</h3>
+        <p>
+          No vendor pays anything, for any reason — no sponsorship, no placement, no listing fee, no
+          advertising. No equity, employment, advisory role or consulting with any benchmarked
+          vendor or its parent. No vendor sees a score before it is published: no embargo, no
+          preview, no advance right of reply. No vendor influences the query set, the rubric or the
+          judge models. Every vendor account is paid for at list price.
+        </p>
+
+        <h3>How to dispute a number</h3>
+        <p>
+          Publicly, and specifically. Every individual judge score is already in the export, so a
+          dispute can name a query and a judge rather than object to a total. Configuration
+          disputes — wrong endpoint, wrong tier, wrong parameters — are the most likely kind and the
+          fastest to fix; the exact request made to each vendor is in the source. A correction that
+          moves a published number gets a dated <a href="#changelog">changelog entry</a>, never a
+          silent edit. No NDAs, and no private resolution of a public dispute.
+        </p>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel__head">
+            <h3>What should make you distrust this</h3>
+            <span class="label">each one externally checkable</span>
+          </div>
+          <div class="panel__body">
+            <ul class="contact__list" style="gap:0.9rem">
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>The cheap vendors' advantage grows over time in a way that tracks the introduction of savings-share pricing.</span></li>
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>The methodology changes shortly after a vendor relationship changes.</span></li>
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>The withheld set stops being published on retirement, or its retirement is postponed indefinitely.</span></li>
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>The disagreement figures above disappear, or stop being broken out by category.</span></li>
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>A vendor leaves the benchmark without a stated reason.</span></li>
+              <li><span class="tick-mark" aria-hidden="true">✓</span><span>The disclosures stay empty after the commercial products start earning.</span></li>
+            </ul>
+          </div>
+          <div class="panel__foot">
+            Nothing on this list has happened. That is the point of writing it down now — it is
+            cheap to publish today and impossible to publish credibly later.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="reproduce" class="band seam">
   <div class="shell">
     <div class="section-head section-head--wide">
@@ -463,6 +729,35 @@ cp .env.example .env          # add your keys
       </p>
     </div>
     <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt><span class="mono">2026-08-04</span> · withheld set added</dt>
+        <dd>
+          A rotating set of questions now runs alongside the public one without being published.
+          Its hash is committed before it runs and its questions are published when it retires
+          (<a href="#heldout">above</a>). Scoring is unchanged: no published cell includes a
+          withheld question, so every number on this site is still recomputable from the published
+          query set. The first set is registered and has not run yet.
+        </dd>
+      </div>
+      <div>
+        <dt><span class="mono">2026-08-04</span> · disagreement published as rates</dt>
+        <dd>
+          Judge disagreement was published as a single mean. It is now published as the share of
+          responses over each threshold, per category, with the pairwise family differences — the
+          mean cannot distinguish broad mild disagreement from occasional severe disagreement, and
+          on this run the difference is large. No scores changed; the reporting did.
+        </dd>
+      </div>
+      <div>
+        <dt><span class="mono">2026-08-04</span> · coverage threshold displayed correctly</dt>
+        <dd>
+          This page and the data page stated the cell-coverage publication threshold as
+          <span class="mono">1%</span>. The threshold enforced in code was, and remains,
+          <span data-val="config.min_cell_coverage" data-fmt="share0"></span>; a formatter was
+          rendering a 0–1 share as though it were already a percentage. Display only — no
+          published score was affected.
+        </dd>
+      </div>
       <div>
         <dt><span class="mono">2026-W31</span> · initial</dt>
         <dd>
@@ -566,6 +861,46 @@ window.SBPage = {
                cell(h.fmt(j.mean), "num"),
                cell((j.coverage * 100).toFixed(1) + "%", "num")]);
     });
+
+    var catName = {};
+    D.categories.forEach(function (c) { catName[c.id] = c.label; });
+
+    // Ordered worst-first rather than in taxonomy order: the categories where
+    // the ensemble is least sure are the ones a reader most needs to see, and
+    // burying them mid-table is a quiet way of not publishing them.
+    var dt = document.querySelector("#disagreement-table tbody");
+    (D.latest.judging.disagreement_by_category || [])
+      .slice()
+      .sort(function (a, b) { return b.mean - a.mean; })
+      .forEach(function (c) {
+        row(dt, [cell(catName[c.category] || c.category),
+                 cell(c.mean.toFixed(2), "num"),
+                 cell((c.over_2pt * 100).toFixed(0) + "%", "num"),
+                 cell(String(c.n), "num")]);
+      });
+
+    // The withheld set may not have run yet, and for its first weeks it will
+    // have run without meaning anything. Both states get a sentence rather than
+    // an empty table — an empty table reads as a result of zero.
+    var ht = document.querySelector("#heldout-table tbody");
+    var ho = D.latest.heldout;
+    if (!ho || !ho.vendors.length) {
+      var tr = document.createElement("tr");
+      var td = document.createElement("td");
+      td.colSpan = 4;
+      td.className = "note";
+      td.textContent = "No withheld questions have run yet. The set is registered and its hash "
+                     + "is committed; the first gap appears here after it runs.";
+      tr.appendChild(td);
+      ht.appendChild(tr);
+    } else {
+      ho.vendors.forEach(function (v) {
+        row(ht, [cell(v.label),
+                 cell(h.fmt(v.public), "num"),
+                 cell(h.fmt(v.heldout), "num"),
+                 cell(v.gap == null ? "—" : (v.gap > 0 ? "+" : "") + v.gap.toFixed(2), "num")]);
+      });
+    }
   },
   redraw: function () {}
 };

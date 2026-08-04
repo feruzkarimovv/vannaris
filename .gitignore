@@ -16,6 +16,12 @@ data/raw/
 *.db
 *.sqlite3
 
+# The active held-out question set. Its hash is committed
+# (src/queries/heldout/manifest.json) before it ever runs and its questions are
+# published in full when it retires; while it is live, the text staying out of
+# git is the entire point. CI writes it here from an Actions secret.
+data/heldout/
+
 # Tool caches.
 .impeccable/
 
