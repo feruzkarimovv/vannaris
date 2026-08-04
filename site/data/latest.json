@@ -419,7 +419,8 @@
       "n_queries": 150,
       "n_scored": 138,
       "n_errors": 0,
-      "wins": 70,
+      "outright_wins": 28,
+      "shared_best": 115,
       "response_mode": "ranked_results"
     },
     {
@@ -432,7 +433,8 @@
       "n_queries": 150,
       "n_scored": 144,
       "n_errors": 0,
-      "wins": 18,
+      "outright_wins": 17,
+      "shared_best": 95,
       "response_mode": "both"
     },
     {
@@ -445,7 +447,8 @@
       "n_queries": 150,
       "n_scored": 147,
       "n_errors": 0,
-      "wins": 55,
+      "outright_wins": 1,
+      "shared_best": 56,
       "response_mode": "ranked_results"
     },
     {
@@ -458,7 +461,8 @@
       "n_queries": 150,
       "n_scored": 148,
       "n_errors": 0,
-      "wins": 4,
+      "outright_wins": 2,
+      "shared_best": 54,
       "response_mode": "ranked_results"
     },
     {
@@ -471,7 +475,8 @@
       "n_queries": 150,
       "n_scored": 140,
       "n_errors": 0,
-      "wins": 3,
+      "outright_wins": 1,
+      "shared_best": 35,
       "response_mode": "ranked_results"
     }
   ],
@@ -566,6 +571,137 @@
         "n": 717
       }
     ]
+  },
+  "wins": {
+    "n_queries_compared": 150,
+    "n_tied": 101,
+    "n_separated": 49,
+    "tie_rate_pct": 67.3
+  },
+  "robustness": {
+    "baseline_ranking": [
+      "exa",
+      "perplexity",
+      "serper",
+      "youcom",
+      "linkup"
+    ],
+    "per_family": [
+      {
+        "family": "anthropic",
+        "means": {
+          "exa": 8.44,
+          "youcom": 7.333,
+          "serper": 7.36,
+          "linkup": 7.233,
+          "perplexity": 8.073
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "family": "openai",
+        "means": {
+          "exa": 9.234,
+          "youcom": 8.556,
+          "serper": 8.596,
+          "linkup": 8.158,
+          "perplexity": 8.974
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "family": "google",
+        "means": {
+          "exa": 9.473,
+          "youcom": 8.373,
+          "serper": 8.64,
+          "linkup": 8.527,
+          "perplexity": 9.527
+        },
+        "ranking": [
+          "perplexity",
+          "exa",
+          "serper",
+          "linkup",
+          "youcom"
+        ]
+      }
+    ],
+    "leave_one_out": [
+      {
+        "dropped": "anthropic",
+        "means": {
+          "exa": 9.354,
+          "youcom": 8.48,
+          "serper": 8.625,
+          "linkup": 8.343,
+          "perplexity": 9.246
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "dropped": "openai",
+        "means": {
+          "exa": 8.957,
+          "youcom": 7.853,
+          "serper": 8.0,
+          "linkup": 7.88,
+          "perplexity": 8.8
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "linkup",
+          "youcom"
+        ]
+      },
+      {
+        "dropped": "google",
+        "means": {
+          "exa": 8.82,
+          "youcom": 7.957,
+          "serper": 7.982,
+          "linkup": 7.68,
+          "perplexity": 8.522
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      }
+    ],
+    "stable_under_single_family": false,
+    "stable_under_leave_one_out": false,
+    "stable_prefix_single_family": 0,
+    "stable_prefix_leave_one_out": 3,
+    "n_vendors": 5,
+    "families_that_invert_it": [
+      "google"
+    ],
+    "n_families_that_invert_it": 1,
+    "n_families": 3
   },
   "heldout": null,
   "detail": [

@@ -324,6 +324,74 @@ def build_cells(rows: list[dict]) -> list[dict]:
     return sorted(cells, key=lambda c: (CATEGORY_ORDER.index(c["category"]), -(c["score"] or 0)))
 
 
+def _per_query_winners(rows: list[dict]) -> tuple[dict[str, int], dict[str, int]]:
+    """Who was best on each query, counting ties as ties.
+
+    Returns (outright, shared): `outright` counts queries where a vendor was the
+    sole highest median; `shared` counts queries where it was among the highest,
+    ties included.
+
+    This used to be one number, computed by walking the rows and keeping the
+    first strict maximum. That is only correct if ties are rare, and here they
+    are the norm — the judges emit whole numbers, five vendors are being scored
+    on a query set most of them answer well, and roughly two thirds of queries
+    end with two or more vendors on the same median. Resolving those by
+    iteration order meant `wins` reported the order vendors are declared in
+    REGISTRY rather than anything about quality: one vendor was credited with 55
+    wins on this run and had won a single query outright.
+
+    So the tie is not broken. It is counted, and published as two columns, and
+    the share of queries that tie is published beside them — because a query set
+    that cannot separate its vendors on two thirds of its questions is a more
+    useful thing to know than any ranking derived from pretending it can.
+    """
+    by_query: dict[str, dict[str, float]] = {}
+    for r in rows:
+        if r["median"] is None:
+            continue
+        by_query.setdefault(r["query_id"], {})[r["vendor"]] = r["median"]
+
+    outright: dict[str, int] = {}
+    shared: dict[str, int] = {}
+    # Sorted so the result cannot depend on row order even in principle.
+    for qid in sorted(by_query):
+        scores = by_query[qid]
+        top = max(scores.values())
+        winners = sorted(v for v, m in scores.items() if m == top)
+        if len(winners) == 1:
+            outright[winners[0]] = outright.get(winners[0], 0) + 1
+        for v in winners:
+            shared[v] = shared.get(v, 0) + 1
+    return outright, shared
+
+
+def build_win_stats(rows: list[dict]) -> dict:
+    """How often the query set actually separates the vendors.
+
+    Published because it is the honest headline of a five-vendor comparison
+    scored on a coarse integer scale: the tie rate bounds how much any
+    per-query routing decision could possibly be worth.
+    """
+    by_query: dict[str, dict[str, float]] = {}
+    for r in rows:
+        if r["median"] is None:
+            continue
+        by_query.setdefault(r["query_id"], {})[r["vendor"]] = r["median"]
+
+    # Only queries where more than one vendor was scored can tie or separate;
+    # a query with a single surviving ensemble says nothing either way.
+    comparable = {q: s for q, s in by_query.items() if len(s) > 1}
+    tied = sum(1 for s in comparable.values()
+               if sum(1 for m in s.values() if m == max(s.values())) > 1)
+    n = len(comparable)
+    return {
+        "n_queries_compared": n,
+        "n_tied": tied,
+        "n_separated": n - tied,
+        "tie_rate_pct": round(100 * tied / n, 1) if n else None,
+    }
+
+
 def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
     """Per-vendor roll-up.
 
@@ -333,13 +401,7 @@ def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
     above it shows.
     """
     vendors = sorted({r["vendor"] for r in rows})
-    per_query_best: dict[str, tuple[str, float]] = {}
-    for r in rows:
-        if r["median"] is None:
-            continue
-        cur = per_query_best.get(r["query_id"])
-        if cur is None or r["median"] > cur[1]:
-            per_query_best[r["query_id"]] = (r["vendor"], r["median"])
+    outright, shared = _per_query_winners(rows)
 
     totals = []
     for v in vendors:
@@ -357,10 +419,117 @@ def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
             "n_queries": len(vrows),
             "n_scored": len(scored),
             "n_errors": sum(1 for r in vrows if r["error"]),
-            "wins": sum(1 for winner, _ in per_query_best.values() if winner == v),
+            # Two columns, because one cannot carry this honestly. See
+            # _per_query_winners: on this query set most queries end in a tie,
+            # and the difference between "won it" and "was among the best" is
+            # the difference between 28 and 115.
+            "outright_wins": outright.get(v, 0),
+            "shared_best": shared.get(v, 0),
             "response_mode": vrows[0]["response_mode"] if vrows else None,
         })
     return sorted(totals, key=lambda t: -(t["score"] or 0))
+
+
+def _overall_by_vendor(rows: list[dict], score_of) -> dict[str, float]:
+    """Vendor overall scores under an alternative scoring rule.
+
+    Mirrors the published aggregation exactly — per-query score, averaged
+    within a category, then averaged across categories — so that a ranking
+    computed here differs from the published one only because of the judges
+    used, never because of how the averaging was done. Cell-coverage
+    suppression is deliberately not applied: it would drop different cells for
+    different sub-panels and make the variants incomparable with each other.
+    """
+    cells: dict[tuple[str, str], list[float]] = {}
+    for r in rows:
+        s = score_of(r)
+        if s is not None:
+            cells.setdefault((r["vendor"], r["category"]), []).append(s)
+    per_vendor: dict[str, list[float]] = {}
+    for (vendor, _cat), vals in cells.items():
+        per_vendor.setdefault(vendor, []).append(statistics.mean(vals))
+    return {v: round(statistics.mean(cs), 3) for v, cs in per_vendor.items()}
+
+
+def build_robustness(rows: list[dict]) -> dict:
+    """Does the ranking survive dropping or isolating a judge family?
+
+    This exists because the site used to assert that it does — "every vendor
+    faces every judge, so the ranking survives the spread" — and the export
+    published the data that disproves it. The reasoning behind the claim was
+    the error: it treats judge bias as a constant offset per judge, when the
+    bias interacts with the vendor. One family scoring alone reverses the top
+    pair on this run.
+
+    Two different questions, and only one of them has a comfortable answer:
+
+      - *per_family* — score with one family alone. This is the hostile
+        reading, and the ranking does not survive it.
+      - *leave_one_out* — drop one family, keep the other two. This is the
+        question that actually bears on the published number, since the
+        published number is a three-judge median, and the ranking does survive
+        it.
+
+    Publishing both is the point. The weaker claim is true and checkable; the
+    stronger one was neither.
+    """
+    fams = [f for f, _ in JUDGES]
+
+    def score_of(r, use: set[str]) -> float | None:
+        vals = sorted(s["overall"] for f, s in r["judges"].items()
+                      if f in use and s["overall"] is not None)
+        # Require the whole sub-panel, for the same reason median_overall does:
+        # a two-of-three mean sitting beside a three-of-three median in one
+        # column is a differently-computed number, not a missing one.
+        if len(vals) < len(use):
+            return None
+        n = len(vals)
+        return vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2
+
+    def variant(use: set[str]) -> dict:
+        means = _overall_by_vendor(rows, lambda r: score_of(r, use))
+        return {"means": means, "ranking": sorted(means, key=lambda v: -means[v])}
+
+    base = variant(set(fams))
+    per_family = [{"family": f, **variant({f})} for f in fams]
+    leave_one_out = [{"dropped": f, **variant(set(fams) - {f})} for f in fams]
+
+    def inverts(v):
+        return v["ranking"] != base["ranking"]
+
+    def stable_prefix(variants: list[dict]) -> int:
+        """How many leading positions every variant agrees on.
+
+        The blunt "is the whole ranking identical" flag is the wrong resolution
+        to publish, and getting this wrong in the safe direction is just as bad
+        as getting it wrong in the flattering one. On this run, dropping one
+        family leaves the top three untouched and swaps fourth and fifth — so
+        "the ranking survives" is false and "nothing survives" is false too.
+        What is true, and worth saying, is how deep the agreement goes.
+        """
+        depth = 0
+        for i in range(len(base["ranking"])):
+            if all(len(v["ranking"]) > i and v["ranking"][i] == base["ranking"][i]
+                   for v in variants):
+                depth += 1
+            else:
+                break
+        return depth
+
+    return {
+        "baseline_ranking": base["ranking"],
+        "per_family": per_family,
+        "leave_one_out": leave_one_out,
+        "stable_under_single_family": not any(inverts(v) for v in per_family),
+        "stable_under_leave_one_out": not any(inverts(v) for v in leave_one_out),
+        # The honest resolution: positions agreed on by every variant.
+        "stable_prefix_single_family": stable_prefix(per_family),
+        "stable_prefix_leave_one_out": stable_prefix(leave_one_out),
+        "n_vendors": len(base["ranking"]),
+        "families_that_invert_it": [v["family"] for v in per_family if inverts(v)],
+        "n_families_that_invert_it": sum(1 for v in per_family if inverts(v)),
+        "n_families": len(fams),
+    }
 
 
 def build_judge_stats(rows: list[dict]) -> dict:
@@ -593,6 +762,8 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "cells": cells,
         "vendors": totals,
         "judging": build_judge_stats(rows),
+        "wins": build_win_stats(rows),
+        "robustness": build_robustness(rows),
         "heldout": build_heldout(all_rows, run, manifest or {}),
         "detail": detail,
         # Every run this week produced, not just the one that won selection —

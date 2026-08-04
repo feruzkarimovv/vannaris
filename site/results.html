@@ -150,8 +150,12 @@
         <div class="table-wrap">
           <table id="vendor-table">
             <caption>
-              Overall score is the mean of a vendor's category scores. "Won" counts queries where
-              that vendor took the highest ensemble median.
+              Overall score is the mean of a vendor's category scores. "Won outright" counts queries
+              where one vendor alone took the highest ensemble median; "among best" counts queries
+              where it was level with the highest. Those differ a great deal here, because
+              <span data-val="latest.wins.n_tied" data-fmt="int"></span> of
+              <span data-val="latest.wins.n_queries_compared" data-fmt="int"></span> queries ended
+              in a tie — which is itself the most useful thing this table says.
             </caption>
             <thead>
               <tr>
@@ -160,7 +164,8 @@
                 <th scope="col" class="num">Cost / query</th>
                 <th scope="col" class="num">Run cost</th>
                 <th scope="col" class="num">p50 latency</th>
-                <th scope="col" class="num">Won</th>
+                <th scope="col" class="num">Won outright</th>
+                <th scope="col" class="num">Among best</th>
                 <th scope="col" class="num">Scored</th>
                 <th scope="col">Returns</th>
               </tr>
@@ -451,7 +456,8 @@ window.SBPage = {
       tr.appendChild(td("$" + v.cost_per_query_usd.toFixed(5), "num"));
       tr.appendChild(td("$" + v.cost_usd.toFixed(3), "num"));
       tr.appendChild(td(v.p50_latency_ms.toLocaleString() + " ms", "num"));
-      tr.appendChild(td(v.wins, "num"));
+      tr.appendChild(td(v.outright_wins, "num"));
+      tr.appendChild(td(v.shared_best, "num"));
       tr.appendChild(td(v.n_scored + " / " + v.n_queries, "num"));
       tr.appendChild(td(modes[v.response_mode] || v.response_mode));
       body.appendChild(tr);

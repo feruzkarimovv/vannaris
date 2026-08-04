@@ -448,10 +448,18 @@
 
     <dl class="deflist" data-reveal="rows">
       <div>
-        <dt>Absolute scores are soft</dt>
+        <dt>Absolute scores are soft, and so is the bottom of the ranking</dt>
         <dd>
-          Every vendor faces every judge, so the <em>ranking</em> survives the spread above.
-          A claim like "scores 8.4 out of 10" does not: it would move on judge choice alone.
+          An earlier version of this page claimed the ranking survived the spread above because
+          every vendor faces every judge. That was wrong, and the export published the data that
+          disproves it: judge bias is not a constant offset per judge, it interacts with the vendor.
+          What actually holds — drop any one judge family and the top
+          <span data-val="latest.robustness.stable_prefix_leave_one_out" data-fmt="int"></span> of
+          <span data-val="latest.robustness.n_vendors" data-fmt="int"></span> places are unchanged.
+          Score with a single family alone and even first place moves:
+          <span data-val="latest.robustness.n_families_that_invert_it" data-fmt="int"></span> of
+          <span data-val="latest.robustness.n_families" data-fmt="int"></span> families put a
+          different vendor on top. A claim like "scores 8.4 out of 10" is softer still.
         </dd>
       </div>
       <div>
@@ -731,8 +739,11 @@ window.SBPage = {
       // 03. Quality, with the cost of buying it stated in the same card.
       function () {
         var legs = [{ label: "Use", pick: top.label, why: h.fmt(top.score) + " / 10 overall" }];
-        var note = top.label + " took the most queries outright — " + top.wins + " of " +
-                   D.latest.n_queries + ".";
+        // Outright wins and ties, not a single "wins" number. On this query set
+        // most queries end level, and a column that hid that credited the
+        // vendor declared first in the registry with wins it had not had.
+        var note = top.label + " won " + top.outright_wins + " of " + D.latest.n_queries +
+                   " queries outright; " + D.latest.wins.n_tied + " ended in a tie.";
         if (cheap && cheap.vendor !== top.vendor) {
           var r = top.cost_per_query_usd / cheap.cost_per_query_usd;
           note += r >= 1.5

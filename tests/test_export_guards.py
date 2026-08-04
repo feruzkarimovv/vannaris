@@ -184,7 +184,7 @@ class TestVendorTotals(unittest.TestCase):
         totals = export.build_vendor_totals(rows, export.build_cells(rows))
         self.assertEqual(totals[0]["score"], 8.0)
 
-    def test_wins_count_queries_where_the_vendor_took_the_top_median(self):
+    def test_outright_wins_count_queries_one_vendor_took_alone(self):
         rows = []
         for i in range(3):
             a = row("fixture_alpha", median=9.0); a["query_id"] = f"q{i}"
@@ -192,8 +192,57 @@ class TestVendorTotals(unittest.TestCase):
             rows += [a, b]
         totals = {t["vendor"]: t for t in
                   export.build_vendor_totals(rows, export.build_cells(rows))}
-        self.assertEqual(totals["fixture_alpha"]["wins"], 3)
-        self.assertEqual(totals["fixture_bravo"]["wins"], 0)
+        self.assertEqual(totals["fixture_alpha"]["outright_wins"], 3)
+        self.assertEqual(totals["fixture_alpha"]["shared_best"], 3)
+        self.assertEqual(totals["fixture_bravo"]["outright_wins"], 0)
+        self.assertEqual(totals["fixture_bravo"]["shared_best"], 0)
+
+    def test_a_tie_is_credited_to_neither_vendor_outright(self):
+        """The case the old fixture could not express, and the bug it hid.
+
+        The previous version of this test scored 9.0 against 6.0, which can
+        never tie, so it passed against an implementation that awarded every
+        tied query to whichever vendor happened to be iterated first. On the
+        real run that was two thirds of the query set, and it credited one
+        vendor with 55 wins where it had won a single query alone.
+        """
+        rows = []
+        for i in range(4):
+            a = row("fixture_alpha", median=8.0); a["query_id"] = f"q{i}"
+            b = row("fixture_bravo", median=8.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        totals = {t["vendor"]: t for t in
+                  export.build_vendor_totals(rows, export.build_cells(rows))}
+        for v in ("fixture_alpha", "fixture_bravo"):
+            self.assertEqual(totals[v]["outright_wins"], 0, v)
+            self.assertEqual(totals[v]["shared_best"], 4, v)
+
+    def test_win_counts_do_not_depend_on_row_order(self):
+        """The defect was a readout of iteration order. Assert it cannot be."""
+        rows = []
+        for i in range(5):
+            a = row("fixture_alpha", median=7.0); a["query_id"] = f"q{i}"
+            b = row("fixture_bravo", median=7.0 if i % 2 else 9.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        forward = {t["vendor"]: (t["outright_wins"], t["shared_best"]) for t in
+                   export.build_vendor_totals(rows, export.build_cells(rows))}
+        reversed_ = {t["vendor"]: (t["outright_wins"], t["shared_best"]) for t in
+                     export.build_vendor_totals(list(reversed(rows)),
+                                                export.build_cells(list(reversed(rows))))}
+        self.assertEqual(forward, reversed_)
+
+    def test_tie_rate_is_published(self):
+        rows = []
+        for i in range(4):
+            a = row("fixture_alpha", median=8.0); a["query_id"] = f"q{i}"
+            # q0 separates; q1-q3 tie.
+            b = row("fixture_bravo", median=6.0 if i == 0 else 8.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        stats = export.build_win_stats(rows)
+        self.assertEqual(stats["n_queries_compared"], 4)
+        self.assertEqual(stats["n_tied"], 3)
+        self.assertEqual(stats["n_separated"], 1)
+        self.assertEqual(stats["tie_rate_pct"], 75.0)
 
 
 # ----------------------------------------------------------- history strictness
