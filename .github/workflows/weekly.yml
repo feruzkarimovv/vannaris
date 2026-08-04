@@ -99,6 +99,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # The withheld question set (src/heldout.py). Its hash is committed to
+      # this repository; its text is not, and arrives here as a secret. The
+      # runner verifies the two match and refuses to run a set that was edited
+      # after it was registered.
+      #
+      # A missing secret is not a failure. The runner says the set is not on
+      # this machine and runs the public questions alone — which is the right
+      # behaviour for a fork, and means the overfitting check degrades to
+      # absent rather than taking the weekly run down with it.
+      - name: Materialise the held-out set
+        env:
+          SB_HELDOUT_JSON: ${{ secrets.SB_HELDOUT_JSON }}
+        run: python -m src.heldout install
+
       # One cheap live call per key before spending anything real. Debugging
       # eight auth schemes inside a 3,000-call pipeline is miserable; a run that
       # silently drops a vendor because its key expired is worse, because it
