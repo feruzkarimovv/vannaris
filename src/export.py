@@ -78,11 +78,13 @@ MIN_RUN_COMPLETENESS = 0.60
 # generated bundle/latest files that sit beside them.
 _WEEK_FILE = re.compile(r"^(\d{4}-W\d{2})\.json$")
 
-# Set this when the repository is actually public. Until then the site says
-# "not yet public" rather than linking somewhere that isn't the source — a
-# benchmark whose credibility rests on being inspectable should not ship a
-# "Source" link that goes nowhere useful.
-REPO_URL: str | None = None
+# The repository, public since 2026-08-04. Six sentences across the site promise
+# the reader can go and read the harness — including the one that says the
+# withheld set's hash is committed before it runs, which is the entire basis for
+# trusting a private score and was unverifiable by anyone outside while this was
+# None. scripts/check-quality.mjs now fails the build if those claims are on a
+# page while this is unset, so the two cannot drift apart again.
+REPO_URL: str | None = "https://github.com/feruzkarimovv/vannaris"
 
 # What each vendor's per-query cost in this benchmark actually is, and on what
 # assumption. This exists because the headline "23x cheaper" figure divided a

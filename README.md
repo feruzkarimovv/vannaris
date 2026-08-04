@@ -11,6 +11,15 @@ the gaps in the data all published — including the parts that make the results
 > dormant project with a near-identical name exists in an adjacent space. Nothing here should be
 > published under this name until [`PUBLISH-CHECKLIST.md`](PUBLISH-CHECKLIST.md) is satisfied.
 > `python scripts/rename.py <NewName>` renames the whole repo in one pass.
+>
+> **Why `docs/` and `applications/` say "SearchBench".** The project was researched and specced
+> under that name and renamed on 2026-08-01;
+> [`docs/10`](docs/10-name-clearance-2026-08-01.md) records the clearance work and the decision.
+> Those two directories are deliberately left alone — `scripts/rename.py` skips them — because
+> they are a dated record of research and of documents already sent, and rewriting a record to
+> match a later decision is the habit this project exists to avoid. Code, site and tooling all
+> use the current name; anything under `docs/` or `applications/` is a snapshot of when it was
+> written.
 
 ## Status
 
