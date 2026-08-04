@@ -201,6 +201,37 @@
       </div>
     </dl>
 
+    <div class="prose" style="margin-top:2.5rem;max-width:74ch">
+      <h3>Exactly how each vendor is called</h3>
+      <p>
+        A wrong endpoint, tier or parameter is the most likely reason a published score is unfair,
+        and the cheapest kind of dispute to settle — so the configuration is stated here rather
+        than left in the source for a vendor to find.
+      </p>
+      <ul>
+        <li><strong>Exa</strong> — <code>/search</code>, default search type, with
+          <code>contents.text</code> requested. That is a billed add-on and it is asked for
+          deliberately: every other vendor returns snippet text in its default response, and Exa
+          does not, so <em>not</em> requesting it would grade Exa on an empty payload. Its cost is
+          vendor-reported on every call, so the add-on is already inside the published price.</li>
+        <li><strong>Perplexity</strong> — <code>sonar</code>, not
+          <code>sonar-deep-research</code>, which is 10–30× the cost and a different product.
+          Output capped at 2048 tokens; it was 512, which truncated 10 of 150 answers and cost
+          Perplexity about half a point on those.</li>
+        <li><strong>Serper</strong> — <code>/search</code>, default settings. It is the one vendor
+          that sometimes returns fewer than the requested depth.</li>
+        <li><strong>Linkup</strong> — <code>standard</code> depth, not <code>deep</code>, which is
+          a different and dearer product tier.</li>
+        <li><strong>You.com</strong> — the search endpoint, not the Research tier.</li>
+      </ul>
+      <p>
+        Every response is truncated to the same top
+        <span data-val="config.top_k"></span> results and the same snippet length before a judge
+        sees it. If any of this is the wrong way to call your API, that is a correction worth
+        making and rerunning — say so in public and it gets one.
+      </p>
+    </div>
+
     <p class="note" style="margin-top:1.5rem">
       Vendors: written consent is the only route into the published set.
       <a href="index.html#contact">Get in touch</a>.
@@ -230,26 +261,64 @@
         <h3>Two shapes of answer</h3>
         <p>
           Most of these APIs return a ranked list. One returns a prose answer <em>and</em> a ranked
-          list. Rather than treat those as incomparable, the shape of each response is recorded and
-          published alongside its score, and the judge is told which shape it is looking at. A
-          vendor can therefore see exactly what it was graded on.
+          list. The shape of each response is recorded and published alongside its score. The judge
+          is <em>not</em> told which shape it is looking at: an earlier version added the words
+          "plus a synthesized prose answer" to the prompt, which named the response shape for
+          exactly one vendor in the set and nothing for the rest — a blinding hole no amount of
+          rubric wording compensates for. The prose is still visible in the payload under its own
+          heading, so nothing is hidden from the judge; it is just no longer flagged.
+        </p>
+        <h3>Uniform snippet length</h3>
+        <p>
+          Snippets reach the judge truncated at
+          <span data-val="latest.payload_effect.snippet_chars_cap" data-fmt="int"></span>
+          characters, which is at least what any adapter asks a vendor for. It used to be 400,
+          below what two vendors return, so the cap silently discarded about a fifth of their text
+          and none of anyone else's — a per-vendor handicap dressed as a normalisation.
         </p>
       </div>
       <div class="prose">
         <h3>Cost</h3>
         <p>
-          Where a vendor reports the cost of a call in its response, that reported figure is used.
-          Where it does not, list price at the cheapest published tier is used. Volume discounts
-          and negotiated pricing are not modelled, which will understate the real cost advantage
-          of the larger vendors.
+          Where a vendor reports the cost of a call in its response, that reported figure is used;
+          where it does not, a published price is used. Which of the two applies is a column in the
+          responses export rather than something to infer, and the tier behind every derived price,
+          with a source link, is in <a href="export/pricing.json">pricing.json</a>. It matters:
+          the headline cost ratio is
+          <span class="mono" data-val="latest.cost_spread.as_billed_ratio" data-fmt="ratio"></span>
+          at the tiers this benchmark is billed at and
+          <span class="mono" data-val="latest.cost_spread.like_for_like_ratio" data-fmt="ratio"></span>
+          with both sides undiscounted.
         </p>
         <h3>Latency</h3>
         <p>
-          Measured by the harness as wall-clock time from request to response, over an ordinary
-          internet connection, with modest request concurrency. Treat the ordering as the signal
-          and the absolute milliseconds as indicative.
+          Wall-clock time from request to response, over an ordinary internet connection, with
+          modest request concurrency. Two known confounds, both real: concurrency means these are
+          not isolated measurements, and <strong>vendors cache</strong>. A run repeated within
+          minutes of another can be served warm — that happened once here, and the affected run is
+          identified in the changelog. Treat ordering as the signal and absolute milliseconds as
+          indicative.
         </p>
       </div>
+    </div>
+
+    <div class="prose" style="margin-top:2.5rem;max-width:74ch">
+      <h3>Does a bigger response score better?</h3>
+      <p>
+        The rubric tells the judges not to reward length, and saying so does not make it true. The
+        judge-visible payload differs by roughly a factor of two between the largest and smallest
+        vendor here, so the question deserves a number rather than an assurance.
+      </p>
+      <p>
+        Within a single vendor — the clean test, with no vendor differences in it — the correlation
+        between payload size and score runs from
+        <span class="mono" data-val="latest.payload_effect.within_vendor_r_min" data-fmt="n2"></span>
+        to
+        <span class="mono" data-val="latest.payload_effect.within_vendor_r_max" data-fmt="n2"></span>.
+        That is nothing. The clearest single illustration is in the table itself: the second-largest
+        payload in the set belongs to the lowest-scoring vendor. Per-vendor figures are in the
+        export, so this can be recomputed rather than believed.
+      </p>
     </div>
   </div>
 </section>
@@ -740,6 +809,53 @@ cp .env.example .env          # add your keys
       </p>
     </div>
     <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt><span class="mono">2026-08-04</span> · methodology v2 — scores from here are not
+          comparable with 2026-W31</dt>
+        <dd>
+          <p>
+            The largest change so far, and the reason it is one entry rather than five: everything
+            in it alters what a judge sees or how it answers, so week-over-week comparison across
+            this line is not valid. It is made now, against a single published week, because that
+            is the cheapest moment it will ever be.
+          </p>
+          <ul>
+            <li><strong>The judges are told today's date.</strong> The rubric never stated it, and
+              one judge family was reading post-cutoff results as fabricated — marking vendors down
+              for returning current information, in the column that exists to reward exactly that.
+              It showed up as a 2.4-point family gap on breaking news that is absent everywhere
+              else.</li>
+            <li><strong>Sampling is pinned.</strong> Judges now run at temperature 0, with a fixed
+              seed where the provider offers one. Previously each score was a temperature-1 sample:
+              on responses whose vendor payload was byte-identical, the ensemble median reproduced
+              only about 70% of the time. Pinning a model version bought nothing without this.</li>
+            <li><strong>The snippet cap no longer binds below what adapters request.</strong> It was
+              400 characters against 500 requested, so it discarded about a fifth of two vendors'
+              text and none of anyone else's.</li>
+            <li><strong>The response shape is no longer named in the prompt.</strong> It was
+              announced for the vendors returning prose and not for the others, identifying one
+              vendor to an otherwise blind judge.</li>
+            <li><strong>One vendor's output cap was raised</strong> from 512 to 2048 tokens. The
+              harness imposed it, the vendor did not, and it truncated 10 of 150 answers.</li>
+          </ul>
+          <p>
+            The 2026-W31 table stands as published. It is not being rescored — a corrected week is
+            published beside the original, never over it.
+          </p>
+        </dd>
+      </div>
+      <div>
+        <dt><span class="mono">2026-08-04</span> · reporting corrections, scores unchanged</dt>
+        <dd>
+          Three published figures were wrong or unsupported and none of them were scoring changes.
+          The queries-won column resolved ties by internal ordering, so it credited vendors with
+          wins they had not had; it is replaced by outright wins and shared-best, with the tie rate
+          published beside them. Two pages asserted that the ranking survives the choice of judge,
+          which this run's own per-judge data contradicts; that is replaced by the measured depth
+          of agreement. The cost ratio was quoted at tiers that were not like for like; both bases
+          are now published with a source per vendor.
+        </dd>
+      </div>
       <div>
         <dt><span class="mono">2026-08-04</span> · withheld set added</dt>
         <dd>

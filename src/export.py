@@ -49,7 +49,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import heldout, storage
-from .judge.ensemble import JUDGES, RUBRIC
+from .judge.ensemble import JUDGES, RUBRIC, SNIPPET_CHARS
 from .vendors.adapters import REGISTRY, TOP_K
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -688,6 +688,69 @@ def build_robustness(rows: list[dict]) -> dict:
     }
 
 
+def _pearson(xs: list[float], ys: list[float]) -> float | None:
+    n = len(xs)
+    if n < 3:
+        return None
+    mx, my = statistics.mean(xs), statistics.mean(ys)
+    num = sum((a - mx) * (b - my) for a, b in zip(xs, ys))
+    dx = math.sqrt(sum((a - mx) ** 2 for a in xs))
+    dy = math.sqrt(sum((b - my) ** 2 for b in ys))
+    return round(num / (dx * dy), 3) if dx and dy else None
+
+
+def build_payload_effect(rows: list[dict]) -> dict:
+    """Does a bigger payload buy a better score?
+
+    The rubric tells the judges not to reward verbosity, and the obvious
+    objection is that saying so does not make it true — especially here, where
+    the judge-visible payload differs almost fourfold between the largest and
+    smallest vendor. The answer is in the data and was never computed, which
+    meant the accusation had no reply.
+
+    Reported two ways, because they answer different questions. *Within* a
+    vendor, does a longer response score better — the direct verbosity test,
+    free of any vendor effect. *Across* vendors, does mean payload size track
+    mean score — which conflates verbosity with whatever else differs between
+    vendors, and is the weaker of the two.
+    """
+    per_vendor = []
+    for vendor in sorted({r["vendor"] for r in rows}):
+        vrows = [r for r in rows
+                 if r["vendor"] == vendor and r["median"] is not None and r["judges"]]
+        chars, scores, nres = [], [], []
+        for r in vrows:
+            sizes = [j["scored_chars"] for j in r["judges"].values()
+                     if j["scored_chars"] is not None]
+            if not sizes:
+                continue
+            chars.append(float(max(sizes)))
+            scores.append(float(r["median"]))
+            nres.append(r["n_results"])
+        if not chars:
+            continue
+        per_vendor.append({
+            "vendor": vendor,
+            "mean_scored_chars": round(statistics.mean(chars), 1),
+            "mean_n_results": round(statistics.mean(nres), 2) if nres else None,
+            "mean_score": round(statistics.mean(scores), 3),
+            "r_chars_vs_score": _pearson(chars, scores),
+            "n": len(chars),
+        })
+
+    across = _pearson([v["mean_scored_chars"] for v in per_vendor],
+                      [v["mean_score"] for v in per_vendor]) if len(per_vendor) > 2 else None
+    within = [v["r_chars_vs_score"] for v in per_vendor if v["r_chars_vs_score"] is not None]
+    return {
+        "per_vendor": per_vendor,
+        "within_vendor_r_min": min(within) if within else None,
+        "within_vendor_r_max": max(within) if within else None,
+        "across_vendor_r": across,
+        "snippet_chars_cap": SNIPPET_CHARS,
+        "results_per_query": TOP_K,
+    }
+
+
 def build_judge_stats(rows: list[dict]) -> dict:
     """Judge-family means and disagreement.
 
@@ -921,6 +984,7 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "wins": build_win_stats(rows),
         "robustness": build_robustness(rows),
         "cost_spread": build_cost_spread(totals),
+        "payload_effect": build_payload_effect(rows),
         # What the ranking can and cannot resolve, published beside it rather
         # than left for a reader to derive from the CSV and then ask why it was
         # not stated. `tiers` is what the table renders instead of five distinct
