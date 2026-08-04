@@ -84,6 +84,61 @@ _WEEK_FILE = re.compile(r"^(\d{4}-W\d{2})\.json$")
 # "Source" link that goes nowhere useful.
 REPO_URL: str | None = None
 
+# What each vendor's per-query cost in this benchmark actually is, and on what
+# assumption. This exists because the headline "23x cheaper" figure divided a
+# vendor-reported invoice by a hardcoded constant, and the constant was the
+# least-verified price in the whole analysis: Serper's $0.0003 is its top
+# volume tier, which needs a commitment in the low thousands per month, while
+# Exa's $0.007 is list. Like for like — both pay-as-you-go — the spread is
+# closer to 7x. That is still the strongest finding on the site; it is just not
+# 23x, and the difference is the kind a reader checks in one click.
+#
+# `basis` is what the benchmark is billed at, `payg` is the undiscounted rate.
+PRICING = {
+    "exa": {"basis_per_query_usd": 0.007, "payg_per_query_usd": 0.007,
+            "tier": "list / pay-as-you-go", "source": "https://exa.ai/pricing",
+            "reported_by_vendor": True},
+    "perplexity": {"basis_per_query_usd": 0.008, "payg_per_query_usd": 0.008,
+                   "tier": "Sonar, low search context", "source": "https://docs.perplexity.ai/guides/pricing",
+                   "reported_by_vendor": True},
+    "serper": {"basis_per_query_usd": 0.0003, "payg_per_query_usd": 0.001,
+               "tier": "top volume tier ($0.30/1,000); PAYG is ~$1/1,000",
+               "source": "https://serper.dev/pricing", "reported_by_vendor": False},
+    "linkup": {"basis_per_query_usd": 0.005, "payg_per_query_usd": 0.005,
+               "tier": "standard depth", "source": "https://linkup.so/pricing",
+               "reported_by_vendor": False},
+    "youcom": {"basis_per_query_usd": 0.005, "payg_per_query_usd": 0.005,
+               "tier": "flat $5/1,000 calls", "source": "https://api.you.com",
+               "reported_by_vendor": False},
+}
+
+
+def build_cost_spread(totals: list[dict]) -> dict:
+    """The cost spread, on both bases, so neither is quotable alone."""
+    priced = [t for t in totals if t.get("cost_per_query_usd")]
+    if len(priced) < 2:
+        return {}
+    dearest = max(priced, key=lambda t: t["cost_per_query_usd"])
+    cheapest = min(priced, key=lambda t: t["cost_per_query_usd"])
+
+    def payg(v):
+        p = PRICING.get(v)
+        return p["payg_per_query_usd"] if p else None
+
+    a, b = payg(dearest["vendor"]), payg(cheapest["vendor"])
+    return {
+        "dearest": dearest["vendor"], "cheapest": cheapest["vendor"],
+        "dearest_per_query_usd": dearest["cost_per_query_usd"],
+        "cheapest_per_query_usd": cheapest["cost_per_query_usd"],
+        # As billed to this benchmark, which is what the run measured.
+        "as_billed_ratio": round(dearest["cost_per_query_usd"] / cheapest["cost_per_query_usd"], 1),
+        # Both at undiscounted rates, which is what a reader signing up today
+        # would pay, and the honest number to lead with.
+        "like_for_like_ratio": round(a / b, 1) if a and b else None,
+        "cheapest_tier": (PRICING.get(cheapest["vendor"]) or {}).get("tier"),
+    }
+
+
 VENDOR_META = {
     "exa":        {"label": "Exa",        "docs": "https://exa.ai"},
     "perplexity": {"label": "Perplexity", "docs": "https://docs.perplexity.ai",
@@ -236,7 +291,7 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
         """
         SELECT rr.id, rr.query_id, rr.vendor, rr.response_mode, rr.latency_ms,
-               rr.cost_usd, rr.error, rr.results, q.category,
+               rr.cost_usd, rr.cost_source, rr.error, rr.results, q.category,
                COALESCE(q.held_out, 0) AS held_out
         FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
         WHERE rr.run_id = ?
@@ -276,6 +331,7 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
             "n_results": n_results,
             "latency_ms": r["latency_ms"],
             "cost_usd": r["cost_usd"],
+            "cost_source": r["cost_source"],
             "error": r["error"],
             "judges": {s["judge_family"]: s for s in js},
             "complete": len(overalls) == len(JUDGES),
@@ -864,6 +920,7 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "judging": build_judge_stats(rows),
         "wins": build_win_stats(rows),
         "robustness": build_robustness(rows),
+        "cost_spread": build_cost_spread(totals),
         # What the ranking can and cannot resolve, published beside it rather
         # than left for a reader to derive from the CSV and then ask why it was
         # not stated. `tiers` is what the table renders instead of five distinct
@@ -1200,10 +1257,11 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     rows = load_run(conn, run_id)
     p = out / f"responses-{week}.csv"
     write_csv(p, ["week", "query_id", "category", "held_out", "vendor", "response_mode",
-                  "n_results", "latency_ms", "cost_usd", "complete_ensemble",
+                  "n_results", "latency_ms", "cost_usd", "cost_source", "complete_ensemble",
                   "median_overall", "error"],
               [[week, r["query_id"], r["category"], int(r["held_out"]), r["vendor"],
                 r["response_mode"], r["n_results"], r["latency_ms"], r["cost_usd"],
+                r.get("cost_source") or "unknown",
                 int(r["complete"]), r["median"], r["error"] or ""] for r in rows])
     written.append({"file": p.name, "rows": len(rows),
                     "what": "One row per API call: timing, cost, result count, ensemble median. No retrieved content."})
@@ -1228,6 +1286,26 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
                 (c.get("paired") or {}).get("n_common", "")] for c in cells])
     written.append({"file": p.name, "rows": len(cells),
                     "what": "The published table: one row per vendor per category."})
+
+    # The price basis behind every cost figure on the site. Shipped as its own
+    # file because the cost spread is the strongest claim the benchmark makes
+    # and it rests on which tier each vendor is billed at — a reader who cannot
+    # check that has to take the ratio on trust, which is the thing this project
+    # says vendors should not ask of anyone.
+    p = out / "pricing.json"
+    write_json(p, {
+        "generated_at": _now(),
+        "note": ("basis_per_query_usd is what this benchmark is billed at; "
+                 "payg_per_query_usd is the undiscounted rate. They differ for "
+                 "vendors whose cheapest tier requires a volume commitment. "
+                 "reported_by_vendor says whether the vendor returns a billed "
+                 "figure on the call itself — where it does, cost_usd in the "
+                 "responses export is measured rather than derived."),
+        "vendors": {v: {**meta, "label": VENDOR_META.get(v, {}).get("label", v)}
+                    for v, meta in sorted(PRICING.items())},
+    })
+    written.append({"file": p.name, "rows": len(PRICING),
+                    "what": "Per-vendor price basis, tier and source URL behind every cost figure."})
 
     p = out / "queries.csv"
     qs = sorted(queries.values(), key=lambda q: (CATEGORY_ORDER.index(q["category"]), q["id"]))

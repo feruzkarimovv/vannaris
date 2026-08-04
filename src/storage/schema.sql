@@ -64,6 +64,10 @@ CREATE TABLE IF NOT EXISTS raw_responses (
     results       TEXT,                     -- JSON array of {url,rank,title,snippet}
     latency_ms    INTEGER,
     cost_usd      REAL,
+    -- 'reported' when the vendor returned a billed figure on the call itself,
+    -- 'estimated' when it is derived from published pricing. The headline cost
+    -- spread depends on which is which, so it is recorded rather than assumed.
+    cost_source   TEXT NOT NULL DEFAULT 'estimated',
     error         TEXT,
     raw_payload   TEXT,                     -- NOT EXPORTED
     created_at    TEXT NOT NULL,
@@ -86,6 +90,10 @@ CREATE TABLE IF NOT EXISTS judge_scores (
     scored_chars      INTEGER,
     prompt_tokens     INTEGER,
     output_tokens     INTEGER,
+    -- What the provider actually served. Two of the three pins are aliases the
+    -- provider can repoint without notice, and a silent swap would move every
+    -- score without moving anything about the vendors.
+    judge_model_returned TEXT,
     created_at        TEXT NOT NULL,
     UNIQUE (response_id, judge_model)
 );

@@ -257,15 +257,25 @@ sentence on *why* them lands better than the name alone.
 ### Optional: What's 1 thing you need help with? (500 char)
 
 Take the optional box. It's a direct read on whether you know your own bottleneck, which is the
-same instinct as Cory's "key logs" essay.
+same instinct as Cory's "key logs" essay. The form says *1 thing*, so name one and keep the ask
+concrete — "intros to smart people" is what everyone writes.
 
-> Two things with the same root: I have a working instrument and no audience. I need intros to
-> teams building agents who'd actually route on this data — a benchmark only becomes a standard
-> if the people choosing search APIs read it. And a warm path to the vendors themselves; a couple
-> have terms that make third-party benchmarking a written-consent conversation, and that goes far
-> better with an introduction than a cold email.
+**Recommended (412 characters — verified):**
 
-*(425 characters — verified.)*
+> Distribution. I built the instrument and have no audience yet. A benchmark only becomes a
+> standard if the people choosing search APIs actually read it, and I am better at building it
+> than at getting it in front of anyone. I would want intros to teams shipping agents who would
+> route real traffic on this data, and to anyone who has taken a public benchmark from "this
+> exists" to "this is the number people cite."
+
+**Alternate (451 characters — verified)**, if you'd rather the ask include the vendor problem.
+Still one thing — introductions — pointed two ways:
+
+> Distribution. I have a working instrument and no audience. A benchmark only becomes a standard
+> if the people choosing search APIs read it, and I am better at building it than at getting it
+> in front of them. I want intros two ways: teams shipping agents who would route real traffic on
+> this data, and the vendors themselves. A couple have terms that make third-party benchmarking a
+> written-consent conversation, and that goes far better warm than cold.
 
 ---
 
@@ -277,19 +287,37 @@ being a paragraph.
 **Format:** phone, one take, face to camera, no slides. **No product demo** — the form says so
 explicitly and ignoring it is the most common self-inflicted rejection.
 
-**Rough beats (60 seconds):**
+**Script (169 words, ~60–65s at a normal talking pace).** Four beats, in the order the form asks
+for them: background, brag, project. Learn the shape, not the words.
 
-1. **0:00–0:12 — who you are.** Name, where you're from, where you are now. The Uzbekistan-to-NJ
-   line is worth twelve seconds of anyone's attention; don't rush past it.
-2. **0:12–0:30 — the brag.** One thing, concrete. The strongest available: built a working
-   benchmark of five commercial search APIs — adapters, three-judge ensemble, full pipeline — and
-   had 2,151 scored judgements inside a day.
-3. **0:30–0:50 — what you're building and the one finding.** The 23× cost gap, in a sentence.
-   Say it as a fact about the market, not a pitch.
-4. **0:50–1:00 — why this week.** Short. What you'd want out of a room of founders who have
-   already built at scale.
+> **[0:00–0:18 — who you are]**
+> I'm Feruz, twenty, from Uzbekistan. I taught myself to code at twelve and was freelancing three
+> months later. Then I moved to the US, finished high school in a language I was still learning,
+> and worked at Walmart while I did it. I'm on leave from Rutgers now, building full time in SF.
+>
+> **[0:18–0:31 — the brag]**
+> Proudest thing I've built: a benchmark of five commercial search APIs, on my own. The vendor
+> adapters, a three-model judge ensemble, the whole pipeline. Twenty-one hundred scored
+> judgements inside a day of starting.
+>
+> **[0:31–0:47 — what it is, and the finding]**
+> That's Vannaris. Every AI agent calls a search API, and every vendor in that category publishes
+> a benchmark it wins. I built the neutral one. The cheapest API returns ninety-two percent of the
+> best one's quality, at four percent of the price.
+>
+> **[0:47–1:00 — the beat that's actually about you]**
+> It also killed my own idea. I was building a router that picks the best vendor per query, and my
+> own data said one vendor wins almost everything. So I changed the product, not the measurement.
+> That's what I'm on today.
 
-Talking to camera, not reading. A retake is cheap; a script that sounds read is not.
+**If you run long, cut this sentence:** *"The vendor adapters, a three-model judge ensemble, the
+whole pipeline."* It's the only line whose content is already in the written answers.
+
+**Delivery notes.** Say the numbers as words — "ninety-two percent," "four percent" — reading
+digits aloud is what makes a script sound like a script. Beat four is the one that decides the
+video, so don't rush it and don't apologise for it; changing your own mind on your own evidence
+is the trait they're selecting for. Talking to camera, not reading. A retake is cheap; a script
+that sounds read is not.
 
 ---
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vannaris — an independent benchmark of the search APIs your agents call</title>
-<meta name="description" content="Independent, reproducible scoring of the web-search APIs behind AI agents. Quality, cost and latency per vendor and per query type — with the methodology, the raw data and the limitations all published.">
+<meta name="description" content="Independent scoring of the web-search APIs behind AI agents, recomputable from the published per-judge data. Quality, cost and latency per vendor and per query type — with the methodology, the raw data and the limitations all published.">
 <link rel="canonical" href="https://vannaris.com/">
 <meta property="og:title" content="Vannaris — an independent benchmark of web-search APIs">
 <meta property="og:description" content="The same query set, sent to every major search API, scored by three models from three labs. Open methodology, open data, published limitations.">
@@ -181,21 +181,35 @@
       <h2>The cheapest API is not worse everywhere. It is worse in specific places.</h2>
       <p>
         The cheapest API in the set costs
-        <span class="mono" data-val="d.cost_ratio" data-fmt="ratio"></span> less per query than the
-        best-scoring one. What that buys you depends entirely on the kind of question you ask —
+        <span class="mono" data-val="latest.cost_spread.like_for_like_ratio" data-fmt="ratio"></span>
+        less per query than the best-scoring one at undiscounted rates, and
+        <span class="mono" data-val="latest.cost_spread.as_billed_ratio" data-fmt="ratio"></span>
+        less as this benchmark is actually billed — the difference is that the cheaper rate needs a
+        volume commitment. What that buys you depends entirely on the kind of question you ask —
         the kind of result no vendor publishes about itself.
       </p>
     </div>
 
     <div class="grid-2">
       <div>
-        <p class="figure-xl" data-reveal="settle" data-val="d.cost_ratio" data-fmt="ratio"></p>
+        <p class="figure-xl" data-reveal="settle"
+           data-val="latest.cost_spread.like_for_like_ratio" data-fmt="ratio"></p>
         <p style="max-width:44ch;color:var(--text-2)">
           <strong><span data-val="d.cheap_vendor"></span></strong> costs
           <span class="mono" data-val="d.cheap_cost" data-fmt="money"></span> per query against
           <strong><span data-val="d.top_vendor"></span></strong>'s
           <span class="mono" data-val="d.top_cost" data-fmt="money"></span>.
           <span data-val="d.spread_note"></span>
+        </p>
+        <p style="max-width:44ch;color:var(--text-2)">
+          Those are the rates this benchmark is billed at, and they are not like for like: the
+          cheaper one is a
+          <span data-val="latest.cost_spread.cheapest_tier"></span> rate. Undiscounted on both
+          sides the gap is
+          <span class="mono" data-val="latest.cost_spread.like_for_like_ratio" data-fmt="ratio"></span>,
+          which is the figure above. Per-vendor tiers, prices and source links are in
+          <a href="export/pricing.json">pricing.json</a>; whether a cost was reported by the vendor
+          or derived from a price list is a column in the responses export.
         </p>
         <p style="max-width:44ch;color:var(--text-2)">
           That is not a ranking. It is a routing policy: use the cheap API by default, escalate on

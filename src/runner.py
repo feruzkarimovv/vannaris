@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 from . import heldout, storage
 from .judge.ensemble import JUDGES, median_overall, score_response
 from .vendors.adapters import build_all
-from .vendors.base import SearchResponse
+from .vendors.base import ResponseMode, SearchResponse
 
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "vannaris.db"
@@ -133,6 +133,7 @@ async def judge_all(
     keys: dict[str, str],
     responses: list[SearchResponse],
     qmap: dict[str, dict],
+    today: str,
 ) -> dict[str, list]:
     sem = asyncio.Semaphore(JUDGE_CONCURRENCY)
     scored: dict[str, list] = {}
@@ -144,7 +145,7 @@ async def judge_all(
         q = qmap[resp.query_id]
         async with sem:
             return key, await score_response(
-                client, keys, resp, q["text"], q.get("gold_answer")
+                client, keys, resp, q["text"], q.get("gold_answer"), today
             )
 
     tasks = [one(r) for r in responses]
@@ -156,6 +157,56 @@ async def judge_all(
         print(f"\r  judging {done}/{len(tasks)}", end="", flush=True)
     print()
     return scored
+
+
+def load_responses(conn, run_id: str) -> list[SearchResponse]:
+    """Rehydrate a stored run's vendor responses, so judging can be redone.
+
+    Why this exists: MIN_COMPLETE_SHARE is all-or-nothing, so a judge-stage
+    failure used to force re-running the whole thing — all 750 vendor calls
+    included — and that is not free in either money or validity. On 2026-07-31
+    two full runs went out twelve minutes apart for exactly this reason, and
+    Exa's own telemetry shows the second was served from its cache: server-side
+    search time under 50ms on 62 of 150 calls against 0 of 150 in the first,
+    and its published breaking-news p50 fell from 1368ms to 298ms. That number
+    reached the site as the fastest cell on it.
+
+    The vendor's answer to a query does not change because a judge returned
+    malformed JSON. Re-judging reads the stored payload instead.
+    """
+    from .vendors.base import SearchResult
+
+    rows = conn.execute(
+        "SELECT query_id, vendor, response_mode, answer, citations, results, "
+        "latency_ms, cost_usd, error, raw_payload FROM raw_responses WHERE run_id = ?",
+        (run_id,),
+    ).fetchall()
+    if not rows:
+        raise SystemExit(f"no stored responses for run {run_id!r}")
+
+    out: list[SearchResponse] = []
+    for (query_id, vendor, mode, answer, citations, results,
+         latency_ms, cost_usd, error, raw) in rows:
+        resp = SearchResponse(
+            vendor=vendor,
+            query_id=query_id,
+            response_mode=ResponseMode(mode),
+            results=[SearchResult(url=x["url"], rank=x["rank"], title=x.get("title"),
+                                  snippet=x.get("snippet"),
+                                  published_at=x.get("published_at"))
+                     for x in json.loads(results or "[]")],
+            answer=answer,
+            citations=json.loads(citations or "[]"),
+            latency_ms=latency_ms,
+            # Deliberately zeroed. This run did not buy these responses; the run
+            # that fetched them did, and counting the spend twice would overstate
+            # what the benchmark costs to operate.
+            cost_usd=0.0,
+            error=error,
+        )
+        resp.raw = json.loads(raw) if raw else {}
+        out.append(resp)
+    return out
 
 
 def persist(conn, run_id, week, digest, queries, responses, scored,
@@ -188,15 +239,15 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
         rid = str(uuid.uuid4())
         cur.execute(
             "INSERT INTO raw_responses (id, run_id, query_id, vendor, response_mode, answer, "
-            "citations, results, latency_ms, cost_usd, error, raw_payload, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "citations, results, latency_ms, cost_usd, cost_source, error, raw_payload, "
+            "created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 rid, run_id, r.query_id, r.vendor, r.response_mode.value, r.answer,
                 json.dumps(r.citations),
                 json.dumps([{"url": x.url, "rank": x.rank, "title": x.title,
                              "snippet": x.snippet, "published_at": x.published_at}
                             for x in r.results]),
-                r.latency_ms, r.cost_usd, r.error, json.dumps(r.raw), now(),
+                r.latency_ms, r.cost_usd, r.cost_source, r.error, json.dumps(r.raw), now(),
             ),
         )
         for s in scored.get(f"{r.query_id}::{r.vendor}", []):
@@ -205,10 +256,12 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
             cur.execute(
                 "INSERT INTO judge_scores (id, response_id, judge_model, judge_family, relevance, "
                 "freshness, citation_quality, overall, rationale, scored_chars, prompt_tokens, "
-                "output_tokens, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "output_tokens, judge_model_returned, created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (str(uuid.uuid4()), rid, s.judge_model, s.judge_family, s.relevance,
                  s.freshness, s.citation_quality, s.overall, s.rationale,
-                 s.scored_chars, s.prompt_tokens, s.output_tokens, now()),
+                 s.scored_chars, s.prompt_tokens, s.output_tokens,
+                 s.judge_model_returned, now()),
             )
     conn.commit()
 
@@ -421,6 +474,14 @@ async def main() -> int:
     # check would exist in the repository rather than in the data.
     ap.add_argument("--heldout", default="auto",
                     help="'auto' (the registered active set), 'off', or a path")
+    # Re-judge a stored run instead of calling the vendors again. The judge
+    # stage fails for reasons that have nothing to do with the vendors — rate
+    # limits, truncated JSON, an expired key — and re-fetching to recover from
+    # that costs money and, worse, re-issues identical queries into vendor
+    # caches within minutes, which corrupts the latency column. See
+    # load_responses.
+    ap.add_argument("--rejudge", metavar="RUN_ID", default=None,
+                    help="re-judge a stored run's responses; makes no vendor calls")
     args = ap.parse_args()
     # argparse only validates `choices` for values that arrive on the command
     # line, so a typo'd SB_TRIGGER would sail through into the evidence layer.
@@ -451,18 +512,31 @@ async def main() -> int:
     adapters = build_all(env)
     run_id, week = str(uuid.uuid4()), iso_week()
     started_at = now()
+    # The date the judges are told. Interpolated into the rubric so a judge does
+    # not read post-cutoff search results as fabricated — see build_prompt.
+    today = datetime.now(timezone.utc).strftime("%d %B %Y")
 
     print(f"run {run_id[:8]}  week {week}  queryset {digest}  trigger {args.trigger}")
     if heldout_id:
         print(f"held-out set {heldout_id}: {len(private)} withheld questions, hash verified")
-    print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
-          f"= {len(queries) * len(adapters)} calls, {len(queries) * len(adapters) * len(JUDGES)} judgements\n")
 
-    async with httpx.AsyncClient(timeout=90.0) as client:
-        responses = await fetch_all(client, adapters, queries)
-        ok = sum(1 for r in responses if r.ok)
-        print(f"  {ok}/{len(responses)} vendor calls ok")
-        scored = await judge_all(client, keys, responses, qmap)
+    if args.rejudge:
+        conn = connect()
+        responses = load_responses(conn, args.rejudge)
+        conn.close()
+        print(f"re-judging {len(responses)} stored responses from run "
+              f"{args.rejudge[:8]} — no vendor calls, no vendor spend")
+        async with httpx.AsyncClient(timeout=90.0) as client:
+            scored = await judge_all(client, keys, responses, qmap, today)
+    else:
+        print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
+              f"= {len(queries) * len(adapters)} calls, "
+              f"{len(queries) * len(adapters) * len(JUDGES)} judgements\n")
+        async with httpx.AsyncClient(timeout=90.0) as client:
+            responses = await fetch_all(client, adapters, queries)
+            ok = sum(1 for r in responses if r.ok)
+            print(f"  {ok}/{len(responses)} vendor calls ok")
+            scored = await judge_all(client, keys, responses, qmap, today)
 
     conn = connect()
     persist(conn, run_id, week, digest, queries, responses, scored, started_at,

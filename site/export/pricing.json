@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-08-04T17:47:10+00:00",
+  "note": "basis_per_query_usd is what this benchmark is billed at; payg_per_query_usd is the undiscounted rate. They differ for vendors whose cheapest tier requires a volume commitment. reported_by_vendor says whether the vendor returns a billed figure on the call itself \u2014 where it does, cost_usd in the responses export is measured rather than derived.",
+  "vendors": {
+    "exa": {
+      "basis_per_query_usd": 0.007,
+      "payg_per_query_usd": 0.007,
+      "tier": "list / pay-as-you-go",
+      "source": "https://exa.ai/pricing",
+      "reported_by_vendor": true,
+      "label": "Exa"
+    },
+    "linkup": {
+      "basis_per_query_usd": 0.005,
+      "payg_per_query_usd": 0.005,
+      "tier": "standard depth",
+      "source": "https://linkup.so/pricing",
+      "reported_by_vendor": false,
+      "label": "Linkup"
+    },
+    "perplexity": {
+      "basis_per_query_usd": 0.008,
+      "payg_per_query_usd": 0.008,
+      "tier": "Sonar, low search context",
+      "source": "https://docs.perplexity.ai/guides/pricing",
+      "reported_by_vendor": true,
+      "label": "Perplexity"
+    },
+    "serper": {
+      "basis_per_query_usd": 0.0003,
+      "payg_per_query_usd": 0.001,
+      "tier": "top volume tier ($0.30/1,000); PAYG is ~$1/1,000",
+      "source": "https://serper.dev/pricing",
+      "reported_by_vendor": false,
+      "label": "Serper"
+    },
+    "youcom": {
+      "basis_per_query_usd": 0.005,
+      "payg_per_query_usd": 0.005,
+      "tier": "flat $5/1,000 calls",
+      "source": "https://api.you.com",
+      "reported_by_vendor": false,
+      "label": "You.com"
+    }
+  }
+}

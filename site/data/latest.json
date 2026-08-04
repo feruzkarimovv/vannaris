@@ -1093,6 +1093,15 @@
     "n_families_that_invert_it": 1,
     "n_families": 3
   },
+  "cost_spread": {
+    "dearest": "exa",
+    "cheapest": "serper",
+    "dearest_per_query_usd": 0.007,
+    "cheapest_per_query_usd": 0.0003,
+    "as_billed_ratio": 23.3,
+    "like_for_like_ratio": 7.0,
+    "cheapest_tier": "top volume tier ($0.30/1,000); PAYG is ~$1/1,000"
+  },
   "separation": {
     "overall_tiers": [
       {

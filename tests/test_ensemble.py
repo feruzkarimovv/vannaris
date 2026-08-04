@@ -38,6 +38,10 @@ from src.judge.ensemble import (  # noqa: E402
 )
 from src.vendors.base import ResponseMode, SearchResponse, SearchResult  # noqa: E402
 
+# The judges are told the date so they do not read post-cutoff search results as
+# fabricated (see build_prompt). Fixed here so prompt assertions stay stable.
+TODAY = "04 August 2026"
+
 
 def score(overall, family="anthropic"):
     return JudgeScore(judge_family=family, judge_model="m", overall=overall)
@@ -217,6 +221,39 @@ class TestRetryAfter(unittest.TestCase):
 
 # --------------------------------------------------- prompt / length normalisation
 
+class TestRunDateInRubric(unittest.TestCase):
+    """The judges are told what day it is, and why that is not cosmetic.
+
+    On the first run the Anthropic judge treated post-cutoff dates in
+    breaking-news payloads as evidence of fabrication: 20.0% of its
+    breaking_news rationales carried fabrication language against OpenAI's 1.6%,
+    and its mean in that category was 6.664 against 8.869 and 9.072. It was
+    marking vendors down for returning current information, in the one column
+    that exists to reward exactly that.
+    """
+
+    def test_the_date_is_interpolated(self):
+        prompt, _ = build_prompt(response(), "q", None, TODAY)
+        self.assertIn(TODAY, prompt)
+        self.assertNotIn("{today}", prompt)
+
+    def test_the_judge_is_told_not_to_read_newness_as_fabrication(self):
+        prompt, _ = build_prompt(response(), "q", None, TODAY)
+        lowered = prompt.lower()
+        self.assertIn("not evidence of fabrication", lowered)
+        self.assertIn("later than your training cutoff", lowered)
+
+    def test_no_placeholder_survives_any_argument_shape(self):
+        # A stray unformatted field would ship a literal "{gold_block}" to a
+        # judge, which is the kind of thing that scores badly and silently.
+        for gold in (None, "42"):
+            for mode in (ResponseMode.RANKED_RESULTS, ResponseMode.BOTH):
+                prompt, _ = build_prompt(
+                    response(response_mode=mode, answer="A." if mode is ResponseMode.BOTH else None),
+                    "q", gold, TODAY)
+                self.assertNotRegex(prompt, r"\{[a-z_]+\}")
+
+
 class TestBuildPrompt(unittest.TestCase):
     """What the judge sees, and the length figure published beside its score."""
 
@@ -227,7 +264,7 @@ class TestBuildPrompt(unittest.TestCase):
         prompt, chars = build_prompt(
             response(results=[SearchResult(url="https://example.invalid/a", rank=0,
                                            title="T", snippet="S")]),
-            "a query", None)
+            "a query", None, TODAY)
         self.assertLess(chars, len(prompt))
         self.assertGreater(chars, 0)
 
@@ -237,19 +274,19 @@ class TestBuildPrompt(unittest.TestCase):
             SearchResult(url=f"https://example.invalid/{i}", rank=i,
                          title="A title", snippet="A snippet " * 10)
             for i in range(10)])
-        self.assertGreater(build_prompt(long, "q", None)[1],
-                           build_prompt(short, "q", None)[1])
+        self.assertGreater(build_prompt(long, "q", None, TODAY)[1],
+                           build_prompt(short, "q", None, TODAY)[1])
 
     def test_an_empty_response_says_so_rather_than_rendering_blank(self):
         # A judge handed an empty payload with no explanation may score it as
         # though something were there. The vendor returned nothing and the
         # prompt has to say the vendor returned nothing.
-        prompt, _ = build_prompt(response(), "a query", None)
+        prompt, _ = build_prompt(response(), "a query", None, TODAY)
         self.assertIn("(the API returned nothing)", prompt)
 
     def test_a_gold_answer_is_offered_when_there_is_one(self):
-        with_gold, _ = build_prompt(response(), "q", "42")
-        without, _ = build_prompt(response(), "q", None)
+        with_gold, _ = build_prompt(response(), "q", "42", TODAY)
+        without, _ = build_prompt(response(), "q", None, TODAY)
         self.assertIn("42", with_gold)
         self.assertNotIn("Known correct answer", without)
 
@@ -257,18 +294,18 @@ class TestBuildPrompt(unittest.TestCase):
         # These deliberately have no gold answer (src/queries/full-v1.json), and
         # inventing an empty "Known correct answer:" line would tell the judge
         # the right answer is nothing.
-        prompt, _ = build_prompt(response(), "what is the latest X", None)
+        prompt, _ = build_prompt(response(), "what is the latest X", None, TODAY)
         self.assertNotIn("Known correct answer", prompt)
 
     def test_a_synthesized_answer_is_announced(self):
         prompt, _ = build_prompt(
             response(response_mode=ResponseMode.SYNTHESIZED_ANSWER, answer="Because."),
-            "why", None)
+            "why", None, TODAY)
         self.assertIn("synthesized prose answer", prompt)
 
     def test_ranked_results_are_not_announced_as_prose(self):
         prompt, _ = build_prompt(response(results=[
-            SearchResult(url="https://example.invalid/a", rank=0)]), "q", None)
+            SearchResult(url="https://example.invalid/a", rank=0)]), "q", None, TODAY)
         self.assertNotIn("synthesized prose answer", prompt)
 
     def test_ranks_are_presented_one_indexed(self):
@@ -276,7 +313,7 @@ class TestBuildPrompt(unittest.TestCase):
         # list that starts at zero, which is not how a person reads a SERP.
         prompt, _ = build_prompt(response(results=[
             SearchResult(url="https://example.invalid/a", rank=0, title="First")]),
-            "q", None)
+            "q", None, TODAY)
         self.assertIn("1. First", prompt)
 
     def test_a_very_long_snippet_is_truncated(self):
@@ -286,13 +323,13 @@ class TestBuildPrompt(unittest.TestCase):
         # remove.
         prompt, _ = build_prompt(response(results=[
             SearchResult(url="https://example.invalid/a", rank=0, snippet="x" * 5000)]),
-            "q", None)
+            "q", None, TODAY)
         self.assertNotIn("x" * 500, prompt)
         self.assertIn("x" * 400, prompt)
 
     def test_a_result_with_no_title_still_renders(self):
         prompt, _ = build_prompt(response(results=[
-            SearchResult(url="https://example.invalid/a", rank=0)]), "q", None)
+            SearchResult(url="https://example.invalid/a", rank=0)]), "q", None, TODAY)
         self.assertIn("(no title)", prompt)
 
 
