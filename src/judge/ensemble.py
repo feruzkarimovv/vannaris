@@ -57,6 +57,14 @@ JUDGES: list[tuple[str, str]] = [
 # methodology change like any other.
 JUDGE_SEED = 20260731
 
+# How much of each snippet the judge sees. Must be at least the largest amount
+# any adapter asks a vendor for, or the cap becomes a per-vendor handicap rather
+# than a normalisation: at 400 it discarded 19.8% of Exa's text and 19.6% of
+# Linkup's while never binding on Serper, You.com or Perplexity, which return
+# shorter snippets. Vendors are already normalised to the same result count
+# (adapters.TOP_K); this is the same idea applied to snippet length.
+SNIPPET_CHARS = 500
+
 RUBRIC = """You are grading how well a web-search API answered a query. You are \
 grading the SEARCH RESULTS, not writing an answer yourself.
 
@@ -153,13 +161,17 @@ def build_prompt(response: SearchResponse, query_text: str, gold: str | None,
             lines.append(f"{r.rank + 1}. {title}{date}")
             lines.append(f"   {r.url}")
             if r.snippet:
-                lines.append(f"   {r.snippet.strip()[:400]}")
+                lines.append(f"   {r.snippet.strip()[:SNIPPET_CHARS]}")
 
     payload = "\n".join(lines) if lines else "(the API returned nothing)"
 
+    # No shape hint. This used to append " plus a synthesized prose answer" for
+    # the vendors that return prose and nothing for the rest, which told the
+    # judge which vendor it was looking at for exactly one vendor in the set —
+    # a blinding hole that no amount of rubric wording compensates for. The
+    # answer is already visible in the payload under its own heading; naming it
+    # in the preamble added nothing except the tell.
     answer_note = ""
-    if response.response_mode in (ResponseMode.SYNTHESIZED_ANSWER, ResponseMode.BOTH):
-        answer_note = " plus a synthesized prose answer"
 
     gold_block = f"Known correct answer (for your reference): {gold}\n" if gold else ""
 

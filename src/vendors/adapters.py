@@ -200,7 +200,12 @@ class PerplexityAdapter(VendorAdapter):
             json={
                 "model": self.model,
                 "messages": [{"role": "user", "content": query}],
-                "max_tokens": 512,
+                # Was 512, which the harness imposed and the vendor did not:
+                # 10 of 150 responses came back with finish_reason "length", 8
+                # of them at exactly 512 tokens, and those 10 scored a median
+                # 8.44 against 8.90 for the rest. A cap this benchmark chose was
+                # costing one vendor half a point on the responses it cut.
+                "max_tokens": 2048,
             },
             timeout=self._timeout,
         )

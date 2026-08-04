@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT))
 import httpx  # noqa: E402
 
 from src.judge.ensemble import (  # noqa: E402
+    SNIPPET_CHARS,
     JUDGES,
     JudgeScore,
     _extract,
@@ -297,16 +298,37 @@ class TestBuildPrompt(unittest.TestCase):
         prompt, _ = build_prompt(response(), "what is the latest X", None, TODAY)
         self.assertNotIn("Known correct answer", prompt)
 
-    def test_a_synthesized_answer_is_announced(self):
-        prompt, _ = build_prompt(
+    def test_the_response_shape_is_not_announced_to_the_judge(self):
+        """The prompt must not tell the judge which vendor shape it has.
+
+        This asserted the opposite until 2026-08-04. The preamble named the
+        response shape — "plus a synthesized prose answer" — for the vendors
+        that return prose and said nothing for the rest, which identified one
+        vendor in a five-vendor set to a judge that is otherwise blind. The
+        prose itself is still in the payload under its own heading, so the judge
+        loses no information; it just no longer gets a tell.
+        """
+        with_prose, _ = build_prompt(
             response(response_mode=ResponseMode.SYNTHESIZED_ANSWER, answer="Because."),
             "why", None, TODAY)
-        self.assertIn("synthesized prose answer", prompt)
+        self.assertNotIn("synthesized prose answer", with_prose)
+        # ...and the answer is still shown, so nothing was hidden to achieve it.
+        self.assertIn("Because.", with_prose)
 
     def test_ranked_results_are_not_announced_as_prose(self):
         prompt, _ = build_prompt(response(results=[
             SearchResult(url="https://example.invalid/a", rank=0)]), "q", None, TODAY)
         self.assertNotIn("synthesized prose answer", prompt)
+
+    def test_the_two_shapes_get_the_same_preamble(self):
+        """The strongest form of the above: byte-identical framing."""
+        def preamble(resp):
+            return build_prompt(resp, "q", None, TODAY)[0].split("Score each dimension")[0] \
+                .split("RESULTS:")[0].split("SYNTHESIZED ANSWER:")[0]
+        a = preamble(response(results=[SearchResult(url="https://example.invalid/a", rank=0)]))
+        b = preamble(response(response_mode=ResponseMode.BOTH, answer="Because.",
+                              results=[SearchResult(url="https://example.invalid/a", rank=0)]))
+        self.assertEqual(a, b)
 
     def test_ranks_are_presented_one_indexed(self):
         # rank is 0-indexed internally. A judge told the top hit is "0." reads a
@@ -324,8 +346,31 @@ class TestBuildPrompt(unittest.TestCase):
         prompt, _ = build_prompt(response(results=[
             SearchResult(url="https://example.invalid/a", rank=0, snippet="x" * 5000)]),
             "q", None, TODAY)
-        self.assertNotIn("x" * 500, prompt)
-        self.assertIn("x" * 400, prompt)
+        self.assertNotIn("x" * (SNIPPET_CHARS + 1), prompt)
+        self.assertIn("x" * SNIPPET_CHARS, prompt)
+
+    def test_the_judge_cap_does_not_bind_below_what_adapters_request(self):
+        """The cap must normalise, not handicap.
+
+        At 400 it sat below the 500 characters two adapters ask their vendors
+        for, so it discarded about a fifth of those two vendors' text and none
+        of the others' — a per-vendor penalty wearing a normalisation's clothes.
+        """
+        import inspect
+        import re
+
+        from src.vendors import adapters
+
+        # Read the actual content requests out of the adapter source, so this
+        # keeps holding if someone raises one of them later.
+        requested = [int(m) for m in
+                     re.findall(r"maxCharacters[\"']?\s*:\s*(\d+)",
+                                inspect.getsource(adapters))]
+        self.assertTrue(requested, "expected at least one adapter content request to check")
+        self.assertGreaterEqual(
+            SNIPPET_CHARS, max(requested),
+            f"judge truncates at {SNIPPET_CHARS} but an adapter asks a vendor for "
+            f"{max(requested)} characters, so the cap penalises that vendor alone")
 
     def test_a_result_with_no_title_still_renders(self):
         prompt, _ = build_prompt(response(results=[
