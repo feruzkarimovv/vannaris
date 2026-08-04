@@ -62,8 +62,14 @@
     <div class="callout" style="margin-top:2rem;max-width:74ch">
       <span class="eyebrow">Scope</span>
       <p>
-        <strong>One run, not a trend.</strong> Ordering within a category is what holds. Individual
-        scores carry roughly
+        <strong>One run, not a trend — and the ordering resolves less than it looks like it does.</strong>
+        This block used to say that ordering within a category is what holds. It is the opposite way
+        round. First place overall survives every check applied to it; within a category, the leader
+        is indistinguishable from second place in most of them, because a category is
+        <span class="mono" data-val="latest.cells.0.n_queries" data-fmt="int"></span> questions
+        scored on a coarse scale. Vendors the run cannot tell apart now share a rank number below,
+        and every neighbouring pair is published with its paired interval so you can check any
+        single claim. Individual scores carry roughly
         <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span> points of
         judge-to-judge disagreement, and the judge families differ by
         <span class="mono" data-val="latest.judging.family_spread" data-fmt="n2"></span> points on the
@@ -434,6 +440,15 @@ window.SBPage = {
     var scores = D.latest.vendors.map(function (v) { return v.score; });
     var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
     function meterPct(v) { return 14 + 86 * (hi > lo ? (v - lo) / (hi - lo) : 1); }
+    // Rank by tier, not by position. Two vendors the run cannot separate get
+    // the same number: printing 03 and 04 over a gap of 0.18 points with a
+    // standard error of 0.15 asserts a resolution this instrument does not
+    // have. Tiers come from paired comparisons on the queries both vendors
+    // answered — see `separation` in the export.
+    var tierOf = {};
+    (D.latest.separation ? D.latest.separation.overall_tiers : []).forEach(function (t) {
+      t.vendors.forEach(function (name) { tierOf[name] = t.tier; });
+    });
     D.latest.vendors.forEach(function (v, i) {
       var tr = document.createElement("tr");
       function td(text, cls) {
@@ -443,7 +458,13 @@ window.SBPage = {
         return e;
       }
       var name = document.createElement("td");
-      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") + "</span>";
+      var tier = tierOf[v.vendor] || (i + 1);
+      var sharesTier = D.latest.vendors.filter(function (o) {
+        return (tierOf[o.vendor] || 0) === tier;
+      }).length > 1;
+      name.innerHTML = '<span class="rank"' +
+        (sharesTier ? ' title="tied — not separated from the other vendors in this tier"' : '') +
+        '>' + String(tier).padStart(2, "0") + (sharesTier ? "=" : "") + "</span>";
       var link = document.createElement("a");
       link.className = "vendor-name";
       link.href = "vendors/" + v.vendor + ".html";

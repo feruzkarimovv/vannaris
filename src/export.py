@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
 import sqlite3
 import statistics
@@ -283,6 +284,78 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
     return out
 
 
+# Two-sided 95% critical value. Normal rather than t: these comparisons run at
+# n of roughly 20-140 paired queries, where the difference from a t critical
+# value is small relative to everything else uncertain here, and a constant is
+# something a reader can check by hand against the exported per-judge scores.
+Z95 = 1.96
+
+
+def paired_difference(rows: list[dict], a: str, b: str,
+                      category: str | None = None) -> dict | None:
+    """Compare two vendors on the queries they *both* answered.
+
+    Unpaired means are the wrong comparison for this design and the error is
+    easy to make in both directions. Every vendor sees the same query set, so
+    the query is a repeated measure: the variation between questions — which is
+    most of the variation here — cancels within a pair and does not cancel
+    between two independently-computed means. It also matters that coverage
+    differs by vendor (0.88 to 1.00), so two cells' means are not even taken
+    over the same questions.
+
+    Returns the mean per-query difference a - b, its standard error, and
+    whether a 95% interval around it excludes zero.
+    """
+    by_query: dict[str, dict[str, float]] = {}
+    for r in rows:
+        if category is not None and r["category"] != category:
+            continue
+        if r["median"] is None or r["vendor"] not in (a, b):
+            continue
+        by_query.setdefault(r["query_id"], {})[r["vendor"]] = r["median"]
+
+    diffs = [q[a] - q[b] for q in by_query.values() if a in q and b in q]
+    if len(diffs) < 2:
+        return None
+    mean = statistics.mean(diffs)
+    sd = statistics.stdev(diffs)
+    se = sd / math.sqrt(len(diffs))
+    return {
+        "n_common": len(diffs),
+        "mean_diff": round(mean, 3),
+        "se": round(se, 3),
+        "t": round(mean / se, 2) if se else None,
+        "ci95": [round(mean - Z95 * se, 3), round(mean + Z95 * se, 3)] if se else None,
+        "separated": bool(se) and abs(mean) > Z95 * se,
+    }
+
+
+def build_tiers(rows: list[dict], ranking: list[str],
+                category: str | None = None) -> list[dict]:
+    """Group a ranking into tiers the data can actually tell apart.
+
+    Walks the ranking in order and keeps a vendor in the current tier unless it
+    is separated from that tier's leader by a paired 95% interval. The result is
+    what the site renders instead of 01-05 rank badges: five distinct rank
+    numbers over differences of 0.008 points assert a resolution this instrument
+    does not have.
+    """
+    tiers: list[dict] = []
+    leader: str | None = None
+    for vendor in ranking:
+        if leader is None:
+            tiers.append({"tier": 1, "vendors": [vendor]})
+            leader = vendor
+            continue
+        cmp = paired_difference(rows, leader, vendor, category)
+        if cmp and cmp["separated"]:
+            tiers.append({"tier": len(tiers) + 1, "vendors": [vendor]})
+            leader = vendor
+        else:
+            tiers[-1]["vendors"].append(vendor)
+    return tiers
+
+
 def build_cells(rows: list[dict]) -> list[dict]:
     """(vendor, category) cells, recomputed from per-judge scores."""
     grouped: dict[tuple[str, str], list[dict]] = {}
@@ -294,11 +367,20 @@ def build_cells(rows: list[dict]) -> list[dict]:
         scored = [r["median"] for r in rs if r["median"] is not None]
         coverage = len(scored) / len(rs) if rs else 0.0
         lat = [r["latency_ms"] for r in rs if r["latency_ms"] is not None]
+        # How much the queries inside a cell disagree with each other. A cell is
+        # at most 25 questions scored on a coarse integer scale, so a published
+        # difference of 0.03 between two cells is not a difference; without a
+        # dispersion figure beside it there is no way for a reader to know that,
+        # and the site was rendering three decimals and a rank badge over it.
+        sd = statistics.stdev(scored) if len(scored) > 1 else None
+        se = sd / math.sqrt(len(scored)) if sd is not None else None
         cells.append({
             "vendor": vendor,
             "category": category,
             # Suppressed rather than approximated when coverage is thin.
             "score": round(statistics.mean(scored), 3) if coverage >= MIN_CELL_COVERAGE else None,
+            "sd": round(sd, 3) if sd is not None else None,
+            "se": round(se, 3) if se is not None else None,
             "n_queries": len(rs),
             "n_scored": len(scored),
             "coverage": round(coverage, 3),
@@ -309,18 +391,36 @@ def build_cells(rows: list[dict]) -> list[dict]:
 
     # Gap to the best vendor in the same category — the number that decides
     # whether routing on quality is worth anything at all.
-    best = {}
+    best: dict[str, tuple[str, float]] = {}
     for c in cells:
         if c["score"] is not None:
-            best[c["category"]] = max(best.get(c["category"], 0.0), c["score"])
+            cur = best.get(c["category"])
+            if cur is None or c["score"] > cur[1]:
+                best[c["category"]] = (c["vendor"], c["score"])
     for c in cells:
         top = best.get(c["category"])
         if c["score"] is not None and top:
-            c["delta_from_best"] = round(top - c["score"], 3)
-            c["pct_of_best"] = round(100 * c["score"] / top, 1)
+            leader, top_score = top
+            c["delta_from_best"] = round(top_score - c["score"], 3)
+            c["pct_of_best"] = round(100 * c["score"] / top_score, 1)
+            c["best_vendor"] = leader
+            # Whether that gap is a gap. Four of six category leaders on the
+            # first run are not distinguishable from second place, and the
+            # deltas were being published to three decimals with no way to tell
+            # which ones meant anything.
+            if c["vendor"] == leader:
+                c["separated_from_best"] = None      # not a comparison with itself
+                c["paired"] = None
+            else:
+                cmp = paired_difference(rows, leader, c["vendor"], c["category"])
+                c["separated_from_best"] = cmp["separated"] if cmp else None
+                c["paired"] = cmp
         else:
             c["delta_from_best"] = None
             c["pct_of_best"] = None
+            c["best_vendor"] = None
+            c["separated_from_best"] = None
+            c["paired"] = None
     return sorted(cells, key=lambda c: (CATEGORY_ORDER.index(c["category"]), -(c["score"] or 0)))
 
 
@@ -764,6 +864,34 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "judging": build_judge_stats(rows),
         "wins": build_win_stats(rows),
         "robustness": build_robustness(rows),
+        # What the ranking can and cannot resolve, published beside it rather
+        # than left for a reader to derive from the CSV and then ask why it was
+        # not stated. `tiers` is what the table renders instead of five distinct
+        # rank badges; `adjacent` is every neighbouring pair with its paired
+        # interval, so the specific claim "this vendor beat that one" is
+        # checkable one row at a time.
+        "separation": {
+            "overall_tiers": build_tiers(rows, [t["vendor"] for t in totals]),
+            "adjacent": [
+                {
+                    "above": a["vendor"], "below": b["vendor"],
+                    **(paired_difference(rows, a["vendor"], b["vendor"]) or {}),
+                }
+                for a, b in zip(totals, totals[1:])
+            ],
+            "by_category": [
+                {
+                    "category": cat,
+                    "tiers": build_tiers(
+                        rows,
+                        [c["vendor"] for c in cells
+                         if c["category"] == cat and c["score"] is not None],
+                        cat),
+                }
+                for cat in CATEGORY_ORDER
+                if any(c["category"] == cat and c["score"] is not None for c in cells)
+            ],
+        },
         "heldout": build_heldout(all_rows, run, manifest or {}),
         "detail": detail,
         # Every run this week produced, not just the one that won selection —
@@ -1086,11 +1214,18 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     rows = [r for r in rows if not r["held_out"]]
     cells = build_cells(rows)
     p = out / f"weekly-scores-{week}.csv"
-    write_csv(p, ["week", "vendor", "category", "score", "n_queries", "n_scored",
-                  "coverage", "p50_latency_ms", "cost_usd", "delta_from_best", "pct_of_best"],
-              [[week, c["vendor"], c["category"], c["score"], c["n_queries"], c["n_scored"],
+    # sd/se and the separation flag ship with the score. A published number and
+    # the reason not to over-read it belong in the same row: a reader who has to
+    # go and derive the dispersion themselves will usually just take the mean.
+    write_csv(p, ["week", "vendor", "category", "score", "sd", "se", "n_queries", "n_scored",
+                  "coverage", "p50_latency_ms", "cost_usd", "delta_from_best", "pct_of_best",
+                  "best_vendor", "separated_from_best", "n_common_with_best"],
+              [[week, c["vendor"], c["category"], c["score"], c["sd"], c["se"],
+                c["n_queries"], c["n_scored"],
                 c["coverage"], c["p50_latency_ms"], c["cost_usd"],
-                c["delta_from_best"], c["pct_of_best"]] for c in cells])
+                c["delta_from_best"], c["pct_of_best"], c.get("best_vendor"),
+                "" if c.get("separated_from_best") is None else int(c["separated_from_best"]),
+                (c.get("paired") or {}).get("n_common", "")] for c in cells])
     written.append({"file": p.name, "rows": len(cells),
                     "what": "The published table: one row per vendor per category."})
 

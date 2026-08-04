@@ -159,6 +159,7 @@
       "d.n_judges",
       "d.schedule_note",
       "d.weeks",
+      "latest.cells.0.n_queries|int",
       "latest.completeness.complete_ensembles|int",
       "latest.completeness.pct|n1",
       "latest.completeness.responses|int",
