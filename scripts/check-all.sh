@@ -108,6 +108,61 @@ labeller_fixture() {
   node scripts/check-labeller.mjs "$dir"
 }
 
+# The withheld set is worth something only because its hash was committed before
+# it ran. That guarantee has two failure modes a local test cannot see, both of
+# which are invisible until a Monday morning:
+#
+#   - The manifest is untracked. `python -m src.heldout install` calls active()
+#     before it looks at the environment, so a CI checkout without the manifest
+#     raises SystemExit at step 4 — before the runner spends anything, and
+#     therefore producing a silent missing week rather than a loud failure. A
+#     missing *secret* is fine and degrades to running the public set alone; a
+#     missing *manifest* is not.
+#   - The workflow step and the manifest land in different commits, in the wrong
+#     order. Committing the step first is the specific mistake this catches.
+#
+# So: both tracked, or neither. And where the set's text is on this machine, it
+# must still hash to what was registered.
+heldout_committed() {
+  local ok=0
+  local step_present=0 manifest_tracked=0
+
+  grep -q "heldout install" .github/workflows/weekly.yml 2>/dev/null && step_present=1
+  git ls-files --error-unmatch src/queries/heldout/manifest.json >/dev/null 2>&1 && manifest_tracked=1
+
+  if [ "$step_present" = "1" ] && [ "$manifest_tracked" = "0" ]; then
+    echo "   weekly.yml installs the held-out set but src/queries/heldout/manifest.json is not committed"
+    echo "   → commit the manifest first; CI will fail at the install step otherwise"
+    ok=1
+  fi
+
+  if [ "$manifest_tracked" = "1" ]; then
+    git ls-files --error-unmatch src/heldout.py >/dev/null 2>&1 || {
+      echo "   the manifest is committed but src/heldout.py is not"; ok=1; }
+  fi
+
+  # Verify the registered hash against the text, where the text is present. On
+  # any machine that is not the maintainer's this is absent and that is normal.
+  $PY - <<'EOF' || ok=1
+import json, pathlib, sys
+sys.path.insert(0, ".")
+from src import heldout
+
+a = heldout.active()
+if not a:
+    print("   no held-out set is registered")
+    sys.exit(0)
+qs = heldout.load_queries(a["id"])
+if qs is None:
+    print(f"   {a['id']} registered, text not on this machine — hash not re-checked here")
+    sys.exit(0)
+heldout.verify(a["id"], qs)          # raises SystemExit on mismatch
+print(f"   {a['id']}: {len(qs)} questions, hash matches the committed manifest")
+EOF
+
+  return "$ok"
+}
+
 run "unit tests"        $PY -m unittest discover tests
 # The export is the only thing allowed to turn the database into published
 # numbers, so "does it still run clean" is a correctness gate, not a build step.
@@ -138,6 +193,8 @@ if ls calibration/*/label.html >/dev/null 2>&1; then
 else
   run "labeller UI (fixture)" labeller_fixture
 fi
+
+run "held-out set committed" heldout_committed
 
 # The claims this project is not allowed to make. Cheap to check, catastrophic
 # to get wrong, and exactly the kind of thing a loop optimising for a nicer
