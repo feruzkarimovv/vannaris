@@ -4,7 +4,7 @@ This file is written for whichever instance of Claude Code picks up this project
 
 ## What this project is, in one paragraph
 
-Vannaris is a free, public, continuously-updated benchmark of web-search/retrieval APIs used by AI agents (Tavily, Exa, Brave, Serper, You.com, Perplexity, Linkup, and others — see `docs/03-legal-and-vendor-terms.md` for exactly which ones are cleared to start with), scored weekly across a query taxonomy by an LLM-judge ensemble, published as a public dashboard with an open data export. On top of the free benchmark sits a monetized BYOK routing SDK/API that picks the best vendor per query using the benchmark's own live scores. The benchmark is the trust engine; the router is the business. Full detail in `docs/01-product-spec.md`.
+Vannaris is a free, public, continuously-updated benchmark of web-search/retrieval APIs used by AI agents (Tavily, Exa, Brave, Serper, You.com, Perplexity, Linkup, and others — see `docs/03-legal-and-vendor-terms.md` for exactly which ones are cleared to start with), scored weekly across a query taxonomy by an LLM-judge ensemble, published as a public dashboard with an open data export. The benchmark is the trust engine. **The business was restructured on 2026-08-04 and the old one-line summary — "the router is the business" — is no longer accurate.** What is sold is (1) private evaluations: the same harness run against a customer's own production queries, producing a custom routing table nobody can copy out of the free data; (2) a live score feed and hosted query classifier, sold alongside a routing client that is free and open source, because free OSS routers already exist and the client is not the defensible part; (3) BYOK routing whose recurring value is reliability — failover, latency-aware selection, caching, spend caps, query logs — with score-based routing as the differentiator on top rather than the whole product. Pricing is metered on volume with a savings-share option, not flat tiers. Full detail in `docs/01-product-spec.md`, `docs/05-architecture.md` and `docs/06-business-model.md`.
 
 ## Read this before doing anything else
 
@@ -17,6 +17,7 @@ Vannaris is a free, public, continuously-updated benchmark of web-search/retriev
 `docs/07-build-plan.md` — the week-by-week plan and the program-application timeline this project is racing against.
 `docs/08-risks-and-open-questions.md` — read this whenever something in the other docs seems too clean; it's the honest counterweight.
 `docs/09-sources.md` — every citation, organized by document, with primary/secondary sourcing flagged.
+`docs/13-conflict-of-interest.md` — **read before writing anything about how this project makes money, and before changing pricing.** It names the one pricing model that creates a real conflict, the commitments that constrain it, and the public disclosure register.
 
 ## Working unattended
 
@@ -37,6 +38,10 @@ any autonomous run. The constraints below are the reasoning behind it.
 
 **Don't claim "continuously run" before it's true.** The dashboard and any marketing copy should only describe the benchmark as continuously/weekly run once there's an actual multi-week history to back that claim. A one-time run described as continuous is exactly the kind of vendor-marketing move this project exists to be better than. This is now enforced in code rather than left to discipline: every run records whether a scheduler or a person invoked it (`runs.trigger`), `src/export.py` computes `track_record.weeks_published` and `track_record.schedule_started` from that, and every cadence sentence on the site is derived from those two values. Don't hand-write a cadence claim into a page — in either direction. Copy saying the schedule *hasn't* started is the same failure once it has.
 
+**The withheld set is withheld, not hidden, and its commitment is not yours to change.** `src/heldout.py` implements a rotating private question set whose SHA-256 is committed to git *before* it runs and whose questions are published in full when it retires. Never move an active set's question text into the repository, never edit `src/queries/heldout/manifest.json`, and never register or retire a set on your own initiative — the pre-registration is the entire reason a private score is worth anything here, and regenerating it silently converts this benchmark into the kind of thing it exists to be an alternative to. `src/export.py` fails the build if an active question's text reaches any published file. Published cells are computed from public questions only, so the table stays reproducible from the published query set.
+
+**Publish the disagreement, including the parts that undercut the numbers.** Judge-disagreement rates ship per run and per category (`build_judge_stats`), and 13% of the first run's responses split the judges by more than three points. Do not remove those figures, do not replace the rates with the mean, and do not stop breaking them out by category — `docs/13-conflict-of-interest.md` names each of those as a signal that should make a reader distrust the project.
+
 **No figure on the public site is typed by hand.** Every number, including the ones inside sentences, is filled at load from the generated export via `data-val` attributes, and `scripts/check-site.mjs` fails the build on any that doesn't resolve. If you find yourself typing a number into HTML, that's the signal it needs to come out of `src/export.py` instead — otherwise the front page and the table it summarises will eventually disagree, which is exactly the failure this project cannot afford.
 
 ## Current phase and priority order
@@ -49,7 +54,9 @@ Per `docs/07-build-plan.md`, the build order is: (1) benchmark runner + judge pi
 
 **Armed is not the same as started, and the difference is the whole claim.** The clock starts when a run the *scheduler itself* invoked lands in the data, not when the secrets were set. As of 2026-08-01 the published record is one manually-invoked week: `track_record.scheduled_weeks` is 0 and `schedule_started` is false. The first scheduled run fires Monday 2026-08-03. Nothing in this repository or on the site may describe the benchmark as weekly or continuous until that lands — and nothing needs to be edited when it does, because the site's cadence copy is derived from `runs.trigger` rather than written by hand.
 
-The highest-value thing *an assistant* can do next is still the human-labelled calibration set from `docs/04` — judge disagreement is the largest caveat on every published number and nothing audits it.
+**Benchmark hardening landed 2026-08-04.** Three things the founder asked for, all built and gated: a rotating withheld question set with a pre-registered hash and delayed disclosure (`src/heldout.py`, 30 questions registered, not yet run — it first runs with the next benchmark run); judge-disagreement rates published per run and per category on the methodology page; and a conflict-of-interest policy (`docs/13`) mirrored into a site section, published before any vendor has disputed a score.
+
+The highest-value thing *an assistant* can do next is still the human-labelled calibration set from `docs/04` — judge agreement with *humans* remains unaudited, and the disagreement rates now published measure agreement between models, which is a weaker and different quantity (`docs/12` is explicit about the difference).
 
 Before anything in `site/` goes public, read `PUBLISH-CHECKLIST.md`. It gates on the unresolved name, on an attorney reading the methodology, and on not overclaiming the cadence — all founder decisions, none of them safe to resolve by shipping.
 

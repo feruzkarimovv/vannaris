@@ -76,7 +76,7 @@
 
         <div class="cta-row">
           <a class="btn" href="results.html">See the results <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="btn btn--ghost" href="#router">Router early access</a>
+          <a class="btn btn--ghost" href="#product">Benchmark your traffic</a>
         </div>
       </div>
 
@@ -200,7 +200,7 @@
         <p style="max-width:44ch;color:var(--text-2)">
           That is not a ranking. It is a routing policy: use the cheap API by default, escalate on
           the categories where the gap actually opens. Turning that into code is what the
-          <a href="#router">router</a> is for.
+          <a href="#product">routing client</a> is for.
         </p>
       </div>
 
@@ -286,51 +286,124 @@
   </div>
 </section>
 
-<!-- The product on top of the benchmark. Stated as unbuilt, because it is. -->
-<section id="router" class="band seam">
+<!-- The prior work, named and linked. The differentiator is a specific
+     difference from comparisons that exist, not a claim that none do — that
+     claim is false and a reader in this space finds it out in a minute. -->
+<section id="prior" class="band seam">
   <div class="shell">
-    <div class="grid-2" style="align-items:center">
-      <div>
-        <div class="eyebrow-row">
-          <span class="eyebrow eyebrow--accent">The router</span>
-          <span class="tag tag--accent">In development</span>
-        </div>
-        <h2 style="margin-top:0.9rem">The benchmark measures it. The router acts on it.</h2>
-        <p class="lead" style="margin-top:1.1rem">
-          A drop-in routing SDK that picks the search API per query from these live scores, so the
-          policy above becomes one call instead of a spreadsheet you maintain by hand.
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Prior work</span>
+      <h2>Other people have compared these APIs. Here is what is different.</h2>
+      <p>
+        At least five parties publish head-to-head numbers for these vendors. Every one of them
+        either wins its own benchmark or cannot be recomputed from what it published.
+      </p>
+    </div>
+    <div class="grid-2">
+      <div class="prose">
+        <p>
+          The most substantial is
+          <a href="https://github.com/tavily-ai/tavily-search-evals" rel="nofollow noopener">tavily-ai/tavily-search-evals</a>
+          — a real, open, MIT-licensed evaluation harness scoring Tavily against Perplexity,
+          Serper, Brave and Exa. It is decent work. It is also run by the vendor that wins it, run
+          once rather than on a schedule, judged without a disclosed ensemble, and shipped without
+          the per-judge scores that would let anyone re-derive the ranking. Seltz, Search Router,
+          Quercle and fastCRW each publish a comparison in which they place first.
         </p>
-        <p style="margin-top:1rem;color:var(--text-3);max-width:46ch">
-          Early access opens first to teams already routing search traffic in production.
+        <p>
+          None of that makes them dishonest. It makes them unfalsifiable, which is a different
+          problem and the one this exists to fix.
         </p>
-        <div class="cta-row" style="margin-top:1.6rem">
-          <a class="btn btn--accent" href="#contact">Request early access <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="link-arrow" href="data.html">Take the data <span class="arrow" aria-hidden="true">→</span></a>
-        </div>
       </div>
-
       <ul class="contact__list" style="gap:1.05rem">
         <li>
           <span class="tick-mark" aria-hidden="true">✓</span>
-          <span><strong>Bring your own keys.</strong> The router orchestrates calls with your own
-          vendor credentials. It never resells, proxies or marks up vendor access.</span>
+          <span><strong>Multi-judge, with the disagreement published.</strong>
+          <span data-val="d.n_judges"></span> models from
+          <span data-val="d.n_judge_families"></span> labs score every response, and the share that
+          split them by more than three points —
+          <span class="mono" data-val="latest.judging.disagreement_rates.over_3pt" data-fmt="share1"></span>
+          — is <a href="methodology.html#disagreement">on the methodology page</a>, per category.</span>
         </li>
         <li>
           <span class="tick-mark" aria-hidden="true">✓</span>
-          <span><strong>Routed on published numbers.</strong> The same per-category scores on this
-          page, not a private model you cannot inspect.</span>
+          <span><strong>Open data, not just an open method.</strong> Every individual judge score,
+          latency and cost <a href="data.html">exports under CC BY 4.0</a>. Recompute the table and
+          publish a different one if the numbers say so.</span>
         </li>
         <li>
           <span class="tick-mark" aria-hidden="true">✓</span>
-          <span><strong>Cost you can predict.</strong> Every vendor's cost per query and p50 latency
-          is already measured and exported, so a policy change has a price attached before you ship it.</span>
+          <span><strong>Questions nobody can tune against.</strong> A
+          <a href="methodology.html#heldout">withheld set</a> runs alongside the public one, its
+          hash committed before it runs and its questions published when it retires.</span>
         </li>
         <li>
           <span class="tick-mark" aria-hidden="true">✓</span>
-          <span><strong>Schema-compatible.</strong> Built against the emerging <code>/v1/search</code>
-          shape so it drops into an existing stack rather than replacing one.</span>
+          <span><strong>No vendor pays anything.</strong> The conflicts that do exist are
+          <a href="methodology.html#conflicts">written down</a> rather than denied.</span>
         </li>
       </ul>
+    </div>
+  </div>
+</section>
+
+<!-- What is sold, stated as unbuilt where it is unbuilt. The order here is the
+     order in docs/01: the eval is the product, the client is the distribution. -->
+<section id="product" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <div class="eyebrow-row" style="justify-content:center">
+        <span class="eyebrow eyebrow--accent">What this funds itself with</span>
+        <span class="tag tag--accent">In development</span>
+      </div>
+      <h2 style="margin-top:0.9rem">The benchmark is free. The eval on your own traffic is not.</h2>
+      <p>
+        These <span data-val="latest.n_queries" data-fmt="int"></span> questions are not your
+        questions. The ranking that decides what you should actually call is the one your own
+        production queries produce.
+      </p>
+    </div>
+
+    <ol class="steps" data-reveal="rows">
+      <li>
+        <h3>Your queries, this harness</h3>
+        <p>
+          Send a sample of your real traffic. It runs against every vendor here under the same
+          rubric and the same three-judge ensemble, and comes back as a scored table on your
+          queries, a routing policy, and what that policy would cost per month against what you
+          spend now. Nothing about your traffic is published, ever.
+        </p>
+      </li>
+      <li>
+        <h3>The client is free and open source</h3>
+        <p>
+          Bring your own vendor keys. Failover when a vendor rate-limits or goes down, per-vendor
+          timeouts, spend caps, caching with freshness-aware TTLs, and a query log — the layer you
+          would otherwise write by hand. It never resells, proxies or marks up vendor access, and
+          it works offline against a downloaded snapshot of these scores.
+        </p>
+      </li>
+      <li>
+        <h3>The live feed is the paid part</h3>
+        <p>
+          Fresh scores every cycle, the query classifier, and the vendor-reliability series behind
+          them. Free routers already exist; the client is not the thing worth charging for, and
+          keeping it current is.
+        </p>
+      </li>
+      <li>
+        <h3>Priced so it cannot bend the benchmark</h3>
+        <p>
+          Metered per routing decision, which pays the same whichever vendor is chosen. Where
+          pricing could create an incentive to favour a vendor, it is
+          <a href="methodology.html#conflicts">disclosed</a> rather than argued away.
+        </p>
+      </li>
+    </ol>
+
+    <div class="cta-row" style="margin-top:2rem;justify-content:center">
+      <a class="btn btn--accent" href="#contact">Benchmark your traffic <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="link-arrow" href="data.html">Take the data <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
@@ -428,7 +501,7 @@
       </div>
 
       <ul class="contact__list">
-        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Router early access</strong> — the query mix you route, and what a good answer looks like for it.</span></li>
+        <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>An eval on your own traffic</strong> — the query mix you actually route, and what a good answer looks like for it.</span></li>
         <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Vendors</strong> — corrections, configuration issues, or written consent to join the set.</span></li>
         <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Researchers</strong> — the full export is <a href="data.html">already downloadable</a>; ask for a cut that is not in it.</span></li>
         <li><span class="tick-mark" aria-hidden="true">✓</span><span><strong>Corrections</strong> — a methodology error that moves a published number gets a <a href="methodology.html#changelog">changelog entry</a>, not a silent edit.</span></li>

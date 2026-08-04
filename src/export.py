@@ -47,7 +47,7 @@ import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import storage
+from . import heldout, storage
 from .judge.ensemble import JUDGES, RUBRIC
 from .vendors.adapters import REGISTRY, TOP_K
 
@@ -146,6 +146,11 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
     """
     runs = []
     for r in conn.execute("SELECT * FROM runs ORDER BY started_at"):
+        # Public questions only. Every figure below decides either what gets
+        # published or whether a run is fit to publish, and both have to be
+        # true of the questions a reader can actually see — a run that covered
+        # every category only by counting withheld questions is not a run whose
+        # table anyone can reproduce. Held-out coverage is counted separately.
         stats = conn.execute(
             """
             SELECT COUNT(*) AS responses,
@@ -154,8 +159,9 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
                    COUNT(DISTINCT vendor) AS vendors
             FROM (SELECT rr.id, rr.query_id, rr.vendor, COUNT(js.id) AS n
                   FROM raw_responses rr
+                  JOIN queries q ON q.id = rr.query_id
                   LEFT JOIN judge_scores js ON js.response_id = rr.id
-                  WHERE rr.run_id = ?
+                  WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 0
                   GROUP BY rr.id)
             """,
             (len(JUDGES), r["id"]),
@@ -164,10 +170,19 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
             """
             SELECT q.category, COUNT(DISTINCT rr.query_id) AS n
             FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
-            WHERE rr.run_id = ? GROUP BY q.category
+            WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 0
+            GROUP BY q.category
             """,
             (r["id"],),
         ).fetchall()
+        held = conn.execute(
+            """
+            SELECT COUNT(DISTINCT rr.query_id) AS queries, COUNT(*) AS responses
+            FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
+            WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 1
+            """,
+            (r["id"],),
+        ).fetchone()
         responses, complete = stats["responses"] or 0, stats["complete"] or 0
         runs.append({
             "id": r["id"],
@@ -178,11 +193,15 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
             # rather than assumed, since this field is what the site's cadence
             # claim rests on.
             "trigger": r["trigger"] if "trigger" in r.keys() else None,
+            # Which withheld set ran with it, if any. Same treatment: NULL means
+            # a run from before the set existed, not a run that skipped it.
+            "heldout_set": r["heldout_set"] if "heldout_set" in r.keys() else None,
             "responses": responses,
             "complete": complete,
             "completeness": round(complete / responses, 3) if responses else 0.0,
             "queries": stats["queries"] or 0,
             "vendors": stats["vendors"] or 0,
+            "heldout_queries": held["queries"] or 0,
             "min_per_category": min([c["n"] for c in per_cat], default=0),
             "categories": len(per_cat),
         })
@@ -216,7 +235,8 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
     rows = conn.execute(
         """
         SELECT rr.id, rr.query_id, rr.vendor, rr.response_mode, rr.latency_ms,
-               rr.cost_usd, rr.error, rr.results, q.category
+               rr.cost_usd, rr.error, rr.results, q.category,
+               COALESCE(q.held_out, 0) AS held_out
         FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
         WHERE rr.run_id = ?
         """,
@@ -249,6 +269,7 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
             "response_id": r["id"],
             "query_id": r["query_id"],
             "category": r["category"],
+            "held_out": bool(r["held_out"]),
             "vendor": r["vendor"],
             "response_mode": r["response_mode"],
             "n_results": n_results,
@@ -353,17 +374,27 @@ def build_judge_stats(rows: list[dict]) -> dict:
     families: dict[str, list[float]] = {}
     models: dict[str, str] = {}
     spreads: list[float] = []
+    by_cat: dict[str, list[float]] = {}
+    pairs: dict[tuple[str, str], list[float]] = {}
     expected = len(rows)
 
     for r in rows:
         vals = []
+        scored: dict[str, float] = {}
         for fam, s in r["judges"].items():
             if s["overall"] is not None:
                 families.setdefault(fam, []).append(s["overall"])
                 models[fam] = s["judge_model"]
                 vals.append(s["overall"])
+                scored[fam] = s["overall"]
         if len(vals) > 1:
-            spreads.append(max(vals) - min(vals))
+            spread = max(vals) - min(vals)
+            spreads.append(spread)
+            by_cat.setdefault(r["category"], []).append(spread)
+            fams = sorted(scored)
+            for i, a in enumerate(fams):
+                for b in fams[i + 1:]:
+                    pairs.setdefault((a, b), []).append(abs(scored[a] - scored[b]))
 
     judges = []
     for fam, model in JUDGES:
@@ -383,14 +414,136 @@ def build_judge_stats(rows: list[dict]) -> dict:
         "mean_disagreement": round(statistics.mean(spreads), 3) if spreads else None,
         "responses_over_3pts": sum(1 for s in spreads if s > 3),
         "n_compared": len(spreads),
+        # The same disagreement expressed as rates rather than as a mean, and
+        # published rather than kept for the methodology page's footnotes.
+        #
+        # A mean of 1.2 points is easy to read as "the judges broadly agree",
+        # which is a claim about the distribution that a mean cannot support:
+        # it is equally consistent with every response splitting the judges by
+        # a little and with most agreeing exactly while a tenth split by five.
+        # Those are different benchmarks. The share of responses over each
+        # threshold says which one this is, and it is the number a vendor
+        # disputing a rank will go looking for — better that they find it here
+        # than derive it from the export and ask why it was not stated.
+        "disagreement_rates": {
+            "over_1pt": _rate(spreads, 1),
+            "over_2pt": _rate(spreads, 2),
+            "over_3pt": _rate(spreads, 3),
+            "unanimous": round(sum(1 for s in spreads if s == 0) / len(spreads), 4)
+                         if spreads else None,
+            "median_spread": round(statistics.median(spreads), 3) if spreads else None,
+            "p90_spread": round(_pct(spreads, 90), 3) if spreads else None,
+        },
+        # Where the judges disagree, not just how often. Disagreement is not
+        # uniform across the taxonomy — it concentrates in the categories where
+        # "good" is least well defined — and a per-category rate is what lets a
+        # reader discount the categories the ensemble is least sure about
+        # instead of discounting the whole table.
+        "disagreement_by_category": [
+            {"category": c, "mean": round(statistics.mean(v), 3),
+             "over_2pt": _rate(v, 2), "n": len(v)}
+            for c, v in sorted(by_cat.items(),
+                               key=lambda kv: CATEGORY_ORDER.index(kv[0])
+                               if kv[0] in CATEGORY_ORDER else 99)
+        ],
+        # Which two families disagree, in points of mean absolute difference on
+        # responses all three scored. A single "the judges disagree by 1.2"
+        # hides whether one family is the outlier or all three are scattered.
+        "family_pairs": [
+            {"pair": f"{a}/{b}", "mean_abs_diff": round(statistics.mean(d), 3), "n": len(d)}
+            for (a, b), d in sorted(pairs.items())
+        ],
+    }
+
+
+def _rate(vals: list[float], threshold: float) -> float | None:
+    return round(sum(1 for v in vals if v > threshold) / len(vals), 4) if vals else None
+
+
+def _pct(vals: list[float], p: float) -> float:
+    s = sorted(vals)
+    if not s:
+        return 0.0
+    i = min(len(s) - 1, int(round((p / 100) * (len(s) - 1))))
+    return s[i]
+
+
+def build_heldout(rows: list[dict], run: dict, manifest: dict) -> dict | None:
+    """Public score against withheld score, per vendor — the overfitting check.
+
+    `docs/04` and `src/heldout.py` set out why the set exists. This is where it
+    turns into a published number, and the number is deliberately a *gap*
+    rather than a held-out leaderboard: the held-out set is a fraction of the
+    size of the public one, so its absolute scores are too noisy to rank
+    vendors by, while the within-vendor difference between two sets it saw in
+    the same run, on the same day, through the same judges, is exactly the
+    comparison the noise cancels out of.
+
+    Category mix is controlled explicitly. Both sides are averaged per category
+    first and then across categories, so a held-out set that happens to be
+    harder in one bucket cannot masquerade as a vendor-specific gap.
+    """
+    held = [r for r in rows if r["held_out"]]
+    if not held:
+        return None
+    public = [r for r in rows if not r["held_out"]]
+
+    def by_category(rs: list[dict]) -> dict[str, float]:
+        cats: dict[str, list[float]] = {}
+        for r in rs:
+            if r["median"] is not None:
+                cats.setdefault(r["category"], []).append(r["median"])
+        return {c: statistics.mean(v) for c, v in cats.items()}
+
+    vendors = []
+    for v in sorted({r["vendor"] for r in rows}):
+        pub = by_category([r for r in public if r["vendor"] == v])
+        priv = by_category([r for r in held if r["vendor"] == v])
+        shared = sorted(set(pub) & set(priv))
+        n_scored = sum(1 for r in held if r["vendor"] == v and r["median"] is not None)
+        p = statistics.mean(pub[c] for c in shared) if shared else None
+        h = statistics.mean(priv[c] for c in shared) if shared else None
+        vendors.append({
+            "vendor": v,
+            "label": VENDOR_META.get(v, {}).get("label", v),
+            "public": round(p, 3) if p is not None else None,
+            "heldout": round(h, 3) if h is not None else None,
+            "gap": round(p - h, 3) if p is not None and h is not None else None,
+            "n_heldout_scored": n_scored,
+            "n_categories": len(shared),
+        })
+
+    gaps = [v["gap"] for v in vendors if v["gap"] is not None]
+    e = next((s for s in manifest.get("sets", []) if s["id"] == run.get("heldout_set")), None)
+    return {
+        "set": e and {
+            **{k: e.get(k) for k in ("id", "sha256", "n_queries", "categories",
+                                     "committed_at", "retired_week")},
+            # Derived, not stored: a set is published exactly when its questions
+            # have been written into the repository, and that is the file entry.
+            "published": bool(e.get("file")),
+        },
+        "n_responses": len(held),
+        "n_scored": sum(1 for r in held if r["median"] is not None),
+        "vendors": sorted(vendors, key=lambda v: -(v["gap"] if v["gap"] is not None else -99)),
+        "max_gap": round(max(gaps), 3) if gaps else None,
+        "mean_gap": round(statistics.mean(gaps), 3) if gaps else None,
     }
 
 
 # ------------------------------------------------------------------- assembly
 
 def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
-               week_runs: list[dict] | None = None) -> dict:
-    rows = load_run(conn, run["id"])
+               week_runs: list[dict] | None = None,
+               manifest: dict | None = None) -> dict:
+    all_rows = load_run(conn, run["id"])
+    # Every published figure below is computed from the public questions alone.
+    # This one line is the whole publication policy for the withheld set: a
+    # reader holding queries.csv and the judge scores must be able to rebuild
+    # the table exactly, and they cannot do that if a question they cannot see
+    # is inside it. The withheld responses are published too — as scores, in
+    # the CSVs, and as the public-versus-held-out gap — just never mixed in.
+    rows = [r for r in all_rows if not r["held_out"]]
     cells = build_cells(rows)
     totals = build_vendor_totals(rows, cells)
     complete = sum(1 for r in rows if r["complete"])
@@ -419,7 +572,11 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "ran_at": run["started_at"],
         "trigger": run.get("trigger"),
         "query_set_hash": run["query_set_hash"],
+        # Public questions. The site says "N queries go to M vendors" next to a
+        # link to the query set, so N has to be the number of questions that
+        # link actually contains.
         "n_queries": run["queries"],
+        "n_heldout_queries": run.get("heldout_queries", 0),
         "n_vendors": run["vendors"],
         "n_judges": len(JUDGES),
         "n_judgements": complete * len(JUDGES),
@@ -429,10 +586,14 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
             "pct": round(100 * complete / len(rows), 1) if rows else 0.0,
             "vendor_errors": sum(1 for r in rows if r["error"]),
         },
-        "vendor_spend_usd": round(sum(r["cost_usd"] or 0 for r in rows), 4),
+        # The whole run's spend, public and withheld — this is what the week
+        # cost to produce, and understating it by the third of the queries
+        # nobody can see would be a strange place to start being imprecise.
+        "vendor_spend_usd": round(sum(r["cost_usd"] or 0 for r in all_rows), 4),
         "cells": cells,
         "vendors": totals,
         "judging": build_judge_stats(rows),
+        "heldout": build_heldout(all_rows, run, manifest or {}),
         "detail": detail,
         # Every run this week produced, not just the one that won selection —
         # the claim "chosen, not inherited" is only checkable if the rejected
@@ -469,9 +630,11 @@ def load_history(data_dir: Path) -> dict[str, dict]:
 
 
 def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
-                 query_set: dict, history: dict[str, dict] | None = None) -> dict:
+                 query_set: dict, history: dict[str, dict] | None = None,
+                 manifest: dict | None = None) -> dict:
     runs = candidate_runs(conn)
     history = history or {}
+    manifest = manifest if manifest is not None else heldout.load_manifest()
 
     # The database wins for any week it holds — it is the evidence layer, and a
     # re-export of a week present in both should reflect the scores, not the
@@ -490,7 +653,7 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
 
         run = canonical_run(runs, w)
         if run:
-            week_payloads[w] = build_week(conn, run, queries, merged)
+            week_payloads[w] = build_week(conn, run, queries, merged, manifest)
             from_db.append(w)
         elif w in week_payloads:
             # A run against a week whose numbers came from an earlier export —
@@ -516,6 +679,11 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
     scheduled_weeks = [w for w in published
                        if week_payloads[w].get("trigger") == "scheduled"]
     scheduled = len(scheduled_weeks)
+
+    # Weeks that actually ran a withheld set, as opposed to weeks that existed
+    # after one was registered. The overfitting gap means nothing until several
+    # of these have accumulated, so the count is what the copy reads from.
+    heldout_weeks = [w for w in published if week_payloads[w].get("heldout")]
 
     vendors = []
     for vid in REGISTRY:
@@ -556,6 +724,21 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
             for c in CATEGORY_ORDER if c in CATEGORY_META
         ],
         "judges": [{"family": f, "model": m} for f, m in JUDGES],
+        # The withheld-set register: every set's hash, size and shape, when it
+        # was committed, and whether its questions have been published yet.
+        # Published in full here rather than described on a page, because the
+        # commitment is only worth as much as a reader's ability to check it
+        # against the repository at the date it was made.
+        #
+        # `interpretable` is the guard on over-reading a single week. One run's
+        # gap between two question sets is not evidence of anything, and the
+        # copy is derived from this flag rather than trusting whoever writes a
+        # page to keep remembering that.
+        "heldout": {
+            **heldout.public_view(manifest),
+            "weeks_with_set": heldout_weeks,
+            "interpretable": len(heldout_weeks) >= 3,
+        },
         # Published so the methodology page shows the rubric and thresholds the
         # code actually used, rather than a prose description of them that can
         # drift. The placeholders are left in — the page is documenting the
@@ -614,6 +797,55 @@ def _assert_no_vendor_content(obj, path: str = "$") -> None:
             _assert_no_vendor_content(v, f"{path}[{i}]")
 
 
+def assert_heldout_withheld(site_root: Path, manifest: dict | None = None) -> int:
+    """Fail the build if a live held-out question appears in anything published.
+
+    The commitment in `src/heldout.py` is a promise about what is *not* on the
+    site, and the only promises worth making in this repository are the ones
+    something checks. Every published file is read back and searched for the
+    literal text of every question in the active set — bundle, per-week JSON,
+    CSVs and the pages themselves — because the ways a withheld question could
+    leak are not all obvious in advance: a debug field, a per-query table that
+    starts carrying text, a copy-pasted example in a page.
+
+    Returns the number of questions checked. Zero means the active set's text
+    is not on this machine, which is the ordinary case in CI on a fork and for
+    anyone who is not the maintainer — it cannot leak what it does not hold.
+    A set that has retired is deliberately not checked: publishing it is the
+    point by then, and it is published from this same module.
+    """
+    a = heldout.active(manifest)
+    if not a:
+        return 0
+    queries = heldout.load_queries(a["id"], manifest=manifest)
+    if queries is None:
+        return 0
+    heldout.verify(a["id"], queries, manifest)
+
+    texts = {q["text"] for q in queries} | {
+        q["gold_answer"] for q in queries if q.get("gold_answer")
+    }
+    leaked: list[str] = []
+    for p in sorted(site_root.rglob("*")):
+        if not p.is_file() or p.suffix not in (".json", ".js", ".csv", ".html"):
+            continue
+        # queries-heldout-retired.csv legitimately carries retired sets. It
+        # never carries the active one — but if it ever did, this is the check
+        # that has to notice, so it is read like every other file.
+        body = p.read_text(errors="ignore")
+        for t in texts:
+            if t and t in body:
+                leaked.append(f"{p.relative_to(site_root)}: {t[:60]}...")
+    if leaked:
+        raise AssertionError(
+            f"held-out set {a['id']} leaked into the published site:\n  "
+            + "\n  ".join(leaked[:10])
+            + "\nThe set is withheld until it retires; publishing its questions "
+              "early makes every gap measured against it meaningless."
+        )
+    return len(queries)
+
+
 def write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n")
@@ -628,7 +860,7 @@ def write_csv(path: Path, header: list[str], rows: list[list]) -> None:
 
 
 def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
-                queries: dict[str, dict]) -> list[dict]:
+                queries: dict[str, dict], manifest: dict | None = None) -> list[dict]:
     """The three published CSVs, plus the query set itself.
 
     Column choice is the publication policy made concrete: every scoring input
@@ -637,9 +869,15 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     """
     written = []
 
+    # Held-out rows are in both of the next two files, flagged rather than
+    # removed. What the withheld set withholds is the question text, not the
+    # measurement: a reader can recompute the public table (held_out = 0), the
+    # overfitting gap (both), and check that neither was cherry-picked. Their
+    # text arrives when the set retires, in the file written further down.
     scores = conn.execute(
         """
-        SELECT rr.query_id, q.category, rr.vendor, js.judge_family, js.judge_model,
+        SELECT rr.query_id, q.category, COALESCE(q.held_out, 0), rr.vendor,
+               js.judge_family, js.judge_model,
                js.relevance, js.freshness, js.citation_quality, js.overall,
                js.scored_chars, js.prompt_tokens, js.output_tokens
         FROM judge_scores js
@@ -651,23 +889,30 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
         (run_id,),
     ).fetchall()
     p = out / f"judge-scores-{week}.csv"
-    write_csv(p, ["week", "query_id", "category", "vendor", "judge_family", "judge_model",
+    write_csv(p, ["week", "query_id", "category", "held_out", "vendor",
+                  "judge_family", "judge_model",
                   "relevance", "freshness", "citation_quality", "overall",
                   "scored_chars", "prompt_tokens", "output_tokens"],
               [[week, *list(r)] for r in scores])
     written.append({"file": p.name, "rows": len(scores),
-                    "what": "Every individual judge score. One row per (query, vendor, judge)."})
+                    "what": "Every individual judge score. One row per (query, vendor, judge). "
+                            "held_out=1 marks a withheld question, scored but not yet named."})
 
     rows = load_run(conn, run_id)
     p = out / f"responses-{week}.csv"
-    write_csv(p, ["week", "query_id", "category", "vendor", "response_mode", "n_results",
-                  "latency_ms", "cost_usd", "complete_ensemble", "median_overall", "error"],
-              [[week, r["query_id"], r["category"], r["vendor"], r["response_mode"],
-                r["n_results"], r["latency_ms"], r["cost_usd"],
+    write_csv(p, ["week", "query_id", "category", "held_out", "vendor", "response_mode",
+                  "n_results", "latency_ms", "cost_usd", "complete_ensemble",
+                  "median_overall", "error"],
+              [[week, r["query_id"], r["category"], int(r["held_out"]), r["vendor"],
+                r["response_mode"], r["n_results"], r["latency_ms"], r["cost_usd"],
                 int(r["complete"]), r["median"], r["error"] or ""] for r in rows])
     written.append({"file": p.name, "rows": len(rows),
                     "what": "One row per API call: timing, cost, result count, ensemble median. No retrieved content."})
 
+    # The published table is the public questions alone, so the cells file has
+    # to be built from those alone — this is the same split build_week makes,
+    # and the two would be a confusing pair of numbers if they disagreed.
+    rows = [r for r in rows if not r["held_out"]]
     cells = build_cells(rows)
     p = out / f"weekly-scores-{week}.csv"
     write_csv(p, ["week", "vendor", "category", "score", "n_queries", "n_scored",
@@ -684,7 +929,27 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
               [[q["id"], q["category"], q.get("source", ""), q.get("rotates", 0),
                 q["text"], q.get("gold_answer") or ""] for q in qs])
     written.append({"file": p.name, "rows": len(qs),
-                    "what": "The full query set. Authored in-house, so it ships with no dataset-licence encumbrance."})
+                    "what": "The full public query set. Authored in-house, so it ships with no dataset-licence encumbrance."})
+
+    # The disclosure half of the held-out design. A set is withheld while it
+    # runs and published in full when it rotates out, so this file grows by one
+    # set every rotation and never shrinks. Written even when empty: a reader
+    # should be able to see that the promise exists and has not come due yet,
+    # rather than wonder whether the file is missing or the promise is.
+    retired = []
+    for s in (manifest or heldout.load_manifest()).get("sets", []):
+        if not s.get("retired_week"):
+            continue
+        for q in heldout.load_queries(s["id"], manifest=manifest) or []:
+            retired.append([s["id"], s["retired_week"], s["sha256"], q["id"],
+                            q["category"], q.get("source", ""),
+                            q["text"], q.get("gold_answer") or ""])
+    p = out / "queries-heldout-retired.csv"
+    write_csv(p, ["set_id", "retired_week", "set_sha256", "id", "category",
+                  "source", "text", "gold_answer"], retired)
+    written.append({"file": p.name, "rows": len(retired),
+                    "what": "Held-out questions, published in full once their set retires. "
+                            "Each set's hash was committed before it ever ran."})
 
     return written
 
@@ -729,6 +994,10 @@ def main() -> None:
     ap.add_argument("--db", default=str(DB_PATH))
     ap.add_argument("--out", default=str(ROOT / "site"), help="site root")
     ap.add_argument("--queries", default=str(ROOT / "src" / "queries" / "full-v1.json"))
+    # The held-out register to publish and to check against. Overridable for the
+    # same reason --queries is: the generated fixture has to be able to exercise
+    # this path without borrowing the real repository's commitments.
+    ap.add_argument("--heldout-manifest", default=None)
     ap.add_argument("--rebuild-weekly", action="store_true",
                     help="also rewrite weekly_scores from each week's canonical run")
     ap.add_argument("--no-history", action="store_true",
@@ -737,6 +1006,7 @@ def main() -> None:
 
     query_set = json.loads(Path(args.queries).read_text())
     queries = {q["id"]: q for q in query_set["queries"]}
+    manifest = heldout.load_manifest(args.heldout_manifest)
 
     out = Path(args.out)
     data_dir, export_dir = out / "data", out / "export"
@@ -747,7 +1017,7 @@ def main() -> None:
     history = {} if args.no_history else load_history(data_dir)
 
     conn = connect(Path(args.db))
-    bundle = build_bundle(conn, queries, query_set, history)
+    bundle = build_bundle(conn, queries, query_set, history, manifest)
     _assert_no_vendor_content(bundle)
 
     if not bundle["weeks"]:
@@ -764,7 +1034,8 @@ def main() -> None:
     latest = bundle["latest"]
     export_week, export_run = latest["week"], latest["run_id"]
     if latest["week"] in bundle["_weeks_from_db"]:
-        files = export_csvs(conn, export_dir, latest["week"], latest["run_id"], queries)
+        files = export_csvs(conn, export_dir, latest["week"], latest["run_id"],
+                            queries, manifest)
     else:
         # The newest published week came from history, not from this database —
         # so its CSVs were written by the export that produced it and are still
@@ -844,6 +1115,12 @@ def main() -> None:
         "files": files,
     })
     conn.close()
+
+    # Last, and against the files as written rather than against the structures
+    # that produced them — the promise is about what is on disk.
+    checked = assert_heldout_withheld(out, manifest)
+    if checked:
+        print(f"held-out: {checked} withheld question(s) confirmed absent from the export")
 
     print(f"week {latest['week']}  run {latest['run_id'][:8]}  "
           f"{latest['completeness']['complete_ensembles']}/{latest['completeness']['responses']} "

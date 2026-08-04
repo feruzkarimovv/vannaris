@@ -1,0 +1,22 @@
+{
+  "rotate_after_weeks": 4,
+  "sets": [
+    {
+      "id": "ho-2026-08",
+      "sha256": "9f77dad6f65736801ee4db64e1fc05a1477059caa2685a3c39e0c38a200d47f5",
+      "n_queries": 30,
+      "categories": {
+        "breaking_news": 5,
+        "code_technical": 5,
+        "general_facts": 5,
+        "local_shopping": 5,
+        "long_tail": 5,
+        "multi_hop": 5
+      },
+      "committed_at": "2026-08-04",
+      "first_week": null,
+      "retired_week": null,
+      "file": null
+    }
+  ]
+}

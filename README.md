@@ -234,6 +234,14 @@ derived scores rather than vendor content reduces copyright and terms-of-service
 same time, and `src/export.py` fails the build if a field carrying vendor content ever reaches the
 export.
 
+Published **late** rather than never: the withheld question set. A rotating private set runs
+alongside the public one so a vendor cannot hill-climb against a published list of 150 questions
+(`src/heldout.py`). Its SHA-256 goes into `src/queries/heldout/manifest.json` before it ever runs,
+its scores are exported like any other — flagged `held_out=1`, so the public table stays
+recomputable from the public questions alone — and its questions are published in full when it
+retires, in `queries-heldout-retired.csv`. The export fails the build if a live question's text
+reaches any published file. As of 2026-08-04 the first set is registered and has not yet run.
+
 ## Methodology, in short
 
 Full version on the site's methodology page; the reasoning behind it is in `docs/04`.
@@ -248,6 +256,12 @@ Full version on the site's methodology page; the reasoning behind it is in `docs
 - **Pinned judge models.** A silent provider-side model update would change scores without anything
   changing about the vendors. Pins are recorded on every score row and changes go in a changelog.
 - **One canonical run per week**, chosen by coverage rather than by being most recent.
+- **Disagreement published as rates, not as a mean.** The share of responses where the judges split
+  by more than 1, 2 and 3 points, broken out by category, ships in every export. On `2026-W31`,
+  13.1% of responses split the three judges by more than three points on a 0–10 scale, and it
+  concentrates hard: breaking news averages a 2.99-point spread against 0.65 for general facts.
+- **A withheld set alongside the public one**, hash-committed before it runs and published on
+  retirement. See the Data section above.
 
 ## Vendor scope
 

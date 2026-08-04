@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS runs (
     -- The site's cadence copy is derived from it, so no page can assert a
     -- schedule that never fired.
     trigger         TEXT NOT NULL DEFAULT 'manual',
+    -- Which withheld set ran alongside the public one, by id (src/heldout.py).
+    -- The set's hash is pre-registered in git before it runs, so this column
+    -- makes "that run included that set" checkable rather than asserted.
+    heldout_set     TEXT,
     notes           TEXT
 );
 
@@ -39,7 +43,13 @@ CREATE TABLE IF NOT EXISTS queries (
     gold_urls   TEXT,                       -- JSON array
     -- Freshness queries rotate every cycle so vendors cannot overfit to a
     -- static set of "breaking news" questions (docs/04, refresh cadence).
-    rotates     INTEGER NOT NULL DEFAULT 0
+    rotates     INTEGER NOT NULL DEFAULT 0,
+    -- 1 for a question from the withheld set (src/heldout.py). Published cells
+    -- are computed from held_out = 0 only, so the public table remains
+    -- reproducible from the published questions; the held-out rows are
+    -- published as scores with their text withheld until the set retires, and
+    -- reported as a public-versus-held-out gap per vendor.
+    held_out    INTEGER NOT NULL DEFAULT 0
 );
 
 -- ---------------------------------------------------------------- raw layer

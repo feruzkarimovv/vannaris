@@ -79,7 +79,8 @@ class TestFixtureGeneration(unittest.TestCase):
         self.assertTrue(all(w.startswith("2099-") for w in weeks), weeks)
 
         for (text,) in conn.execute("SELECT text FROM queries"):
-            self.assertTrue(text.startswith("FIXTURE QUERY"), text)
+            self.assertTrue(
+                text.startswith(("FIXTURE QUERY", "FIXTURE HELD-OUT QUERY")), text)
 
         # Retrieved content is the part someone could most plausibly mistake for
         # real, so it is pinned to a TLD that is guaranteed never to resolve.
