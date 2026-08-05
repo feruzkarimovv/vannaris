@@ -354,7 +354,8 @@
           ["score", fmt(v.score) + " / 10"],
           ["cost / query", money(v.cost_per_query_usd)],
           ["p50 latency", v.p50_latency_ms + " ms"],
-          ["queries won", v.wins + " of 150"]
+          ["won outright", v.outright_wins],
+          ["among the best", v.shared_best]
         ]));
     });
 
@@ -372,10 +373,10 @@
     figure(host, {
       svg: svg, legend: legend,
       table: {
-        head: ["Vendor", "Score", "Cost / query", "p50 ms", "Queries won"],
-        numeric: [false, true, true, true, true],
+        head: ["Vendor", "Score", "Cost / query", "p50 ms", "Won outright", "Among best"],
+        numeric: [false, true, true, true, true, true],
         rows: vs.map(function (v) {
-          return [v.label, fmt(v.score), "$" + v.cost_per_query_usd.toFixed(5), v.p50_latency_ms, v.wins];
+          return [v.label, fmt(v.score), "$" + v.cost_per_query_usd.toFixed(5), v.p50_latency_ms, v.outright_wins, v.shared_best];
         })
       }
     });

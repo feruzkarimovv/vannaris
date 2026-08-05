@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS runs (
     -- The site's cadence copy is derived from it, so no page can assert a
     -- schedule that never fired.
     trigger         TEXT NOT NULL DEFAULT 'manual',
+    -- Which withheld set ran alongside the public one, by id (src/heldout.py).
+    -- The set's hash is pre-registered in git before it runs, so this column
+    -- makes "that run included that set" checkable rather than asserted.
+    heldout_set     TEXT,
     notes           TEXT
 );
 
@@ -39,7 +43,13 @@ CREATE TABLE IF NOT EXISTS queries (
     gold_urls   TEXT,                       -- JSON array
     -- Freshness queries rotate every cycle so vendors cannot overfit to a
     -- static set of "breaking news" questions (docs/04, refresh cadence).
-    rotates     INTEGER NOT NULL DEFAULT 0
+    rotates     INTEGER NOT NULL DEFAULT 0,
+    -- 1 for a question from the withheld set (src/heldout.py). Published cells
+    -- are computed from held_out = 0 only, so the public table remains
+    -- reproducible from the published questions; the held-out rows are
+    -- published as scores with their text withheld until the set retires, and
+    -- reported as a public-versus-held-out gap per vendor.
+    held_out    INTEGER NOT NULL DEFAULT 0
 );
 
 -- ---------------------------------------------------------------- raw layer
@@ -54,6 +64,10 @@ CREATE TABLE IF NOT EXISTS raw_responses (
     results       TEXT,                     -- JSON array of {url,rank,title,snippet}
     latency_ms    INTEGER,
     cost_usd      REAL,
+    -- 'reported' when the vendor returned a billed figure on the call itself,
+    -- 'estimated' when it is derived from published pricing. The headline cost
+    -- spread depends on which is which, so it is recorded rather than assumed.
+    cost_source   TEXT NOT NULL DEFAULT 'estimated',
     error         TEXT,
     raw_payload   TEXT,                     -- NOT EXPORTED
     created_at    TEXT NOT NULL,
@@ -76,6 +90,10 @@ CREATE TABLE IF NOT EXISTS judge_scores (
     scored_chars      INTEGER,
     prompt_tokens     INTEGER,
     output_tokens     INTEGER,
+    -- What the provider actually served. Two of the three pins are aliases the
+    -- provider can repoint without notice, and a silent swap would move every
+    -- score without moving anything about the vendors.
+    judge_model_returned TEXT,
     created_at        TEXT NOT NULL,
     UNIQUE (response_id, judge_model)
 );

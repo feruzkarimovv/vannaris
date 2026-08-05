@@ -37,7 +37,65 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # without a DEFAULT so rows written before this column read NULL — unknown,
     # which is the truth — rather than being backfilled to 'human' on a guess.
     ("human_labels", "labeller_kind", "TEXT"),
+    # Whether a query belongs to the withheld set (src/heldout.py). Published
+    # scores are computed from the public set alone, so this column is what
+    # keeps the two apart — without it a held-out question would silently enter
+    # a published cell and the table would stop being reproducible from the
+    # published questions. NULL on rows written before the column means public,
+    # which is true: every query that existed then was.
+    ("queries", "held_out", "INTEGER"),
+    # Which held-out set a run used, by id. Checkable against the manifest's
+    # pre-registered hash, so "this run included the set committed on that
+    # date" is a claim a reader can verify rather than take.
+    ("runs", "heldout_set", "TEXT"),
+    # The model string the provider returned, as distinct from the one asked
+    # for. Pinning a model is only a guarantee if the pin is checked, and two of
+    # the three pins are aliases. NULL on rows written before the column, which
+    # is the truth: it was not recorded.
+    ("judge_scores", "judge_model_returned", "TEXT"),
+    # Whether a response's cost came from the vendor or from a price list.
+    # SearchResponse has carried this since the adapters were written and it was
+    # never persisted, so the export could not distinguish a measured cost from
+    # an assumed one — while the business case leaned on the ratio between them.
+    ("raw_responses", "cost_source", "TEXT"),
 ]
+
+
+def _backfill_cost_source(conn: sqlite3.Connection) -> None:
+    """Recover cost provenance for rows written before the column existed.
+
+    This is a backfill and the other migrations above deliberately refuse to do
+    one, so the difference matters. `trigger` and `labeller_kind` are *not*
+    backfilled because the information was never recorded anywhere — filling
+    them would be writing a guess into the evidence layer. Cost provenance is
+    different: the vendor's own payload is stored on every row, and it either
+    contains a billed figure or it does not. This reads that, so it recovers a
+    fact rather than inventing one.
+
+    Idempotent, and only ever writes rows that are currently NULL.
+    """
+    import json
+
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(raw_responses)")}
+    if "cost_source" not in cols:
+        return
+    todo = conn.execute(
+        "SELECT id, raw_payload FROM raw_responses WHERE cost_source IS NULL"
+    ).fetchall()
+    for rid, raw in todo:
+        try:
+            payload = json.loads(raw) if raw else {}
+        except (ValueError, TypeError):
+            payload = {}
+        usage = payload.get("usage") if isinstance(payload, dict) else None
+        reported = (
+            (payload.get("costDollars") or {}).get("total") is not None
+            or (isinstance(usage, dict) and usage.get("cost") is not None)
+        )
+        conn.execute("UPDATE raw_responses SET cost_source = ? WHERE id = ?",
+                     ("reported" if reported else "estimated", rid))
+    if todo:
+        conn.commit()
 
 
 def migrate(conn: sqlite3.Connection) -> None:
@@ -46,6 +104,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         if cols and column not in cols:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
     conn.commit()
+    _backfill_cost_source(conn)
 
 
 def connect(db_path: Path | str = DB_PATH, *, create: bool = True) -> sqlite3.Connection:

@@ -5,6 +5,7 @@
   "trigger": null,
   "query_set_hash": "208cb6d7e33aef9b",
   "n_queries": 150,
+  "n_heldout_queries": 0,
   "n_vendors": 5,
   "n_judges": 3,
   "n_judgements": 2151,
@@ -20,6 +21,8 @@
       "vendor": "exa",
       "category": "general_facts",
       "score": 9.864,
+      "sd": 0.351,
+      "se": 0.075,
       "n_queries": 25,
       "n_scored": 22,
       "coverage": 0.88,
@@ -27,12 +30,17 @@
       "p50_latency_ms": 1176,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "perplexity",
       "category": "general_facts",
       "score": 9.833,
+      "sd": 0.381,
+      "se": 0.078,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -40,12 +48,27 @@
       "p50_latency_ms": 2492,
       "cost_usd": 0.12673,
       "delta_from_best": 0.031,
-      "pct_of_best": 99.7
+      "pct_of_best": 99.7,
+      "best_vendor": "exa",
+      "separated_from_best": false,
+      "paired": {
+        "n_common": 21,
+        "mean_diff": 0.048,
+        "se": 0.084,
+        "t": 0.57,
+        "ci95": [
+          -0.117,
+          0.212
+        ],
+        "separated": false
+      }
     },
     {
       "vendor": "serper",
       "category": "general_facts",
       "score": 9.625,
+      "sd": 0.495,
+      "se": 0.101,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -53,12 +76,27 @@
       "p50_latency_ms": 1224,
       "cost_usd": 0.0075,
       "delta_from_best": 0.239,
-      "pct_of_best": 97.6
+      "pct_of_best": 97.6,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 21,
+        "mean_diff": 0.286,
+        "se": 0.101,
+        "t": 2.83,
+        "ci95": [
+          0.088,
+          0.484
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "youcom",
       "category": "general_facts",
       "score": 9.56,
+      "sd": 0.507,
+      "se": 0.101,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -66,12 +104,27 @@
       "p50_latency_ms": 781,
       "cost_usd": 0.125,
       "delta_from_best": 0.304,
-      "pct_of_best": 96.9
+      "pct_of_best": 96.9,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 0.364,
+        "se": 0.105,
+        "t": 3.46,
+        "ci95": [
+          0.158,
+          0.569
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "linkup",
       "category": "general_facts",
       "score": 9.182,
+      "sd": 0.395,
+      "se": 0.084,
       "n_queries": 25,
       "n_scored": 22,
       "coverage": 0.88,
@@ -79,12 +132,27 @@
       "p50_latency_ms": 1427,
       "cost_usd": 0.125,
       "delta_from_best": 0.682,
-      "pct_of_best": 93.1
+      "pct_of_best": 93.1,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 20,
+        "mean_diff": 0.65,
+        "se": 0.109,
+        "t": 5.94,
+        "ci95": [
+          0.436,
+          0.864
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "exa",
       "category": "breaking_news",
       "score": 9.458,
+      "sd": 0.977,
+      "se": 0.199,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -92,12 +160,17 @@
       "p50_latency_ms": 298,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "serper",
       "category": "breaking_news",
       "score": 8.8,
+      "sd": 1.472,
+      "se": 0.294,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -105,12 +178,27 @@
       "p50_latency_ms": 987,
       "cost_usd": 0.0075,
       "delta_from_best": 0.658,
-      "pct_of_best": 93.0
+      "pct_of_best": 93.0,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 24,
+        "mean_diff": 0.667,
+        "se": 0.333,
+        "t": 2.0,
+        "ci95": [
+          0.013,
+          1.32
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "perplexity",
       "category": "breaking_news",
       "score": 8.76,
+      "sd": 1.508,
+      "se": 0.302,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -118,12 +206,27 @@
       "p50_latency_ms": 2606,
       "cost_usd": 0.12753,
       "delta_from_best": 0.698,
-      "pct_of_best": 92.6
+      "pct_of_best": 92.6,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 24,
+        "mean_diff": 0.667,
+        "se": 0.333,
+        "t": 2.0,
+        "ci95": [
+          0.013,
+          1.32
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "youcom",
       "category": "breaking_news",
       "score": 8.28,
+      "sd": 1.72,
+      "se": 0.344,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -131,12 +234,27 @@
       "p50_latency_ms": 873,
       "cost_usd": 0.125,
       "delta_from_best": 1.178,
-      "pct_of_best": 87.5
+      "pct_of_best": 87.5,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 24,
+        "mean_diff": 1.208,
+        "se": 0.356,
+        "t": 3.39,
+        "ci95": [
+          0.511,
+          1.906
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "linkup",
       "category": "breaking_news",
       "score": 7.652,
+      "sd": 2.166,
+      "se": 0.452,
       "n_queries": 25,
       "n_scored": 23,
       "coverage": 0.92,
@@ -144,12 +262,27 @@
       "p50_latency_ms": 1589,
       "cost_usd": 0.125,
       "delta_from_best": 1.806,
-      "pct_of_best": 80.9
+      "pct_of_best": 80.9,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 1.818,
+        "se": 0.5,
+        "t": 3.64,
+        "ci95": [
+          0.839,
+          2.797
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "exa",
       "category": "local_shopping",
       "score": 8.667,
+      "sd": 0.702,
+      "se": 0.143,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -157,12 +290,17 @@
       "p50_latency_ms": 1335,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "perplexity",
       "category": "local_shopping",
       "score": 8.32,
+      "sd": 0.852,
+      "se": 0.17,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -170,12 +308,27 @@
       "p50_latency_ms": 3983,
       "cost_usd": 0.13415,
       "delta_from_best": 0.347,
-      "pct_of_best": 96.0
+      "pct_of_best": 96.0,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 24,
+        "mean_diff": 0.333,
+        "se": 0.115,
+        "t": 2.89,
+        "ci95": [
+          0.107,
+          0.559
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "youcom",
       "category": "local_shopping",
       "score": 8.208,
+      "sd": 1.062,
+      "se": 0.217,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -183,12 +336,27 @@
       "p50_latency_ms": 776,
       "cost_usd": 0.125,
       "delta_from_best": 0.459,
-      "pct_of_best": 94.7
+      "pct_of_best": 94.7,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 23,
+        "mean_diff": 0.435,
+        "se": 0.138,
+        "t": 3.15,
+        "ci95": [
+          0.164,
+          0.705
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "serper",
       "category": "local_shopping",
       "score": 8.083,
+      "sd": 1.06,
+      "se": 0.216,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -196,12 +364,27 @@
       "p50_latency_ms": 1307,
       "cost_usd": 0.0075,
       "delta_from_best": 0.584,
-      "pct_of_best": 93.3
+      "pct_of_best": 93.3,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 23,
+        "mean_diff": 0.522,
+        "se": 0.124,
+        "t": 4.22,
+        "ci95": [
+          0.279,
+          0.764
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "linkup",
       "category": "local_shopping",
       "score": 7.739,
+      "sd": 0.964,
+      "se": 0.201,
       "n_queries": 25,
       "n_scored": 23,
       "coverage": 0.92,
@@ -209,12 +392,27 @@
       "p50_latency_ms": 1701,
       "cost_usd": 0.125,
       "delta_from_best": 0.928,
-      "pct_of_best": 89.3
+      "pct_of_best": 89.3,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 0.909,
+        "se": 0.217,
+        "t": 4.18,
+        "ci95": [
+          0.483,
+          1.335
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "exa",
       "category": "code_technical",
       "score": 9.182,
+      "sd": 0.588,
+      "se": 0.125,
       "n_queries": 25,
       "n_scored": 22,
       "coverage": 0.88,
@@ -222,12 +420,17 @@
       "p50_latency_ms": 1181,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "perplexity",
       "category": "code_technical",
       "score": 9.174,
+      "sd": 0.65,
+      "se": 0.136,
       "n_queries": 25,
       "n_scored": 23,
       "coverage": 0.92,
@@ -235,12 +438,27 @@
       "p50_latency_ms": 4231,
       "cost_usd": 0.13376,
       "delta_from_best": 0.008,
-      "pct_of_best": 99.9
+      "pct_of_best": 99.9,
+      "best_vendor": "exa",
+      "separated_from_best": false,
+      "paired": {
+        "n_common": 20,
+        "mean_diff": 0.05,
+        "se": 0.153,
+        "t": 0.33,
+        "ci95": [
+          -0.251,
+          0.351
+        ],
+        "separated": false
+      }
     },
     {
       "vendor": "youcom",
       "category": "code_technical",
       "score": 8.56,
+      "sd": 1.003,
+      "se": 0.201,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -248,12 +466,27 @@
       "p50_latency_ms": 874,
       "cost_usd": 0.125,
       "delta_from_best": 0.622,
-      "pct_of_best": 93.2
+      "pct_of_best": 93.2,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 0.636,
+        "se": 0.203,
+        "t": 3.13,
+        "ci95": [
+          0.238,
+          1.035
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "serper",
       "category": "code_technical",
       "score": 8.44,
+      "sd": 1.003,
+      "se": 0.201,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -261,12 +494,27 @@
       "p50_latency_ms": 1009,
       "cost_usd": 0.0075,
       "delta_from_best": 0.742,
-      "pct_of_best": 91.9
+      "pct_of_best": 91.9,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 0.818,
+        "se": 0.169,
+        "t": 4.83,
+        "ci95": [
+          0.486,
+          1.15
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "linkup",
       "category": "code_technical",
       "score": 8.333,
+      "sd": 1.007,
+      "se": 0.206,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -274,12 +522,27 @@
       "p50_latency_ms": 1578,
       "cost_usd": 0.125,
       "delta_from_best": 0.849,
-      "pct_of_best": 90.8
+      "pct_of_best": 90.8,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 0.909,
+        "se": 0.196,
+        "t": 4.63,
+        "ci95": [
+          0.524,
+          1.294
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "exa",
       "category": "multi_hop",
       "score": 8.917,
+      "sd": 1.717,
+      "se": 0.351,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -287,12 +550,17 @@
       "p50_latency_ms": 1351,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "perplexity",
       "category": "multi_hop",
       "score": 8.875,
+      "sd": 1.849,
+      "se": 0.377,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -300,12 +568,27 @@
       "p50_latency_ms": 2570,
       "cost_usd": 0.12685,
       "delta_from_best": 0.042,
-      "pct_of_best": 99.5
+      "pct_of_best": 99.5,
+      "best_vendor": "exa",
+      "separated_from_best": false,
+      "paired": {
+        "n_common": 23,
+        "mean_diff": 0.043,
+        "se": 0.591,
+        "t": 0.07,
+        "ci95": [
+          -1.116,
+          1.203
+        ],
+        "separated": false
+      }
     },
     {
       "vendor": "linkup",
       "category": "multi_hop",
       "score": 7.5,
+      "sd": 2.022,
+      "se": 0.413,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -313,12 +596,27 @@
       "p50_latency_ms": 1631,
       "cost_usd": 0.125,
       "delta_from_best": 1.417,
-      "pct_of_best": 84.1
+      "pct_of_best": 84.1,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 23,
+        "mean_diff": 1.478,
+        "se": 0.412,
+        "t": 3.59,
+        "ci95": [
+          0.671,
+          2.285
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "serper",
       "category": "multi_hop",
       "score": 7.48,
+      "sd": 2.22,
+      "se": 0.444,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -326,12 +624,27 @@
       "p50_latency_ms": 1092,
       "cost_usd": 0.0075,
       "delta_from_best": 1.437,
-      "pct_of_best": 83.9
+      "pct_of_best": 83.9,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 24,
+        "mean_diff": 1.5,
+        "se": 0.446,
+        "t": 3.36,
+        "ci95": [
+          0.625,
+          2.375
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "youcom",
       "category": "multi_hop",
       "score": 6.833,
+      "sd": 2.808,
+      "se": 0.573,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -339,12 +652,27 @@
       "p50_latency_ms": 963,
       "cost_usd": 0.125,
       "delta_from_best": 2.084,
-      "pct_of_best": 76.6
+      "pct_of_best": 76.6,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 23,
+        "mean_diff": 2.435,
+        "se": 0.54,
+        "t": 4.51,
+        "ci95": [
+          1.376,
+          3.494
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "exa",
       "category": "long_tail",
       "score": 8.636,
+      "sd": 0.658,
+      "se": 0.14,
       "n_queries": 25,
       "n_scored": 22,
       "coverage": 0.88,
@@ -352,12 +680,17 @@
       "p50_latency_ms": 1247,
       "cost_usd": 0.175,
       "delta_from_best": 0.0,
-      "pct_of_best": 100.0
+      "pct_of_best": 100.0,
+      "best_vendor": "exa",
+      "separated_from_best": null,
+      "paired": null
     },
     {
       "vendor": "perplexity",
       "category": "long_tail",
       "score": 8.261,
+      "sd": 0.915,
+      "se": 0.191,
       "n_queries": 25,
       "n_scored": 23,
       "coverage": 0.92,
@@ -365,12 +698,27 @@
       "p50_latency_ms": 5183,
       "cost_usd": 0.137,
       "delta_from_best": 0.375,
-      "pct_of_best": 95.7
+      "pct_of_best": 95.7,
+      "best_vendor": "exa",
+      "separated_from_best": false,
+      "paired": {
+        "n_common": 21,
+        "mean_diff": 0.476,
+        "se": 0.264,
+        "t": 1.8,
+        "ci95": [
+          -0.041,
+          0.993
+        ],
+        "separated": false
+      }
     },
     {
       "vendor": "linkup",
       "category": "long_tail",
       "score": 7.25,
+      "sd": 1.152,
+      "se": 0.235,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -378,12 +726,27 @@
       "p50_latency_ms": 1502,
       "cost_usd": 0.125,
       "delta_from_best": 1.386,
-      "pct_of_best": 84.0
+      "pct_of_best": 84.0,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 21,
+        "mean_diff": 1.333,
+        "se": 0.232,
+        "t": 5.74,
+        "ci95": [
+          0.878,
+          1.789
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "youcom",
       "category": "long_tail",
       "score": 7.12,
+      "sd": 1.364,
+      "se": 0.273,
       "n_queries": 25,
       "n_scored": 25,
       "coverage": 1.0,
@@ -391,12 +754,27 @@
       "p50_latency_ms": 909,
       "cost_usd": 0.125,
       "delta_from_best": 1.516,
-      "pct_of_best": 82.4
+      "pct_of_best": 82.4,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 22,
+        "mean_diff": 1.545,
+        "se": 0.277,
+        "t": 5.58,
+        "ci95": [
+          1.002,
+          2.088
+        ],
+        "separated": true
+      }
     },
     {
       "vendor": "serper",
       "category": "long_tail",
       "score": 7.042,
+      "sd": 1.429,
+      "se": 0.292,
       "n_queries": 25,
       "n_scored": 24,
       "coverage": 0.96,
@@ -404,7 +782,20 @@
       "p50_latency_ms": 974,
       "cost_usd": 0.0075,
       "delta_from_best": 1.594,
-      "pct_of_best": 81.5
+      "pct_of_best": 81.5,
+      "best_vendor": "exa",
+      "separated_from_best": true,
+      "paired": {
+        "n_common": 21,
+        "mean_diff": 1.81,
+        "se": 0.281,
+        "t": 6.43,
+        "ci95": [
+          1.258,
+          2.361
+        ],
+        "separated": true
+      }
     }
   ],
   "vendors": [
@@ -418,7 +809,8 @@
       "n_queries": 150,
       "n_scored": 138,
       "n_errors": 0,
-      "wins": 70,
+      "outright_wins": 28,
+      "shared_best": 115,
       "response_mode": "ranked_results"
     },
     {
@@ -431,7 +823,8 @@
       "n_queries": 150,
       "n_scored": 144,
       "n_errors": 0,
-      "wins": 18,
+      "outright_wins": 17,
+      "shared_best": 95,
       "response_mode": "both"
     },
     {
@@ -444,7 +837,8 @@
       "n_queries": 150,
       "n_scored": 147,
       "n_errors": 0,
-      "wins": 55,
+      "outright_wins": 1,
+      "shared_best": 56,
       "response_mode": "ranked_results"
     },
     {
@@ -457,7 +851,8 @@
       "n_queries": 150,
       "n_scored": 148,
       "n_errors": 0,
-      "wins": 4,
+      "outright_wins": 2,
+      "shared_best": 54,
       "response_mode": "ranked_results"
     },
     {
@@ -470,7 +865,8 @@
       "n_queries": 150,
       "n_scored": 140,
       "n_errors": 0,
-      "wins": 3,
+      "outright_wins": 1,
+      "shared_best": 35,
       "response_mode": "ranked_results"
     }
   ],
@@ -501,8 +897,532 @@
     "family_spread": 1.22,
     "mean_disagreement": 1.772,
     "responses_over_3pts": 98,
-    "n_compared": 750
+    "n_compared": 750,
+    "disagreement_rates": {
+      "over_1pt": 0.388,
+      "over_2pt": 0.176,
+      "over_3pt": 0.1307,
+      "unanimous": 0.148,
+      "median_spread": 1.0,
+      "p90_spread": 4.0
+    },
+    "disagreement_by_category": [
+      {
+        "category": "general_facts",
+        "mean": 0.648,
+        "over_2pt": 0.016,
+        "n": 125
+      },
+      {
+        "category": "breaking_news",
+        "mean": 2.992,
+        "over_2pt": 0.432,
+        "n": 125
+      },
+      {
+        "category": "local_shopping",
+        "mean": 1.384,
+        "over_2pt": 0.016,
+        "n": 125
+      },
+      {
+        "category": "code_technical",
+        "mean": 1.344,
+        "over_2pt": 0.056,
+        "n": 125
+      },
+      {
+        "category": "multi_hop",
+        "mean": 2.6,
+        "over_2pt": 0.384,
+        "n": 125
+      },
+      {
+        "category": "long_tail",
+        "mean": 1.664,
+        "over_2pt": 0.152,
+        "n": 125
+      }
+    ],
+    "family_pairs": [
+      {
+        "pair": "anthropic/google",
+        "mean_abs_diff": 1.388,
+        "n": 750
+      },
+      {
+        "pair": "anthropic/openai",
+        "mean_abs_diff": 1.192,
+        "n": 717
+      },
+      {
+        "pair": "google/openai",
+        "mean_abs_diff": 1.026,
+        "n": 717
+      }
+    ]
   },
+  "wins": {
+    "n_queries_compared": 150,
+    "n_tied": 101,
+    "n_separated": 49,
+    "tie_rate_pct": 67.3
+  },
+  "robustness": {
+    "baseline_ranking": [
+      "exa",
+      "perplexity",
+      "serper",
+      "youcom",
+      "linkup"
+    ],
+    "per_family": [
+      {
+        "family": "anthropic",
+        "means": {
+          "exa": 8.44,
+          "youcom": 7.333,
+          "serper": 7.36,
+          "linkup": 7.233,
+          "perplexity": 8.073
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "family": "openai",
+        "means": {
+          "exa": 9.234,
+          "youcom": 8.556,
+          "serper": 8.596,
+          "linkup": 8.158,
+          "perplexity": 8.974
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "family": "google",
+        "means": {
+          "exa": 9.473,
+          "youcom": 8.373,
+          "serper": 8.64,
+          "linkup": 8.527,
+          "perplexity": 9.527
+        },
+        "ranking": [
+          "perplexity",
+          "exa",
+          "serper",
+          "linkup",
+          "youcom"
+        ]
+      }
+    ],
+    "leave_one_out": [
+      {
+        "dropped": "anthropic",
+        "means": {
+          "exa": 9.354,
+          "youcom": 8.48,
+          "serper": 8.625,
+          "linkup": 8.343,
+          "perplexity": 9.246
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      },
+      {
+        "dropped": "openai",
+        "means": {
+          "exa": 8.957,
+          "youcom": 7.853,
+          "serper": 8.0,
+          "linkup": 7.88,
+          "perplexity": 8.8
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "linkup",
+          "youcom"
+        ]
+      },
+      {
+        "dropped": "google",
+        "means": {
+          "exa": 8.82,
+          "youcom": 7.957,
+          "serper": 7.982,
+          "linkup": 7.68,
+          "perplexity": 8.522
+        },
+        "ranking": [
+          "exa",
+          "perplexity",
+          "serper",
+          "youcom",
+          "linkup"
+        ]
+      }
+    ],
+    "stable_under_single_family": false,
+    "stable_under_leave_one_out": false,
+    "stable_prefix_single_family": 0,
+    "stable_prefix_leave_one_out": 3,
+    "n_vendors": 5,
+    "families_that_invert_it": [
+      "google"
+    ],
+    "n_families_that_invert_it": 1,
+    "n_families": 3
+  },
+  "cost_spread": {
+    "dearest": "exa",
+    "cheapest": "serper",
+    "dearest_per_query_usd": 0.007,
+    "cheapest_per_query_usd": 0.0003,
+    "as_billed_ratio": 23.3,
+    "like_for_like_ratio": 7.0,
+    "cheapest_tier": "top volume tier ($0.30/1,000); PAYG is ~$1/1,000"
+  },
+  "payload_effect": {
+    "per_vendor": [
+      {
+        "vendor": "exa",
+        "mean_scored_chars": 5490.6,
+        "mean_n_results": 10,
+        "mean_score": 9.116,
+        "r_chars_vs_score": -0.109,
+        "n": 138
+      },
+      {
+        "vendor": "linkup",
+        "mean_scored_chars": 5499.5,
+        "mean_n_results": 10,
+        "mean_score": 7.929,
+        "r_chars_vs_score": -0.121,
+        "n": 140
+      },
+      {
+        "vendor": "perplexity",
+        "mean_scored_chars": 4745.5,
+        "mean_n_results": 10,
+        "mean_score": 8.868,
+        "r_chars_vs_score": -0.155,
+        "n": 144
+      },
+      {
+        "vendor": "serper",
+        "mean_scored_chars": 2572.6,
+        "mean_n_results": 9.18,
+        "mean_score": 8.245,
+        "r_chars_vs_score": -0.172,
+        "n": 147
+      },
+      {
+        "vendor": "youcom",
+        "mean_scored_chars": 3591.4,
+        "mean_n_results": 10,
+        "mean_score": 8.101,
+        "r_chars_vs_score": 0.036,
+        "n": 148
+      }
+    ],
+    "within_vendor_r_min": -0.172,
+    "within_vendor_r_max": 0.036,
+    "across_vendor_r": 0.365,
+    "snippet_chars_cap": 500,
+    "results_per_query": 10
+  },
+  "separation": {
+    "overall_tiers": [
+      {
+        "tier": 1,
+        "vendors": [
+          "exa"
+        ]
+      },
+      {
+        "tier": 2,
+        "vendors": [
+          "perplexity"
+        ]
+      },
+      {
+        "tier": 3,
+        "vendors": [
+          "serper",
+          "youcom"
+        ]
+      },
+      {
+        "tier": 4,
+        "vendors": [
+          "linkup"
+        ]
+      }
+    ],
+    "adjacent": [
+      {
+        "above": "exa",
+        "below": "perplexity",
+        "n_common": 133,
+        "mean_diff": 0.278,
+        "se": 0.13,
+        "t": 2.15,
+        "ci95": [
+          0.024,
+          0.532
+        ],
+        "separated": true
+      },
+      {
+        "above": "perplexity",
+        "below": "serper",
+        "n_common": 141,
+        "mean_diff": 0.546,
+        "se": 0.128,
+        "t": 4.28,
+        "ci95": [
+          0.296,
+          0.796
+        ],
+        "separated": true
+      },
+      {
+        "above": "serper",
+        "below": "youcom",
+        "n_common": 145,
+        "mean_diff": 0.179,
+        "se": 0.149,
+        "t": 1.2,
+        "ci95": [
+          -0.113,
+          0.472
+        ],
+        "separated": false
+      },
+      {
+        "above": "youcom",
+        "below": "linkup",
+        "n_common": 138,
+        "mean_diff": 0.116,
+        "se": 0.152,
+        "t": 0.77,
+        "ci95": [
+          -0.181,
+          0.413
+        ],
+        "separated": false
+      }
+    ],
+    "by_category": [
+      {
+        "category": "general_facts",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa",
+              "perplexity"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "serper",
+              "youcom"
+            ]
+          },
+          {
+            "tier": 3,
+            "vendors": [
+              "linkup"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "breaking_news",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "serper",
+              "perplexity",
+              "youcom"
+            ]
+          },
+          {
+            "tier": 3,
+            "vendors": [
+              "linkup"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "local_shopping",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "perplexity",
+              "youcom"
+            ]
+          },
+          {
+            "tier": 3,
+            "vendors": [
+              "serper",
+              "linkup"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "code_technical",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa",
+              "perplexity"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "youcom",
+              "serper",
+              "linkup"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "multi_hop",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa",
+              "perplexity"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "linkup",
+              "serper",
+              "youcom"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "long_tail",
+        "tiers": [
+          {
+            "tier": 1,
+            "vendors": [
+              "exa",
+              "perplexity"
+            ]
+          },
+          {
+            "tier": 2,
+            "vendors": [
+              "linkup",
+              "youcom",
+              "serper"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "routing": {
+    "n_categories": 6,
+    "leaders": [
+      {
+        "category": "general_facts",
+        "vendor": "exa",
+        "score": 9.864
+      },
+      {
+        "category": "breaking_news",
+        "vendor": "exa",
+        "score": 9.458
+      },
+      {
+        "category": "local_shopping",
+        "vendor": "exa",
+        "score": 8.667
+      },
+      {
+        "category": "code_technical",
+        "vendor": "exa",
+        "score": 9.182
+      },
+      {
+        "category": "multi_hop",
+        "vendor": "exa",
+        "score": 8.917
+      },
+      {
+        "category": "long_tail",
+        "vendor": "exa",
+        "score": 8.636
+      }
+    ],
+    "categories_led": {
+      "exa": 6
+    },
+    "single_leader": "exa",
+    "oracle_score": 9.121,
+    "best_single_vendor": "exa",
+    "best_single_score": 9.121,
+    "gain_points": 0.0,
+    "categories_separated": 2,
+    "top_tier_counts": {
+      "exa": 6,
+      "perplexity": 4
+    },
+    "top_tier_everywhere": [
+      "exa"
+    ]
+  },
+  "heldout": null,
   "detail": [
     {
       "q": "gf-012",
@@ -9512,11 +10432,13 @@
       "started_at": "2026-07-31T19:33:23.523358+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9526,11 +10448,13 @@
       "started_at": "2026-07-31T19:36:01.700170+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9540,11 +10464,13 @@
       "started_at": "2026-07-31T19:40:14.479152+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 0,
       "completeness": 0.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9554,11 +10480,13 @@
       "started_at": "2026-07-31T19:49:02.017446+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 100,
       "complete": 100,
       "completeness": 1.0,
       "queries": 20,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 10,
       "categories": 2
     },
@@ -9568,11 +10496,13 @@
       "started_at": "2026-07-31T20:05:04.628353+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": null,
+      "heldout_set": null,
       "responses": 750,
       "complete": 423,
       "completeness": 0.564,
       "queries": 150,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 25,
       "categories": 6
     },
@@ -9582,11 +10512,13 @@
       "started_at": "2026-07-31T20:17:08.955300+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": null,
+      "heldout_set": null,
       "responses": 750,
       "complete": 717,
       "completeness": 0.956,
       "queries": 150,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 25,
       "categories": 6
     },
@@ -9596,11 +10528,13 @@
       "started_at": "2026-07-31T20:56:04.123247+00:00",
       "query_set_hash": "ca805d1520104ac2",
       "trigger": null,
+      "heldout_set": null,
       "responses": 10,
       "complete": 10,
       "completeness": 1.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },
@@ -9610,11 +10544,13 @@
       "started_at": "2026-08-01T06:22:58.556013+00:00",
       "query_set_hash": "208cb6d7e33aef9b",
       "trigger": "manual",
+      "heldout_set": null,
       "responses": 10,
       "complete": 10,
       "completeness": 1.0,
       "queries": 2,
       "vendors": 5,
+      "heldout_queries": 0,
       "min_per_category": 2,
       "categories": 1
     },

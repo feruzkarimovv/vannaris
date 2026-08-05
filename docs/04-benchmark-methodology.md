@@ -34,9 +34,33 @@ Six categories, targeting 150-300 total queries (25-50 per category), each seede
 
 **Calibrate monthly against a human-labeled gold set.** RAGAS's own alignment guide (the most detailed of the frameworks surveyed on this specific point) recommends 100-200 examples labeled by a domain expert as the target gold-set size, with a four-phase loop: baseline judge run, error analysis splitting false positives from false negatives, targeted prompt refinement aimed at the specific failure mode found, and iterative re-testing until agreement plateaus. Budget the founder's own time for this labeling in month one; it is the single highest-leverage thing that keeps "the judge said so" from becoming an unexamined black box.
 
+## The withheld set (added 2026-08-04)
+
+The published query set is 150 questions in a public repository. That is the right default — a benchmark nobody can inspect is a benchmark nobody should believe — but it has an obvious failure mode: a vendor that wanted to could tune specifically against those 150 questions, and nothing in the published table would show it. The mitigation is a **rotating withheld set**, implemented in `src/heldout.py` and specified here.
+
+**Withheld, not hidden.** A secret question set with a secret score is a vendor self-benchmark with the sign reversed, and would deserve exactly as much trust. Three properties make this one checkable instead:
+
+1. **Pre-registration.** The SHA-256 of the set is committed to the public repository *before* it first runs; the questions live outside git. Nobody, including the maintainer, can swap questions after seeing scores without changing a hash in a public file with a date on it.
+2. **Delayed disclosure.** Sets rotate every four weeks and are published in full on retirement — hash included — so every number a retired set produced becomes independently recomputable. The secrecy has an end date; the evidence does not.
+3. **Only the text is withheld.** Every withheld response's scores, latency, cost and query id are in the public export, flagged `held_out=1`. What a reader cannot see before retirement is which question produced which row.
+
+**What it measures.** Not a second leaderboard — the withheld set is deliberately much smaller (30 questions against 150) and its absolute scores are too noisy to rank anyone by. What it measures is a *within-vendor gap*: the same vendor, in the same run, on the same day, through the same judges, scored on published questions versus questions that were never published. A vendor that has hill-climbed against the public list scores visibly better on it. Category mix is controlled explicitly — both sides are averaged per category before being averaged across categories — so a withheld set that happens to be harder in one bucket cannot masquerade as a vendor-specific gap.
+
+**What it does not measure, stated because the limitation is real and a critic will find it.** A withheld question is not invisible to the vendor being asked it. Vendors receive every query the benchmark sends and can see them in their own logs. What the design defeats is cheap optimisation against a *published* list; what it cannot defeat is a vendor that deliberately identifies benchmark traffic and treats it specially. Mitigating that would need traffic mixing — rotating keys, jittered timing, queries sent from varied origins — which is not implemented and should be treated as an open item rather than an assumed property. The honest claim is: this detects hill-climbing against the public set, and it detects it only across several weeks of consistent signal, never from one run.
+
+**Published cells never include withheld questions.** This is enforced in `src/export.py` rather than remembered: every published score is computed from `held_out = 0` rows alone, so the table on the site can be recomputed exactly from the published questions. A build in which a withheld question's text reaches any published file fails (`assert_heldout_withheld`).
+
+## Publishing judge disagreement (added 2026-08-04)
+
+`docs/12` establishes that judge agreement with human labelling is the largest open caveat on every number here. Judge agreement *with each other* is a different and weaker quantity, but it is one that can be measured on every run at no extra cost, and it should be published as rates rather than as a mean.
+
+A mean disagreement of 1.2 points reads as "the judges broadly agree". It is equally consistent with every response splitting the judges slightly and with most agreeing exactly while a tenth split by five points — which are different benchmarks. So the export carries, per run: the share of responses where the judges' spread exceeds 1, 2 and 3 points; the share that are unanimous; the median and 90th-percentile spread; the same broken down by category; and the mean absolute difference for each pair of judge families.
+
+The first run's figures show why this matters and why publishing them is not merely defensive: **13% of responses split the judges by more than 3 points on a 0-10 scale**, and disagreement concentrates hard by category — `general_facts` averages a 0.65-point spread, while `breaking_news` averages 2.99 and `multi_hop` 2.60. The categories where a vendor's rank is least stable are exactly the ones the ensemble is least sure about, and a reader is entitled to discount those categories rather than the whole table. A benchmark that published only its favourable summary statistic would have no standing to criticise vendors for doing the same.
+
 ## Refresh cadence
 
-Run the full query set across all live vendors **weekly**, matching FreshQA's own weekly refresh rhythm. Rotate the freshness-bucket queries specifically on every cycle so vendors cannot overfit to a static set of "breaking news" questions. Weekly cadence is also the actual product differentiator versus every existing snapshot-in-time vendor self-benchmark — it needs real elapsed time running in public to be credible, not just code that's capable of running.
+Run the full query set — public and withheld — across all live vendors **weekly**, matching FreshQA's own weekly refresh rhythm. Rotate the freshness-bucket queries specifically on every cycle so vendors cannot overfit to a static set of "breaking news" questions, and rotate the withheld set every four weeks per the section above. Weekly cadence is also the actual product differentiator versus every existing snapshot-in-time vendor self-benchmark — it needs real elapsed time running in public to be credible, not just code that's capable of running.
 
 ## Cost model
 

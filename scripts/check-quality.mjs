@@ -219,6 +219,51 @@ for (const page of PAGES) {
   dom.window.close();
 }
 
+// -------------------------------------------- inspectability claims resolve
+//
+// Six sentences across the site tell the reader they can go and read the
+// harness — including the one saying the withheld set's hash is committed
+// before it runs, which is the entire basis for trusting a private score. All
+// six were shipping while `repo_url` was null and the "Source" nav item
+// rendered as an inert grey span, so the site was promising something it did
+// not deliver. This makes the two impossible to separate again: claim the
+// repository is readable, or set repo_url, but not neither.
+{
+  const bundlePath = join(SITE, "data", "bundle.js");
+  if (existsSync(bundlePath)) {
+    const bundle = readFileSync(bundlePath, "utf8");
+    const m = bundle.match(/"repo_url":\s*(null|"([^"]*)")/);
+    const repoUrl = m && m[2] ? m[2] : null;
+
+    // Phrases that only make sense if a reader can actually reach the source.
+    const CLAIMS = [
+      /public repository/i,
+      /in the repository/i,
+      /committed to (this |the )?repository/i,
+      /is in the source\b/i,
+      /git clone/i,
+    ];
+    for (const page of PAGES) {
+      const file = join(SITE, page);
+      if (!existsSync(file)) continue;
+      const html = readFileSync(file, "utf8");
+      const hit = CLAIMS.find((re) => re.test(html));
+      if (hit && !repoUrl) {
+        fail(page, `claims the source is readable (${hit}) but repo_url is null — ` +
+                   `either publish the repository and set export.REPO_URL, or drop the claim`);
+      }
+    }
+    // And the placeholder that outlived its reason to exist.
+    for (const page of PAGES) {
+      const file = join(SITE, page);
+      if (!existsSync(file)) continue;
+      if (/git clone\s*&lt;repository&gt;/.test(readFileSync(file, "utf8"))) {
+        fail(page, "reproduce block still says `git clone <repository>`");
+      }
+    }
+  }
+}
+
 // ------------------------------------------------------------------ report
 
 console.log(`  css ${kb(cssBytes)}KB · js ${kb(jsBytes)}KB · data ${kb(dataBytes)}KB`);

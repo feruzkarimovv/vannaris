@@ -184,7 +184,7 @@ class TestVendorTotals(unittest.TestCase):
         totals = export.build_vendor_totals(rows, export.build_cells(rows))
         self.assertEqual(totals[0]["score"], 8.0)
 
-    def test_wins_count_queries_where_the_vendor_took_the_top_median(self):
+    def test_outright_wins_count_queries_one_vendor_took_alone(self):
         rows = []
         for i in range(3):
             a = row("fixture_alpha", median=9.0); a["query_id"] = f"q{i}"
@@ -192,8 +192,57 @@ class TestVendorTotals(unittest.TestCase):
             rows += [a, b]
         totals = {t["vendor"]: t for t in
                   export.build_vendor_totals(rows, export.build_cells(rows))}
-        self.assertEqual(totals["fixture_alpha"]["wins"], 3)
-        self.assertEqual(totals["fixture_bravo"]["wins"], 0)
+        self.assertEqual(totals["fixture_alpha"]["outright_wins"], 3)
+        self.assertEqual(totals["fixture_alpha"]["shared_best"], 3)
+        self.assertEqual(totals["fixture_bravo"]["outright_wins"], 0)
+        self.assertEqual(totals["fixture_bravo"]["shared_best"], 0)
+
+    def test_a_tie_is_credited_to_neither_vendor_outright(self):
+        """The case the old fixture could not express, and the bug it hid.
+
+        The previous version of this test scored 9.0 against 6.0, which can
+        never tie, so it passed against an implementation that awarded every
+        tied query to whichever vendor happened to be iterated first. On the
+        real run that was two thirds of the query set, and it credited one
+        vendor with 55 wins where it had won a single query alone.
+        """
+        rows = []
+        for i in range(4):
+            a = row("fixture_alpha", median=8.0); a["query_id"] = f"q{i}"
+            b = row("fixture_bravo", median=8.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        totals = {t["vendor"]: t for t in
+                  export.build_vendor_totals(rows, export.build_cells(rows))}
+        for v in ("fixture_alpha", "fixture_bravo"):
+            self.assertEqual(totals[v]["outright_wins"], 0, v)
+            self.assertEqual(totals[v]["shared_best"], 4, v)
+
+    def test_win_counts_do_not_depend_on_row_order(self):
+        """The defect was a readout of iteration order. Assert it cannot be."""
+        rows = []
+        for i in range(5):
+            a = row("fixture_alpha", median=7.0); a["query_id"] = f"q{i}"
+            b = row("fixture_bravo", median=7.0 if i % 2 else 9.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        forward = {t["vendor"]: (t["outright_wins"], t["shared_best"]) for t in
+                   export.build_vendor_totals(rows, export.build_cells(rows))}
+        reversed_ = {t["vendor"]: (t["outright_wins"], t["shared_best"]) for t in
+                     export.build_vendor_totals(list(reversed(rows)),
+                                                export.build_cells(list(reversed(rows))))}
+        self.assertEqual(forward, reversed_)
+
+    def test_tie_rate_is_published(self):
+        rows = []
+        for i in range(4):
+            a = row("fixture_alpha", median=8.0); a["query_id"] = f"q{i}"
+            # q0 separates; q1-q3 tie.
+            b = row("fixture_bravo", median=6.0 if i == 0 else 8.0); b["query_id"] = f"q{i}"
+            rows += [a, b]
+        stats = export.build_win_stats(rows)
+        self.assertEqual(stats["n_queries_compared"], 4)
+        self.assertEqual(stats["n_tied"], 3)
+        self.assertEqual(stats["n_separated"], 1)
+        self.assertEqual(stats["tie_rate_pct"], 75.0)
 
 
 # ----------------------------------------------------------- history strictness
@@ -280,6 +329,100 @@ class TestCanonicalRun(unittest.TestCase):
 
     def test_no_runs_at_all_is_none_not_a_crash(self):
         self.assertIsNone(export.canonical_run([], "2099-W01"))
+
+
+# ------------------------------------------------------- the routing gain
+#
+# This is the number the site uses to say the routing product measures
+# nothing, so it is the number most worth being wrong. Two of these tests
+# exist because a prototype got them wrong: subtracting pre-rounded scores
+# published a real zero as "-0.00", and averaging a vendor with a suppressed
+# cell over a shorter list of categories turned a coverage gap into a
+# routing gain.
+
+def cell(vendor, category, score):
+    return {"vendor": vendor, "category": category, "score": score}
+
+
+def tiers(*groups):
+    return [{"vendors": list(g)} for g in groups]
+
+
+class TestRoutingGain(unittest.TestCase):
+    CATS = export.CATEGORY_ORDER[:3]
+
+    def cells(self, table):
+        """table: {vendor: [score per category]}, in CATS order."""
+        return [cell(v, c, table[v][i])
+                for v in table for i, c in enumerate(self.CATS)]
+
+    def by_cat(self, *tier_lists):
+        return [{"category": c, "tiers": t}
+                for c, t in zip(self.CATS, tier_lists)]
+
+    def test_one_vendor_top_everywhere_is_a_gain_of_zero(self):
+        cells = self.cells({"a": [9.0, 8.0, 7.0], "b": [8.0, 7.0, 6.0]})
+        r = export.build_routing_gain(cells, self.by_cat(*[tiers("a")] * 3))
+        self.assertEqual(r["single_leader"], "a")
+        self.assertEqual(r["gain_points"], 0.0)
+        self.assertEqual(r["categories_led"], {"a": 3})
+
+    def test_a_zero_gain_is_never_published_as_negative_zero(self):
+        # Scores that do not divide evenly by three: the mean of the leaders
+        # and the mean of the leader's own row are the same number reached by
+        # two different float paths, and rounding either side first yields
+        # -0.0. json.dumps writes that as "-0.0" and the site renders "-0.00".
+        cells = self.cells({"a": [9.864, 9.458, 8.667], "b": [1.0, 1.0, 1.0]})
+        r = export.build_routing_gain(cells, self.by_cat(*[tiers("a")] * 3))
+        self.assertEqual(r["gain_points"], 0.0)
+        self.assertNotEqual(json.dumps(r["gain_points"]), "-0.0")
+
+    def test_split_leadership_produces_a_real_positive_gain(self):
+        cells = self.cells({"a": [9.0, 6.0, 6.0], "b": [6.0, 9.0, 9.0]})
+        r = export.build_routing_gain(cells, self.by_cat(tiers("a"), tiers("b"), tiers("b")))
+        self.assertIsNone(r["single_leader"])
+        self.assertEqual(r["categories_led"], {"a": 1, "b": 2})
+        self.assertEqual(r["best_single_vendor"], "b")
+        self.assertEqual(r["best_single_score"], 8.0)
+        self.assertEqual(r["oracle_score"], 9.0)
+        self.assertEqual(r["gain_points"], 1.0)
+
+    def test_a_vendor_missing_a_cell_is_excluded_from_the_comparison(self):
+        # b wins the one category it is scored in. Averaging it over that
+        # category alone would make it look like the best single vendor at
+        # 10.0, and the "gain" would be a coverage gap wearing a number.
+        cells = self.cells({"a": [9.0, 8.0, 7.0]})
+        cells += [cell("b", self.CATS[0], 10.0)]
+        cells += [cell("b", c, None) for c in self.CATS[1:]]
+        r = export.build_routing_gain(cells, self.by_cat(tiers("b"), tiers("a"), tiers("a")))
+        self.assertEqual(r["best_single_vendor"], "a")
+        self.assertEqual(r["best_single_score"], 8.0)
+        # The oracle still uses b's published cell — it is a real score in a
+        # real category; what b may not do is stand in as a single vendor.
+        self.assertEqual(r["oracle_score"], round((10.0 + 8.0 + 7.0) / 3, 3))
+
+    def test_separation_is_counted_from_the_tiers_not_the_scores(self):
+        cells = self.cells({"a": [9.0, 8.0, 7.0], "b": [8.9, 7.0, 6.0]})
+        r = export.build_routing_gain(
+            cells, self.by_cat(tiers(["a", "b"]), tiers("a"), tiers("a")))
+        self.assertEqual(r["categories_separated"], 2)
+        self.assertEqual(r["top_tier_counts"], {"a": 3, "b": 1})
+        self.assertEqual(r["top_tier_everywhere"], ["a"])
+
+    def test_a_single_category_run_publishes_nothing(self):
+        # There is no routing decision to make across one category, and the
+        # oracle and the best single vendor would be trivially identical.
+        cells = [cell("a", self.CATS[0], 9.0), cell("b", self.CATS[0], 8.0)]
+        self.assertEqual(export.build_routing_gain(cells, self.by_cat(tiers("a"))), {})
+
+    def test_no_published_cells_is_empty_not_a_crash(self):
+        cells = [cell("a", c, None) for c in self.CATS]
+        self.assertEqual(export.build_routing_gain(cells, []), {})
+
+    def test_an_empty_tier_list_does_not_crash_the_count(self):
+        cells = self.cells({"a": [9.0, 8.0, 7.0], "b": [8.0, 7.0, 6.0]})
+        r = export.build_routing_gain(cells, self.by_cat(tiers("a"), [], tiers("a")))
+        self.assertEqual(r["categories_separated"], 2)
 
 
 if __name__ == "__main__":

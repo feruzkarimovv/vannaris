@@ -51,6 +51,13 @@ These are not preferences. Each one is a claim the project makes in public.
    `docs/10` and the session handoff do.
 8. **Never commit `.env`, `*.db`, or `calibration/`.** Raw vendor content is
    stored for reproducibility and never republished (`docs/03`).
+9. **Never touch the withheld set's registration.** Do not register a new set,
+   retire an active one, edit `src/queries/heldout/manifest.json`, or move any
+   question text into the repository. The commitment in that file is dated and
+   public, and an agent that regenerates it destroys the only thing that makes
+   the withheld set worth more than a vendor's own private benchmark
+   (`src/heldout.py`). Authoring *candidate* questions into a file outside git
+   for the founder to register is fine; registering them is not.
 
 ## Free to change, alone
 
@@ -61,7 +68,9 @@ These are not preferences. Each one is a claim the project makes in public.
 - Test coverage, gates, and tooling. More gates is always allowed.
 - Refactoring with behaviour held constant, where a test proves it constant.
 - Documentation of what exists — as opposed to claims about what it achieves.
-- The router SDK, which has no published surface yet.
+- The routing client, which has no published surface yet. Note its shape
+  changed on 2026-08-04: reliability layer first, score-based routing last, and
+  the client itself open source (`docs/05`).
 - Query set additions, provided the taxonomy balance holds and no query
   smuggles in a gold answer that decays (`src/queries/full-v1.json` explains).
 
