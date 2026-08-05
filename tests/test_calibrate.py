@@ -12,7 +12,8 @@ from __future__ import annotations
 import unittest
 
 from src.calibrate import (_fisher_ci, _pearson, _pearson_ceiling, _rank, _spearman,
-                           _wilson, agreement, draw, pairwise_concordance)
+                           _wilson, agreement, build_pairs, draw, draw_pairs,
+                           pairwise_concordance, pairwise_report)
 
 
 def rows(specs):
@@ -312,6 +313,246 @@ class TestPairwiseConcordance(unittest.TestCase):
     def test_too_few_items_is_empty_not_a_crash(self):
         self.assertEqual(pairwise_concordance([])["n_pairs"], 0)
         self.assertEqual(pairwise_concordance([(9, 9)])["n_pairs"], 0)
+
+
+# ------------------------------------------------------- pairwise sampling
+#
+# The set these draw is what a person spends hours labelling, and every defect
+# here is one that cannot be fixed afterwards: a leaked vendor, a side that
+# always holds the better response, a repeat shown three screens after its
+# original. None of it is recoverable once the labels exist.
+
+CATS = ["general_facts", "breaking_news", "local_shopping",
+        "code_technical", "multi_hop", "long_tail"]
+
+
+def resp(rid, qid, cat, med, gold=True):
+    return {"id": rid, "query_id": qid, "category": cat, "median": med,
+            "gold_answer": "g" if gold else None, "query_text": "q",
+            "response_mode": "ranked_results", "answer": None, "results": None}
+
+
+def pool(n_queries=60):
+    """Five vendors per query, spread so both strata are well supplied."""
+    out = []
+    for i in range(n_queries):
+        cat = CATS[i % len(CATS)]
+        for v in range(5):
+            med = 5 + (v * 1.5 if i % 2 else 0.0)      # alternate wide / level
+            # Gold presence varies independently of the gap: tying the two
+            # would leave the stratifier nothing to balance.
+            out.append(resp(f"r{i:03d}v{v}", f"q{i:03d}", cat, med, gold=(i % 4 < 2)))
+    return out
+
+
+class TestBuildPairs(unittest.TestCase):
+    def test_pairs_never_cross_queries(self):
+        # "Which of these two answers to different questions is better" is not
+        # a question a person can answer.
+        pairs = build_pairs(pool(6))
+        for p in pairs:
+            self.assertEqual(p["a"]["query_id"], p["b"]["query_id"])
+
+    def test_every_within_query_combination_appears_once(self):
+        pairs = build_pairs(pool(2))
+        self.assertEqual(len(pairs), 2 * (5 * 4 // 2))
+        seen = {(p["a"]["id"], p["b"]["id"]) for p in pairs}
+        self.assertEqual(len(seen), len(pairs))
+
+    def test_gap_uses_the_published_median(self):
+        rows = [resp("a", "q", "general_facts", 9.0), resp("b", "q", "general_facts", 6.5)]
+        self.assertAlmostEqual(build_pairs(rows)[0]["gap"], 2.5)
+
+
+class TestDrawPairs(unittest.TestCase):
+    def setUp(self):
+        self.pairs = build_pairs(pool())
+
+    def draw(self, **kw):
+        opts = dict(n_decisive=30, n_near_tie=12, n_swapped=10, n_repeat=6)
+        opts.update(kw)
+        return draw_pairs(self.pairs, 3, **opts)
+
+    def test_strata_are_the_requested_sizes(self):
+        got = self.draw()
+        counts = {}
+        for p in got:
+            counts[p["stratum"]] = counts.get(p["stratum"], 0) + 1
+        self.assertEqual(counts["decisive"], 30)
+        self.assertEqual(counts["near_tie"], 12)
+        self.assertEqual(counts["swapped"], 10)
+        self.assertEqual(counts["repeat"], 6)
+
+    def test_decisive_and_near_tie_respect_their_thresholds(self):
+        for p in self.draw():
+            if p["stratum"] == "decisive":
+                self.assertGreaterEqual(p["gap"], 1.0)
+            elif p["stratum"] == "near_tie":
+                self.assertLessEqual(p["gap"], 0.5)
+
+    def test_gold_presence_is_stratified_not_left_to_chance(self):
+        # The defect this fixes: the first sampler never read `gold_answer`, so
+        # what share of the set could be judged on correctness rather than
+        # plausibility was whatever the draw happened to produce.
+        dec = [p for p in self.draw() if p["stratum"] == "decisive"]
+        gold = sum(1 for p in dec if p["has_gold"])
+        self.assertAlmostEqual(gold / len(dec), 0.5, delta=0.1)
+
+    def test_categories_are_even_within_the_decisive_stratum(self):
+        dec = [p for p in self.draw() if p["stratum"] == "decisive"]
+        counts = {}
+        for p in dec:
+            counts[p["category"]] = counts.get(p["category"], 0) + 1
+        self.assertLessEqual(max(counts.values()) - min(counts.values()), 1)
+
+    def test_sides_are_not_assigned_by_score(self):
+        # If the better response were always on the left, a labeller who always
+        # clicks left scores 100% without reading anything.
+        got = [p for p in self.draw(n_decisive=60) if p["stratum"] == "decisive"]
+        left_better = sum(1 for p in got
+                          if (p["b"] if p["flip"] else p["a"])["median"]
+                          > (p["a"] if p["flip"] else p["b"])["median"])
+        self.assertGreater(left_better, 10)
+        self.assertLess(left_better, 50)
+
+    def test_swapped_items_really_are_swapped(self):
+        got = self.draw()
+        by_id = {p["pair_id"]: p for p in got}
+        sw = [p for p in got if p["stratum"] == "swapped"]
+        self.assertTrue(sw)
+        for p in sw:
+            src = by_id[p["source_pair_id"]]
+            self.assertEqual(p["flip"], not src["flip"])
+            self.assertEqual({p["a"]["id"], p["b"]["id"]},
+                             {src["a"]["id"], src["b"]["id"]})
+
+    def test_repeats_are_identical_to_their_source(self):
+        got = self.draw()
+        by_id = {p["pair_id"]: p for p in got}
+        for p in [p for p in got if p["stratum"] == "repeat"]:
+            src = by_id[p["source_pair_id"]]
+            self.assertEqual(p["flip"], src["flip"])
+
+    def test_repeats_never_appear_before_their_source(self):
+        got = self.draw()
+        pos = {p["pair_id"]: p["position"] for p in got}
+        for p in got:
+            if p.get("source_pair_id"):
+                self.assertGreater(pos[p["pair_id"]], pos[p["source_pair_id"]],
+                                   "a re-presentation was shown before its original")
+
+    def test_repeats_are_not_adjacent_to_their_source(self):
+        # A pair shown twice within a few screens measures short-term memory.
+        got = self.draw()
+        pos = {p["pair_id"]: p["position"] for p in got}
+        for p in got:
+            if p.get("source_pair_id"):
+                self.assertGreater(pos[p["pair_id"]] - pos[p["source_pair_id"]], 5)
+
+    def test_positions_are_dense_and_unique(self):
+        got = self.draw()
+        self.assertEqual(sorted(p["position"] for p in got), list(range(len(got))))
+
+    def test_deterministic_for_a_seed(self):
+        a = [(p["pair_id"], p["position"], p["flip"]) for p in draw_pairs(self.pairs, 5)]
+        b = [(p["pair_id"], p["position"], p["flip"]) for p in draw_pairs(self.pairs, 5)]
+        self.assertEqual(a, b)
+
+    def test_different_seeds_differ(self):
+        a = {p["a"]["id"] + p["b"]["id"] for p in draw_pairs(self.pairs, 1)}
+        b = {p["a"]["id"] + p["b"]["id"] for p in draw_pairs(self.pairs, 2)}
+        self.assertNotEqual(a, b)
+
+    def test_a_thin_pool_does_not_overdraw(self):
+        got = draw_pairs(build_pairs(pool(2)), 1, n_decisive=500, n_near_tie=500,
+                         n_swapped=5, n_repeat=5)
+        ids = [p["pair_id"] for p in got]
+        self.assertEqual(len(ids), len(set(ids)))
+
+
+# -------------------------------------------------------- pairwise analysis
+
+def lab(pair_id, stratum, choice, ens, src=None, left="L", right="R"):
+    return {"pair_id": pair_id, "stratum": stratum, "choice": choice,
+            "ensemble_choice": ens, "source_pair_id": src,
+            "shown_left": left, "shown_right": right}
+
+
+class TestPairwiseReport(unittest.TestCase):
+    def test_concordance_counts_only_the_decisive_stratum(self):
+        # The near-tie stratum has no ensemble opinion by construction, so
+        # counting it measures the labeller against a coin.
+        rows = ([lab(f"d{i}", "decisive", "left", "left") for i in range(8)]
+                + [lab(f"n{i}", "near_tie", "left", "tie") for i in range(20)])
+        r = pairwise_report(rows)
+        self.assertEqual(r["decisive"]["n_scored"], 8)
+        self.assertEqual(r["decisive"]["concordance"], 1.0)
+
+    def test_human_ties_leave_the_numerator_rather_than_counting_against(self):
+        rows = [lab("a", "decisive", "left", "left"),
+                lab("b", "decisive", "tie", "right")]
+        r = pairwise_report(rows)
+        self.assertEqual(r["decisive"]["n"], 2)
+        self.assertEqual(r["decisive"]["n_human_tied"], 1)
+        self.assertEqual(r["decisive"]["n_scored"], 1)
+
+    def test_clears_chance_is_false_when_the_interval_includes_a_half(self):
+        rows = [lab(f"d{i}", "decisive", "left" if i < 6 else "right", "left")
+                for i in range(10)]
+        r = pairwise_report(rows)
+        self.assertAlmostEqual(r["decisive"]["concordance"], 0.6)
+        self.assertFalse(r["decisive"]["clears_chance"])
+
+    def test_clears_chance_is_true_on_a_strong_well_sized_result(self):
+        rows = [lab(f"d{i}", "decisive", "left" if i < 120 else "right", "left")
+                for i in range(150)]
+        self.assertTrue(pairwise_report(rows)["decisive"]["clears_chance"])
+
+    def test_re_presentations_never_inflate_the_concordance(self):
+        # Same evidence shown twice; pooling it would narrow the interval on
+        # nothing.
+        base = [lab(f"d{i}", "decisive", "left", "left") for i in range(10)]
+        with_extras = base + [lab(f"x{i}", "repeat", "left", "left", src=f"d{i}")
+                              for i in range(10)]
+        self.assertEqual(pairwise_report(base)["decisive"]["n_scored"],
+                         pairwise_report(with_extras)["decisive"]["n_scored"])
+
+    def test_position_bias_separates_same_side_from_same_response(self):
+        # The labeller picked "left" both times. Because the sides were
+        # swapped, that is the same SIDE and a different RESPONSE.
+        rows = [lab("d0", "decisive", "left", "left", left="A", right="B"),
+                lab("x0", "swapped", "left", "right", src="d0", left="B", right="A")]
+        pb = pairwise_report(rows)["position_bias"]
+        self.assertEqual(pb["n"], 1)
+        self.assertEqual(pb["picked_same_side"], 1)
+        self.assertEqual(pb["picked_same_response"], 0)
+
+    def test_a_consistent_labeller_scores_same_response_not_same_side(self):
+        rows = [lab("d0", "decisive", "left", "left", left="A", right="B"),
+                lab("x0", "swapped", "right", "left", src="d0", left="B", right="A")]
+        pb = pairwise_report(rows)["position_bias"]
+        self.assertEqual(pb["picked_same_side"], 0)
+        self.assertEqual(pb["picked_same_response"], 1)
+
+    def test_self_agreement_reads_the_repeat_stratum(self):
+        rows = [lab("d0", "decisive", "left", "left"),
+                lab("d1", "decisive", "right", "right"),
+                lab("x0", "repeat", "left", "left", src="d0"),
+                lab("x1", "repeat", "left", "right", src="d1")]
+        sa = pairwise_report(rows)["self_agreement"]
+        self.assertEqual(sa["n"], 2)
+        self.assertEqual(sa["agree"], 1)
+        self.assertAlmostEqual(sa["rate"], 0.5)
+
+    def test_an_orphaned_re_presentation_is_ignored_not_counted(self):
+        rows = [lab("x0", "repeat", "left", "left", src="missing")]
+        self.assertEqual(pairwise_report(rows)["self_agreement"]["n"], 0)
+
+    def test_no_labels_at_all_is_empty_not_a_crash(self):
+        r = pairwise_report([])
+        self.assertEqual(r["decisive"]["n"], 0)
+        self.assertIsNone(r["decisive"]["concordance"])
+        self.assertFalse(r["decisive"]["clears_chance"])
 
 
 if __name__ == "__main__":

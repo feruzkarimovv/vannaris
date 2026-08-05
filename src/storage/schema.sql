@@ -186,6 +186,66 @@ CREATE TABLE IF NOT EXISTS human_labels (
     UNIQUE (set_id, response_id, labeller)
 );
 
+-- A pairwise comparison set. Separate tables rather than a flag on
+-- calibration_items because the unit of work is different: an item is one
+-- response, a pair is two, and the same pair is deliberately presented more
+-- than once (see `stratum` below). calibration_items is keyed
+-- (set_id, response_id), which cannot express either.
+--
+-- Pairwise exists because absolute scoring failed in a specific way. The first
+-- pass put twelve of fifteen human scores at 9 or 10, and a correlation over a
+-- variable that barely varies is mostly noise -- r = 0.10 with a 95% interval
+-- of [-0.437, +0.581], which excludes nothing (`docs/12`). An ordering does not
+-- care that both numbers were high, and a ranking is what the site publishes,
+-- so the ordering is the thing worth measuring.
+CREATE TABLE IF NOT EXISTS calibration_pairs (
+    set_id        TEXT NOT NULL REFERENCES calibration_sets(id),
+    pair_id       TEXT NOT NULL,
+    left_response_id  TEXT NOT NULL REFERENCES raw_responses(id),
+    right_response_id TEXT NOT NULL REFERENCES raw_responses(id),
+    -- 'decisive'  the ensemble separates these two clearly; the headline
+    --             stratum, and the only one an agreement figure may quote.
+    -- 'near_tie'  the ensemble scores them level; diagnostic, because a human
+    --             who can separate them is finding something the judges miss.
+    -- 'swapped'   a decisive pair shown again with the sides exchanged, to
+    --             measure position bias in the labeller.
+    -- 'repeat'    a pair shown again unchanged, to measure whether the labeller
+    --             agrees with themselves. Without this, disagreement with the
+    --             judges cannot be told apart from disagreement with oneself.
+    stratum       TEXT NOT NULL,
+    position      INTEGER NOT NULL,
+    -- For 'swapped' and 'repeat', the pair_id being re-presented. Null
+    -- otherwise. The analysis joins on it and must never treat a
+    -- re-presentation as independent evidence.
+    source_pair_id TEXT,
+    -- The ensemble's own margin when the set was drawn, stored so the
+    -- stratification is checkable later without recomputing it from a database
+    -- that has moved on.
+    ensemble_gap  REAL NOT NULL,
+    PRIMARY KEY (set_id, pair_id)
+);
+
+CREATE TABLE IF NOT EXISTS pair_labels (
+    id            TEXT PRIMARY KEY,
+    set_id        TEXT NOT NULL REFERENCES calibration_sets(id),
+    pair_id       TEXT NOT NULL,
+    labeller      TEXT NOT NULL,
+    -- Recorded, never inferred. A model pass and a human pass are different
+    -- measurements and pooling them produces a number describing neither
+    -- (`docs/12`); `import` refuses to guess which this is.
+    labeller_kind TEXT NOT NULL,
+    -- 'left' | 'right' | 'tie'. A tie is a real answer, not a skip: forcing a
+    -- choice between two responses a person cannot separate manufactures
+    -- agreement or disagreement out of a coin flip.
+    choice        TEXT NOT NULL,
+    note          TEXT,
+    seconds       INTEGER,
+    labelled_at   TEXT NOT NULL,
+    UNIQUE (set_id, pair_id, labeller)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pairs_set   ON calibration_pairs(set_id);
+CREATE INDEX IF NOT EXISTS idx_plabels_set ON pair_labels(set_id);
 CREATE INDEX IF NOT EXISTS idx_raw_run     ON raw_responses(run_id);
 CREATE INDEX IF NOT EXISTS idx_judge_resp  ON judge_scores(response_id);
 CREATE INDEX IF NOT EXISTS idx_weekly_week ON weekly_scores(week);
