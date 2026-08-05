@@ -162,6 +162,36 @@ class TestCategoryBalance(unittest.TestCase):
         rand = [r["spread"] for r in picked if r["stratum"] == "random"]
         self.assertGreater(sum(dis) / len(dis), sum(rand) / len(rand))
 
+    def test_every_prefix_of_the_presentation_order_stays_balanced(self):
+        # Labellers stop partway. The first pass drew 7 per category over 42
+        # and the human labelled 15, which under a plain shuffle came out 4
+        # multi-hop against 1 general-facts — and docs/12 then reported
+        # per-category bias off n = 1 and n = 2. Balance has to survive
+        # stopping early, not just finishing.
+        picked = draw(self.pool(), 42, 2, 0.0)
+        order = [r["category"] for r in sorted(picked, key=lambda r: r["position"])]
+        for k in (6, 12, 15, 20, 30, 42):
+            counts = {}
+            for c in order[:k]:
+                counts[c] = counts.get(c, 0) + 1
+            # Every category either appears floor(k/6) or ceil(k/6) times.
+            self.assertLessEqual(max(counts.values()) - min(counts.values()), 1,
+                                 f"prefix of {k} is unbalanced: {counts}")
+
+    def test_a_prefix_cannot_be_all_one_category(self):
+        picked = draw(self.pool(), 36, 5, 0.0)
+        order = [r["category"] for r in sorted(picked, key=lambda r: r["position"])]
+        self.assertEqual(len(set(order[:6])), 6)
+
+    def test_interleaving_is_still_deterministic(self):
+        a = [r["position"] for r in draw(self.pool(), 30, 7, 0.0)]
+        b = [r["position"] for r in draw(self.pool(), 30, 7, 0.0)]
+        self.assertEqual(a, b)
+
+    def test_positions_stay_dense_after_interleaving(self):
+        picked = draw(self.pool(), 25, 4, 0.34)
+        self.assertEqual(sorted(r["position"] for r in picked), list(range(25)))
+
 # ---------------------------------------------------- intervals and ceilings
 #
 # These exist because the first calibration pass reported `r 0.10` on n = 15

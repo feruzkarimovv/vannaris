@@ -192,9 +192,35 @@ def draw(rows: list[dict], n: int, seed: int, disagreement_share: float) -> list
     for r in dis_pick:
         out.append({**r, "stratum": "disagreement"})
     rng.shuffle(out)  # presentation order carries no signal about stratum
-    for i, r in enumerate(out):
+
+    # Then interleave by category, so that stopping early costs balance rather
+    # than destroying it. A labeller does not finish: the first pass drew a
+    # clean 7-per-category over 42 items and the human labelled 15 of them,
+    # all inside the first 20 presented positions. Under a plain shuffle those
+    # 15 came out 4 multi-hop against 1 general-facts, and `docs/12` then
+    # reported per-category bias off counts as low as n = 2 -- including the
+    # "worst category" figure. The set was balanced; what was read was not.
+    #
+    # Round-robin over categories keeps every prefix as even as the remaining
+    # supply allows, so the honest version of "I did the first twenty" is a
+    # balanced twenty. The shuffle above still fixes the order within each
+    # category, and category turn order is drawn from the same seeded rng, so
+    # this stays a pure function of (rows, seed) and no position predicts a
+    # stratum.
+    queues: dict[str, list[dict]] = defaultdict(list)
+    for r in out:
+        queues[r["category"]].append(r)
+    turn = sorted(queues)
+    rng.shuffle(turn)
+    ordered: list[dict] = []
+    while len(ordered) < len(out):
+        for cat in turn:
+            if queues[cat]:
+                ordered.append(queues[cat].pop(0))
+
+    for i, r in enumerate(ordered):
         r["position"] = i
-    return out
+    return ordered
 
 
 # -------------------------------------------------------------- task writing
