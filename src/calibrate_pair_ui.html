@@ -1,0 +1,242 @@
+<!doctype html>
+<!-- Generated into a calibration set directory by src/calibrate.py.
+     Loads task.js from the same folder. Never served, never committed: the task
+     shows vendor-retrieved content, which docs/03 says is stored and not
+     republished.
+
+     The pairwise task. Absolute scoring produced twelve 9s and 10s out of
+     fifteen and a correlation whose interval excluded nothing (docs/12); this
+     asks which of two responses to the SAME query is better, which is the
+     question a ranking actually rests on and which does not care that both
+     answers were good. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vannaris — pairwise judge calibration</title>
+<style>
+  :root {
+    --bg: #0d0d0f; --panel: #16161a; --line: #26262c; --ink: #e8e8ea;
+    --dim: #8b8b95; --accent: #ff5c1f; --good: #3b82f6;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#fbfbfa; --panel:#fff; --line:#e4e4e2; --ink:#17171a; --dim:#6b6b75; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui, sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg);
+           border-bottom:1px solid var(--line); padding:12px 20px;
+           display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header b { font-size:14px; letter-spacing:.02em; }
+  .bar { flex:1; height:4px; background:var(--line); border-radius:2px; min-width:120px; }
+  .bar i { display:block; height:100%; background:var(--accent); border-radius:2px; }
+  .muted { color:var(--dim); font-size:13px; }
+  main { max-width:1180px; margin:0 auto; padding:24px 20px 150px; }
+  .q { font-size:21px; font-weight:600; line-height:1.35; margin:0 0 6px; }
+  .tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .tag { font:11px var(--mono); text-transform:uppercase; letter-spacing:.06em;
+         color:var(--dim); border:1px solid var(--line); border-radius:99px; padding:2px 9px; }
+  .gold { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--good);
+          padding:10px 14px; border-radius:6px; margin-bottom:18px; font-size:14px; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:820px) { .pair { grid-template-columns:1fr; } }
+  .side { border:1px solid var(--line); border-radius:10px; padding:14px; background:var(--panel); }
+  .side h2 { font:12px var(--mono); text-transform:uppercase; letter-spacing:.08em;
+             color:var(--dim); margin:0 0 10px; }
+  .answer { background:var(--bg); border:1px solid var(--line); padding:12px;
+            border-radius:8px; margin-bottom:14px; white-space:pre-wrap; font-size:14px; }
+  ol.results { list-style:none; padding:0; margin:0; }
+  ol.results li { border:1px solid var(--line); background:var(--bg); border-radius:8px;
+                  padding:10px 12px; margin-bottom:8px; }
+  .rank { font:11px var(--mono); color:var(--dim); }
+  .title { font-weight:600; margin:2px 0 3px; }
+  .url { font:12px var(--mono); color:var(--good); word-break:break-all; }
+  .snip { color:var(--dim); font-size:13.5px; margin-top:6px; }
+  .choose { position:fixed; bottom:0; left:0; right:0; background:var(--panel);
+            border-top:1px solid var(--line); padding:12px 20px; }
+  .choose .wrap { max-width:1180px; margin:0 auto; }
+  .picks { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .picks button { padding:11px 0; font:14px/1.2 system-ui, sans-serif; background:transparent;
+                  color:var(--ink); border:1px solid var(--line); border-radius:6px;
+                  cursor:pointer; }
+  .picks button:hover { border-color:var(--dim); }
+  .picks button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .picks .k { display:block; font:11px var(--mono); color:var(--dim); margin-top:3px; }
+  .picks button[aria-pressed="true"] .k { color:#fff; }
+  .row { display:flex; gap:12px; align-items:center; margin-top:10px; }
+  .row input[type=text] { flex:1; background:var(--bg); border:1px solid var(--line);
+                          color:var(--ink); border-radius:5px; padding:7px 10px; font-size:13px; }
+  .row button { padding:8px 16px; border-radius:5px; border:1px solid var(--line);
+                background:transparent; color:var(--ink); cursor:pointer; font-size:13px; }
+  .row button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  dialog { background:var(--panel); color:var(--ink); border:1px solid var(--line);
+           border-radius:12px; max-width:720px; padding:0; }
+  dialog::backdrop { background:rgba(0,0,0,.6); }
+  .anch { padding:22px 26px; }
+  .anch h1 { font-size:19px; margin:0 0 6px; }
+  .anch .a { border:1px solid var(--line); border-left:3px solid var(--accent);
+             border-radius:6px; padding:11px 14px; margin:12px 0; }
+  .anch .a b { font:12px var(--mono); letter-spacing:.05em; color:var(--accent); }
+  .anch p.lead { color:var(--dim); font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <b>Vannaris — which answered it better?</b>
+  <span class="bar"><i id="prog" style="width:0"></i></span>
+  <span class="muted" id="pos"></span>
+  <span class="muted" id="saved"></span>
+  <button id="anchors" class="muted" style="background:transparent;border:1px solid var(--line);
+          border-radius:5px;color:var(--dim);padding:4px 10px;cursor:pointer">Scale ?</button>
+</header>
+<main id="main"></main>
+<div class="choose"><div class="wrap">
+  <div class="picks">
+    <button id="pL" aria-pressed="false">Left is better<span class="k">1 &nbsp;or&nbsp; &larr;</span></button>
+    <button id="pT" aria-pressed="false">About the same<span class="k">2 &nbsp;or&nbsp; &darr;</span></button>
+    <button id="pR" aria-pressed="false">Right is better<span class="k">3 &nbsp;or&nbsp; &rarr;</span></button>
+  </div>
+  <div class="row">
+    <input id="note" type="text" placeholder="Why? (optional, and the most useful thing you can leave)">
+    <button id="prev">&larr; Back</button>
+    <button id="next" class="primary">Next &rarr;</button>
+    <button id="export">Export labels.json</button>
+  </div>
+</div></div>
+
+<dialog id="anchdlg"><div class="anch">
+  <h1>What counts as better</h1>
+  <p class="lead">You are judging the <b>search results</b>, not writing an answer yourself.
+  Both responses answer the same question. Pick the one that would serve a reader better —
+  and say they are about the same whenever that is the honest answer. A forced choice
+  between two responses you cannot separate is a coin flip, and it is recorded as though
+  it were a judgement.</p>
+  <div id="anchbody"></div>
+  <p class="lead">Some results will be newer than you expect. That is a working search
+  engine, not an error — do not mark a result down for describing something you have not
+  heard of.</p>
+  <p><button class="primary" id="anchclose"
+     style="padding:9px 18px;border-radius:5px;border:1px solid var(--accent);
+            background:var(--accent);color:#fff;cursor:pointer">Start labelling</button></p>
+</div></dialog>
+
+<script src="task.js"></script>
+<script>
+const TASK = window.VN_TASK;
+const KEY = "vn-pair-" + TASK.set_id;
+const state = JSON.parse(localStorage.getItem(KEY) || "{}");
+let idx = Number(state.__idx || 0);
+let shownAt = Date.now();
+
+const esc = s => (s == null ? "" : String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])));
+function labelFor(id) { return (state[id] = state[id] || {}); }
+function save() { state.__idx = idx; localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// The anchors, shown before the first item and reachable from every screen
+// after it. Their absence is what docs/12 blames for the first pass's ceiling.
+document.getElementById("anchbody").innerHTML = (TASK.anchors || []).map(a =>
+  `<div class="a"><b>${esc(a.score)}/10 — ${esc(a.label)}</b><div>${esc(a.body)}</div></div>`).join("");
+const dlg = document.getElementById("anchdlg");
+document.getElementById("anchors").onclick = () => dlg.showModal();
+document.getElementById("anchclose").onclick = () => dlg.close();
+
+function renderSide(s, which) {
+  return `<div class="side"><h2>${which}</h2>
+    ${s.answer ? `<div class="answer">${esc(s.answer)}</div>` : ""}
+    <ol class="results">${s.results.map(r =>
+      `<li><div class="rank">#${esc(r.rank)}</div>
+           <div class="title">${esc(r.title) || "<em>no title</em>"}</div>
+           <div class="url">${esc(r.url)}</div>
+           ${r.snippet ? `<div class="snip">${esc(r.snippet)}</div>` : ""}</li>`).join("")}
+    </ol></div>`;
+}
+
+function renderItem() {
+  const it = TASK.items[idx];
+  if (!it) return renderDone();
+  document.getElementById("main").innerHTML =
+    `<p class="q">${esc(it.query)}</p>
+     <div class="tags"><span class="tag">${esc(it.category)}</span>
+       <span class="tag">${it.left.results.length} vs ${it.right.results.length} results</span></div>
+     ${it.gold_answer ? `<div class="gold"><b>Reference answer:</b> ${esc(it.gold_answer)}</div>` : ""}
+     <div class="pair">${renderSide(it.left, "Left")}${renderSide(it.right, "Right")}</div>`;
+  document.getElementById("pos").textContent = `${idx + 1} / ${TASK.items.length}`;
+  const done = Object.keys(state).filter(k => k !== "__idx" && state[k].choice).length;
+  document.getElementById("prog").style.width = (100 * done / TASK.items.length) + "%";
+  document.getElementById("saved").textContent = `${done} judged`;
+  document.getElementById("note").value = labelFor(it.pair_id).note || "";
+  renderPicks();
+  shownAt = Date.now();
+  window.scrollTo(0, 0);
+}
+
+function renderPicks() {
+  const c = labelFor(TASK.items[idx].pair_id).choice;
+  document.getElementById("pL").setAttribute("aria-pressed", String(c === "left"));
+  document.getElementById("pT").setAttribute("aria-pressed", String(c === "tie"));
+  document.getElementById("pR").setAttribute("aria-pressed", String(c === "right"));
+}
+
+function choose(c) {
+  const l = labelFor(TASK.items[idx].pair_id);
+  l.choice = c;
+  // Time on task, recorded per screen. A pairwise set produced at three
+  // seconds a screen is not a calibration, and the only way to know that
+  // afterwards is to have written it down.
+  l.seconds = Math.max(l.seconds || 0, Math.round((Date.now() - shownAt) / 1000));
+  save(); renderPicks();
+}
+
+function go(d) {
+  const l = labelFor(TASK.items[idx].pair_id);
+  l.note = document.getElementById("note").value.trim() || null;
+  save();
+  idx = Math.min(TASK.items.length, Math.max(0, idx + d));
+  renderItem();
+}
+
+function renderDone() {
+  const done = Object.keys(state).filter(k => k !== "__idx" && state[k].choice).length;
+  document.getElementById("main").innerHTML =
+    `<div style="padding:40px 0"><p class="q">${done} of ${TASK.items.length} judged.</p>
+     <p class="muted">Export, then import it:</p>
+     <p><code>python -m src.calibrate import labels.json --labeller YOURNAME --labeller-kind human</code></p>
+     <p><button class="primary" onclick="idx=0;renderItem()"
+        style="padding:9px 18px;border-radius:5px;border:1px solid var(--accent);
+               background:var(--accent);color:#fff;cursor:pointer">Back to the start</button></p></div>`;
+}
+
+document.getElementById("pL").onclick = () => choose("left");
+document.getElementById("pT").onclick = () => choose("tie");
+document.getElementById("pR").onclick = () => choose("right");
+document.getElementById("next").onclick = () => go(1);
+document.getElementById("prev").onclick = () => go(-1);
+document.getElementById("export").onclick = () => {
+  const labels = TASK.items.map(it => {
+    const l = state[it.pair_id] || {};
+    return {pair_id: it.pair_id, choice: l.choice || null,
+            note: l.note || null, seconds: l.seconds || null};
+  }).filter(l => l.choice !== null);
+  const blob = new Blob([JSON.stringify({set_id: TASK.set_id, kind: "pairwise", labels}, null, 1)],
+                        {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "labels.json"; a.click();
+};
+
+document.addEventListener("keydown", e => {
+  if (dlg.open) return;
+  if (e.target.tagName === "INPUT") { if (e.key === "Enter") go(1); return; }
+  if (e.key === "Enter") return go(1);
+  if (e.key === "1" || e.key === "ArrowLeft") return choose("left");
+  if (e.key === "2" || e.key === "ArrowDown") return choose("tie");
+  if (e.key === "3" || e.key === "ArrowRight") return choose("right");
+  if (e.key === "?") dlg.showModal();
+});
+
+// Shown once per set, not once per session: reopening the file to finish a
+// half-done pass should not re-run the warm-up.
+if (!state.__seen_anchors) { state.__seen_anchors = 1; save(); dlg.showModal(); }
+renderItem();
+</script>
+</body>
+</html>

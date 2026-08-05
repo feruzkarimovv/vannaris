@@ -273,6 +273,63 @@ else
   skip "labels" "no labels/ exported yet"
 fi
 
+# The calibration result is the one number on this site that does not exist
+# yet, and the one a future session is most likely to invent. Two things have
+# to stay true together: while no calibration clears chance, every page that
+# discusses the judges must still say they are unaudited; and no page may carry
+# a judge-vs-human agreement figure at all.
+#
+# The state is read from `labels/`, not from a flag someone can set. A gate a
+# change can bring along with it is not a gate (scripts/check_vendors.py), and
+# the failure mode here is specifically an agent that publishes an encouraging
+# interim number — which is what `docs/12` was written to prevent and what
+# `docs/13` names as a reason a reader should distrust the project.
+printf '\n\033[1m── calibration is not published early\033[0m\n'
+if $PY - <<'EOF'
+import json, pathlib, re, sys
+
+bad = []
+# Does any exported set actually establish agreement? Absolute passes carry
+# `overall`; a pairwise pass carries `choice`. Neither has ever cleared its
+# interval, and until one does the copy stays up.
+cleared = False
+for f in pathlib.Path("labels").glob("*.json"):
+    d = json.loads(f.read_text())
+    if d.get("cleared_chance") is True and d.get("labeller_kinds") == ["human"]:
+        cleared = True
+
+pages = {
+    "site/index.html": r"judges are unaudited",
+    "site/results.html": r"judges are unaudited",
+    "site/methodology.html": r"judges are unaudited",
+}
+if not cleared:
+    for page, pat in pages.items():
+        p = pathlib.Path(page)
+        if p.is_file() and not re.search(pat, p.read_text(), re.I):
+            bad.append(f"{page} no longer says the judges are unaudited, and no "
+                       f"calibration has cleared chance")
+
+# A figure of the shape "judges agree with humans N% of the time" on any
+# published surface, in either wording.
+claim = re.compile(
+    r"(agree\w*|concordan\w*|correlat\w*)[^.]{0,60}"
+    r"(human|people|person|labell?er)|"
+    r"(human|people|person|labell?er)[^.]{0,60}(agree\w*|concordan\w*|correlat\w*)",
+    re.I)
+for p in sorted(pathlib.Path("site").rglob("*.html")):
+    for i, line in enumerate(p.read_text().splitlines(), 1):
+        if claim.search(line) and re.search(r"\d", line) and "unaudited" not in line.lower():
+            bad.append(f"{p}:{i} reads like a published judge-vs-human figure")
+
+for b in bad:
+    print("   " + b)
+sys.exit(1 if bad else 0)
+EOF
+then printf '\033[32m   ok\033[0m\n'; passed=$((passed + 1))
+else printf '\033[31m   FAILED (calibration published before it holds)\033[0m\n'
+     failed=$((failed + 1)); fi
+
 # Secrets must never reach a commit. The history was clean when this was
 # written; this keeps it that way without anyone remembering to look.
 printf '\n\033[1m── no secrets staged\033[0m\n'
