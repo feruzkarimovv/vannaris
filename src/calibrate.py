@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 import sqlite3
 import statistics
@@ -377,6 +378,39 @@ def _spearman(xs: list[float], ys: list[float]) -> float | None:
     return _pearson(_rank(xs), _rank(ys)) if len(xs) >= 3 else None
 
 
+def _fisher_ci(r: float | None, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """95% interval on a correlation, via the Fisher z transform.
+
+    Reported because the first calibration pass published `r 0.10` on n = 15 and
+    that number was read as "the judges do not agree with people". Its interval
+    is [-0.437, +0.581]: both signs are inside it, so the pass established
+    neither direction. A correlation from fifteen items without its interval is
+    not a weak finding, it is not a finding.
+    """
+    if r is None or n < 4 or abs(r) >= 1:
+        return None
+    z0 = 0.5 * math.log((1 + r) / (1 - r))
+    se = 1 / math.sqrt(n - 3)
+    lo, hi = z0 - z * se, z0 + z * se
+    back = lambda t: (math.exp(2 * t) - 1) / (math.exp(2 * t) + 1)   # noqa: E731
+    return back(lo), back(hi)
+
+
+def _pearson_ceiling(xs: list[float], ys: list[float]) -> float | None:
+    """The largest r these two sets of numbers could produce, marginals fixed.
+
+    Sorting both and correlating is the comonotonic rearrangement, which
+    maximises the correlation attainable without changing either distribution.
+    It exists to keep an argument honest: the first pass explained its low r as
+    an artefact of most human scores being 9 or 10, and that explanation is
+    checkable. On those labels the ceiling is 0.935, so compression accounts for
+    at most 0.065 of a shortfall of 0.903 -- about 7% of it, not "partly". Any
+    future pass that wants to blame its distribution has to clear this number
+    first (`docs/12`).
+    """
+    return _pearson(sorted(xs), sorted(ys))
+
+
 def agreement(pairs: list[tuple[float, float]]) -> dict:
     """One judge's scores against the human's, on the same responses."""
     if not pairs:
@@ -384,14 +418,69 @@ def agreement(pairs: list[tuple[float, float]]) -> dict:
     js = [p[0] for p in pairs]
     hs = [p[1] for p in pairs]
     diffs = [j - h for j, h in pairs]
+    r = _pearson(js, hs)
     return {
         "n": len(pairs),
         "mae": statistics.fmean(abs(d) for d in diffs),
         "bias": statistics.fmean(diffs),          # signed: + means judge is generous
-        "pearson": _pearson(js, hs),
+        "pearson": r,
+        "pearson_ci95": _fisher_ci(r, len(pairs)),
+        "pearson_max": _pearson_ceiling(js, hs),
         "spearman": _spearman(js, hs),
         "within_1": sum(1 for d in diffs if abs(d) <= 1) / len(diffs),
         "off_by_3": sum(1 for d in diffs if abs(d) > 3),
+    }
+
+
+def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """Interval on a proportion. Wilson rather than normal-approximation
+    because the counts here are small and near the boundary is exactly where
+    the normal interval misbehaves."""
+    if n <= 0:
+        return None
+    p = k / n
+    d = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / d
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    # Clamped: at k=0 the arithmetic lands on -2.8e-17, which formats as
+    # "-0.0%" — a negative share of a proportion, printed next to a claim about
+    # rigour.
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def pairwise_concordance(pairs: list[tuple[float, float]]) -> dict:
+    """How often the ensemble orders two responses the way the human did.
+
+    Absolute scores from one labeller already contain ordering information: any
+    two items the labeller scored differently are a preference. Reading them
+    that way sidesteps the 9-10 ceiling that flattened the first pass, because
+    an ordering does not care that both numbers were high.
+
+    Ensemble ties are reported both ways on purpose. Dropping them conditions
+    the result on the ensemble having an opinion, which raised the first pass's
+    apparent concordance from 47.0% to 60.8% -- a real difference, arrived at by
+    conditioning on the thing under audit. Publish the denominator or neither
+    number (`docs/12`).
+    """
+    ordered = [(j1, h1, j2, h2)
+               for i, (j1, h1) in enumerate(pairs)
+               for (j2, h2) in pairs[i + 1:]
+               if h1 != h2]
+    if not ordered:
+        return {"n_pairs": 0}
+    agree = sum(1 for j1, h1, j2, h2 in ordered if (h1 - h2) * (j1 - j2) > 0)
+    tied = sum(1 for j1, h1, j2, h2 in ordered if j1 == j2)
+    decided = len(ordered) - tied
+    return {
+        "n_pairs": len(ordered),
+        "n_ensemble_tied": tied,
+        "agree": agree,
+        "concordance_all": agree / len(ordered),
+        "ci95_all": _wilson(agree, len(ordered)),
+        # Conditional on the ensemble expressing a preference. Higher, and
+        # narrower in scope; never report it without `n_ensemble_tied`.
+        "concordance_decided": agree / decided if decided else None,
+        "ci95_decided": _wilson(agree, decided) if decided else None,
     }
 
 
@@ -437,8 +526,12 @@ def _fmt(a: dict) -> str:
         return "no data"
     def num(x, spec=".2f"):
         return "  n/a" if x is None else format(x, spec)
+    ci = a.get("pearson_ci95")
+    # An r without its interval is what let `r 0.10` be read as a finding when
+    # both signs were inside the interval (docs/12). They travel together.
+    ci_s = f" [{ci[0]:+.2f},{ci[1]:+.2f}]" if ci else ""
     return (f"n={a['n']:<4} MAE {a['mae']:.2f}  bias {a['bias']:+.2f}  "
-            f"r {num(a['pearson'])}  rho {num(a['spearman'])}  "
+            f"r {num(a['pearson'])}{ci_s}  rho {num(a['spearman'])}  "
             f"within 1pt {a['within_1']:.0%}  off by >3: {a['off_by_3']}")
 
 
@@ -488,6 +581,35 @@ def cmd_report(args: argparse.Namespace) -> int:
                 pairs = [(r["judges"][fam], r["human"]) for r in rows if fam in r["judges"]]
                 print(f"  {fam:<10} {_fmt(agreement(pairs))}")
             print(f"  {'ENSEMBLE':<10} {_fmt(agreement([(r['ensemble'], r['human']) for r in rows]))}")
+
+            ens_pairs = [(r["ensemble"], r["human"]) for r in rows]
+            ceiling = agreement(ens_pairs).get("pearson_max")
+            if ceiling is not None:
+                print(f"  ceiling: the most these two distributions could correlate "
+                      f"is r {ceiling:.3f}")
+
+            # The same labels read as orderings. This is the quantity a ranking
+            # actually rests on, and unlike r it is unaffected by a labeller
+            # who uses only the top of the scale.
+            pc = pairwise_concordance(ens_pairs)
+            if pc.get("n_pairs"):
+                a_all = f"{pc['concordance_all']:.1%}"
+                ci_a = pc["ci95_all"]
+                print(f"  ordering: ensemble matches the labeller on {pc['agree']}/"
+                      f"{pc['n_pairs']} pairs = {a_all}"
+                      + (f"  95% CI [{ci_a[0]:.1%}, {ci_a[1]:.1%}]" if ci_a else ""))
+                if pc["n_ensemble_tied"]:
+                    ci_d = pc["ci95_decided"]
+                    print(f"            {pc['n_ensemble_tied']} of those the ensemble "
+                          f"scored level; on the {pc['n_pairs'] - pc['n_ensemble_tied']} "
+                          f"it did not, {pc['concordance_decided']:.1%}"
+                          + (f"  95% CI [{ci_d[0]:.1%}, {ci_d[1]:.1%}]" if ci_d else ""))
+                    print("            (the second conditions on the ensemble having an "
+                          "opinion — quote it with its denominator)")
+                lo = (pc["ci95_all"] or (0, 0))[0]
+                if lo <= 0.5:
+                    print("            interval includes 50% — not evidence of "
+                          "agreement above chance")
 
             gen = sum(1 for r in rows if r["ensemble"] - r["human"] > 2)
             harsh = sum(1 for r in rows if r["human"] - r["ensemble"] > 2)

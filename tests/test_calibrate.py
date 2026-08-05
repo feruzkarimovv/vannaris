@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import unittest
 
-from src.calibrate import _pearson, _rank, _spearman, agreement, draw
+from src.calibrate import (_fisher_ci, _pearson, _pearson_ceiling, _rank, _spearman,
+                           _wilson, agreement, draw, pairwise_concordance)
 
 
 def rows(specs):
@@ -160,6 +161,128 @@ class TestCategoryBalance(unittest.TestCase):
         dis = [r["spread"] for r in picked if r["stratum"] == "disagreement"]
         rand = [r["spread"] for r in picked if r["stratum"] == "random"]
         self.assertGreater(sum(dis) / len(dis), sum(rand) / len(rand))
+
+# ---------------------------------------------------- intervals and ceilings
+#
+# These exist because the first calibration pass reported `r 0.10` on n = 15
+# with no interval, and it was read as a finding when both signs were inside
+# it. The regression guarded against is a number published without the thing
+# that says how much of it is noise (docs/12).
+
+class TestFisherCI(unittest.TestCase):
+    def test_it_reproduces_the_published_first_pass_interval(self):
+        # The figures docs/12 is written around. If this test fails, either the
+        # transform changed or docs/12 is now wrong; both need a human.
+        lo, hi = _fisher_ci(0.0972, 15)
+        self.assertAlmostEqual(lo, -0.437, places=3)
+        self.assertAlmostEqual(hi, +0.581, places=3)
+
+    def test_the_interval_straddles_zero_at_this_n(self):
+        lo, hi = _fisher_ci(0.10, 15)
+        self.assertLess(lo, 0)
+        self.assertGreater(hi, 0)
+
+    def test_more_data_narrows_it(self):
+        w = lambda n: (lambda c: c[1] - c[0])(_fisher_ci(0.5, n))   # noqa: E731
+        self.assertLess(w(200), w(30))
+
+    def test_too_few_points_is_none_not_a_crash(self):
+        self.assertIsNone(_fisher_ci(0.5, 3))
+        self.assertIsNone(_fisher_ci(None, 50))
+
+    def test_a_perfect_correlation_does_not_divide_by_zero(self):
+        self.assertIsNone(_fisher_ci(1.0, 20))
+        self.assertIsNone(_fisher_ci(-1.0, 20))
+
+
+class TestPearsonCeiling(unittest.TestCase):
+    def test_it_reproduces_the_documented_ceiling(self):
+        # The claim in docs/12's correction: these two distributions cannot
+        # correlate above 0.935, so compression explains ~7% of the shortfall.
+        human = [10, 9, 10, 7, 10, 10, 9, 10, 10, 10, 9, 5, 10, 10, 8]
+        ens = [9, 10, 8, 9, 8, 10, 5, 10, 9, 8, 9, 9, 9, 10, 7]
+        self.assertAlmostEqual(_pearson_ceiling(human, ens), 0.935, places=3)
+
+    def test_a_ceiling_is_never_below_the_observed_correlation(self):
+        human = [10, 9, 10, 7, 10, 10, 9, 10, 10, 10, 9, 5, 10, 10, 8]
+        ens = [9, 10, 8, 9, 8, 10, 5, 10, 9, 8, 9, 9, 9, 10, 7]
+        self.assertGreaterEqual(_pearson_ceiling(human, ens), _pearson(human, ens))
+
+    def test_already_aligned_data_has_a_ceiling_of_one(self):
+        self.assertAlmostEqual(_pearson_ceiling([1, 2, 3, 4], [2, 4, 6, 8]), 1.0, places=6)
+
+    def test_it_is_reported_alongside_the_correlation(self):
+        a = agreement([(9, 10), (8, 9), (7, 5), (9, 10)])
+        self.assertIn("pearson_ci95", a)
+        self.assertIn("pearson_max", a)
+
+
+class TestWilson(unittest.TestCase):
+    def test_a_half_share_straddles_a_half(self):
+        lo, hi = _wilson(50, 100)
+        self.assertLess(lo, 0.5)
+        self.assertGreater(hi, 0.5)
+
+    def test_it_stays_inside_zero_and_one_at_the_boundary(self):
+        # The reason this is Wilson and not the normal approximation.
+        lo, hi = _wilson(0, 10)
+        self.assertGreaterEqual(lo, 0.0)
+        self.assertLessEqual(hi, 1.0)
+
+    def test_no_trials_is_none_not_a_crash(self):
+        self.assertIsNone(_wilson(0, 0))
+
+
+class TestPairwiseConcordance(unittest.TestCase):
+    def test_it_reproduces_the_first_pass_ordering_figures(self):
+        # 31/66 = 47.0% overall, 31/51 = 60.8% once the ensemble's 15 ties are
+        # dropped. Both numbers appear in docs/12 and neither may drift silently.
+        human = [10, 9, 10, 7, 10, 10, 9, 10, 10, 10, 9, 5, 10, 10, 8]
+        ens = [9, 10, 8, 9, 8, 10, 5, 10, 9, 8, 9, 9, 9, 10, 7]
+        p = pairwise_concordance(list(zip(ens, human)))
+        self.assertEqual(p["n_pairs"], 66)
+        self.assertEqual(p["agree"], 31)
+        self.assertEqual(p["n_ensemble_tied"], 15)
+        self.assertAlmostEqual(p["concordance_all"], 0.470, places=3)
+        self.assertAlmostEqual(p["concordance_decided"], 0.608, places=3)
+
+    def test_dropping_ties_cannot_lower_the_figure(self):
+        # The whole reason both are reported: conditioning on the ensemble
+        # having an opinion can only flatter it.
+        human = [10, 9, 10, 7, 10, 10, 9, 10, 10, 10, 9, 5, 10, 10, 8]
+        ens = [9, 10, 8, 9, 8, 10, 5, 10, 9, 8, 9, 9, 9, 10, 7]
+        p = pairwise_concordance(list(zip(ens, human)))
+        self.assertGreaterEqual(p["concordance_decided"], p["concordance_all"])
+
+    def test_perfect_ordering_is_one_even_when_the_scales_differ(self):
+        # The point of the pairwise reading: a labeller who uses only 9 and 10
+        # still expresses orderings, and a judge on a different scale can match
+        # them exactly. Pearson on this data is what the ceiling suppresses.
+        p = pairwise_concordance([(2, 9), (4, 10), (6, 11), (8, 12)])
+        self.assertEqual(p["concordance_all"], 1.0)
+        self.assertEqual(p["n_ensemble_tied"], 0)
+
+    def test_reversed_ordering_is_zero(self):
+        p = pairwise_concordance([(8, 9), (6, 10), (4, 11), (2, 12)])
+        self.assertEqual(p["agree"], 0)
+
+    def test_pairs_the_labeller_scored_equal_are_not_counted(self):
+        # No preference expressed, so there is nothing for the ensemble to
+        # match. Counting them would dilute the statistic with non-questions.
+        p = pairwise_concordance([(5, 7), (9, 7), (3, 7)])
+        self.assertEqual(p["n_pairs"], 0)
+
+    def test_an_all_ties_ensemble_scores_zero_not_a_division_error(self):
+        p = pairwise_concordance([(7, 9), (7, 10), (7, 8)])
+        self.assertEqual(p["n_pairs"], 3)
+        self.assertEqual(p["n_ensemble_tied"], 3)
+        self.assertEqual(p["concordance_all"], 0.0)
+        self.assertIsNone(p["concordance_decided"])
+
+    def test_too_few_items_is_empty_not_a_crash(self):
+        self.assertEqual(pairwise_concordance([])["n_pairs"], 0)
+        self.assertEqual(pairwise_concordance([(9, 9)])["n_pairs"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
