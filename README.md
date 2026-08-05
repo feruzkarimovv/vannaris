@@ -60,8 +60,9 @@ These are that week's numbers and they stay that week's numbers: a later week do
 and it does not update this section either. For the current figures, read the site or
 `site/data/latest.json`.
 
-The cheapest API in the set costs **23× less per query** than the highest-scoring one, and what you
-give up for that depends entirely on the category:
+The cheapest API in the set costs **7× less per query** than the highest-scoring one at undiscounted
+rates — **23× less as this benchmark is actually billed**, because the cheaper rate needs a volume
+commitment. What you give up for that depends entirely on the category:
 
 | Category | Serper as % of the best vendor |
 |---|---|
@@ -72,18 +73,25 @@ give up for that depends entirely on the category:
 | **Multi-hop** | **84%** |
 | **Long-tail research** | **82%** |
 
-Four of six categories give you 92–98% of the best available quality at 4% of the price. The two
+Four of six categories give you 92–98% of the best available quality at 14% of the price
+like-for-like — 4% at Serper's volume tier. The two
 genuinely hard retrieval problems do not. That is a concrete routing policy — default cheap,
 escalate on hard categories — and no vendor has any incentive to publish it.
 
 Two findings that cut the other way, and are published just as prominently:
 
-- **One vendor (Exa) leads on quality in every single category.** "Route to the best vendor per
-  query type" is therefore not a product; the answer would just be "use Exa". The original thesis
-  was wrong and the benchmark is what proved it.
+- **One vendor (Exa) has the highest score in all six categories, and a per-category routing table
+  is therefore worth 0.000 points** over sending every query to Exa. The lead is separated from
+  second place by a paired 95% interval in only two of the six — in the other four Exa is level
+  with Perplexity — and that cuts towards the same conclusion rather than against it: where the run
+  cannot tell two vendors apart, routing between them buys nothing either. Exa is the only vendor
+  in the top tier of all six categories; Perplexity is in the top tier of four. "Route to the best
+  vendor per query type" bought nothing measurable on this run. The original thesis was wrong and
+  the benchmark is what proved it.
 - **The judge families disagree by 1.22 points on the same responses**, with mean judge-to-judge
-  disagreement of 1.77 points. Rankings survive that, because every vendor faces every judge.
-  Absolute scores do not.
+  disagreement of 1.77 points. Drop any one family and the top three of five places are unchanged;
+  score with a single family alone and even first place moves — Google's judge alone ranks
+  Perplexity first. Absolute scores do not survive at all.
 
 ## Repository layout
 

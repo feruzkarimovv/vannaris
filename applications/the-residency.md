@@ -6,6 +6,47 @@ either verified against live systems on 2026-08-01 or explicitly flagged as unve
 
 **Status:** written 2026-08-01. Not yet submitted.
 
+> **Corrections, 2026-08-05.** This brief is left as written. The statements below are no longer
+> true, or were never true, and must not be pasted into any form. Each is checkable against
+> `site/data/latest.json` or `site/export/`.
+>
+> - §1 "weekly-refreshed" — `track_record.scheduled_weeks` is 0 and `schedule_started` is false.
+>   One published week, person-invoked. Say "a free, neutral public benchmark".
+> - §1 "the router is the business" — retired 2026-08-04 (`CLAUDE.md`). What is sold is private
+>   evaluations on a customer's own queries, a live score feed and hosted classifier alongside a
+>   free open-source client, and BYOK routing sold on reliability.
+> - §2 "in a single day (2026-08-01)" — the published run's `ran_at` is **2026-07-31**.
+> - §2 and §3 "2,250 judgements" — that is the unachieved theoretical maximum. The published
+>   figure is **2,151**, across 717 complete three-judge ensembles (95.6% of 750 responses); the
+>   raw export holds **2,217** individual judge scores.
+> - §2 "Built, not published" — the site went live 2026-08-03 (`PUBLISH-CHECKLIST.md`).
+> - §2 "Deliberately not armed" — armed 2026-08-01; it fires every Monday 06:23 UTC. No
+>   scheduler-invoked run has landed yet, which is why the cadence claim above still fails.
+> - §2 "roughly $55–70/month, measured rather than projected" — unsupported. Measured vendor spend
+>   is **$3.38 per run, about $14.60/month** (`docs/06`). Judge tokens are published per row in the
+>   export; priced at list they add roughly $2 per run, but no price table is in the repository, so
+>   that half is a reconstruction and must be labelled as one.
+> - "23× cheaper", "4% of the price", "16× cost-efficiency gap" — the published ratios are **7.0
+>   like-for-like** and **23.3 as billed**, and 23.3 prices Serper at a top volume tier requiring a
+>   commitment. 16× appears nowhere in the data. Like-for-like the price share is 14%.
+> - "wins 15–23 of every 25 queries" — those are ties-or-leads, and the range is **15–22**.
+>   Outright wins are **28 of 150**, because **101 of 150** queries end in a tie (67.3%).
+> - "Exa ranks first in all six categories" — true as point estimates, but the lead is separated
+>   from second place in only **2 of 6**; in the other four Exa is level with Perplexity. The
+>   defensible claim is that a per-category routing table is worth **0.000 points**.
+> - §3c "Relative rankings survive because every vendor faces every judge" — **false.**
+>   `robustness.stable_under_single_family` is false, `stable_prefix_single_family` is 0, and
+>   `families_that_invert_it` is `["google"]` — the Google judge alone ranks Perplexity first.
+>   Dropping the OpenAI judge flips ranks four and five. The top three hold only when a family is
+>   dropped (`stable_prefix_leave_one_out` is 3); under a single family alone the agreed prefix is 0.
+> - "Perplexity took 2.6–5.2 seconds" — the p50 range is **2.5–5.2 s** (2,492–5,183 ms).
+> - "Working name is SearchBench" — renamed to Vannaris on 2026-08-01 (`docs/10`). The name is
+>   deliberately left as written here per `scripts/rename.py`; the substance still holds, because
+>   the USPTO search on VANNARIS is open and no domain is registered.
+>
+> §5's *"exactly the window over which \"continuously run weekly benchmark\" stops being a claim
+> and becomes a demonstrated track record"* is correct as written and must not be changed.
+
 ---
 
 ## 1. The project in one paragraph

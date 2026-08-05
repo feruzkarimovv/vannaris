@@ -61,6 +61,8 @@
       "d.n_judge_families ×2",
       "d.n_judges ×3",
       "d.n_vendors ×2",
+      "d.routing_caveat",
+      "d.routing_note",
       "d.schedule_note",
       "d.spread_note",
       "d.top_cost|money",
@@ -82,8 +84,8 @@
       "latest.n_judgements|int",
       "latest.n_queries|int ×3",
       "latest.ran_at|date",
-      "latest.robustness.n_families_that_invert_it|int",
-      "latest.robustness.n_families|int",
+      "latest.robustness.n_families_that_invert_it|int ×2",
+      "latest.robustness.n_families|int ×2",
       "latest.robustness.n_vendors|int",
       "latest.robustness.stable_prefix_leave_one_out|int",
       "latest.vendor_spend_usd|money",
@@ -97,13 +99,15 @@
       "export/pricing.json",
       "index.html",
       "methodology.html",
+      "methodology.html#aggregation",
       "methodology.html#changelog",
       "methodology.html#conflicts",
       "methodology.html#disagreement",
       "methodology.html#heldout",
       "methodology.html#vendors",
       "results.html",
-      "results.html#judging"
+      "results.html#judging",
+      "results.html#quality"
     ]
   },
   "results.html": {
@@ -160,6 +164,8 @@
       "d.n_categories",
       "d.n_judge_families ×2",
       "d.n_judges",
+      "d.routing_caveat",
+      "d.routing_note",
       "d.schedule_note",
       "d.weeks",
       "latest.cells.0.n_queries|int",
@@ -175,10 +181,14 @@
       "latest.n_judges",
       "latest.n_queries|int ×2",
       "latest.n_vendors",
+      "latest.robustness.n_families_that_invert_it|int",
+      "latest.robustness.n_families|int",
+      "latest.robustness.n_vendors|int",
+      "latest.robustness.stable_prefix_leave_one_out|int",
       "latest.run_id",
       "latest.vendor_spend_usd|money",
-      "latest.wins.n_queries_compared|int",
-      "latest.wins.n_tied|int"
+      "latest.wins.n_queries_compared|int ×2",
+      "latest.wins.n_tied|int ×2"
     ],
     "links": [
       "#judging",

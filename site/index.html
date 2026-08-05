@@ -102,8 +102,10 @@
             </div>
           </div>
           <div class="panel__foot">
-            Run <span data-val="latest.ran_at" data-fmt="date"></span>. Ordering is the signal;
-            absolute scores move with judge choice. <a href="results.html#judging">See the spread</a>.
+            Run <span data-val="latest.ran_at" data-fmt="date"></span>. Rank here is score order;
+            the <a href="results.html#quality">full table</a> gives vendors this run cannot separate
+            a shared rank number. Absolute scores move with judge choice.
+            <a href="results.html#judging">See the spread</a>.
           </div>
         </div>
         <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
@@ -229,6 +231,26 @@
         </div>
       </div>
     </div>
+
+    <!-- The result that runs against the paragraph above, published beside it
+         instead of only in the README. Every figure is a slot; the two
+         sentences are composed in site.js derived() because their shape has to
+         change on a run where two vendors lead different categories, and a
+         hand-written version would go on saying this one. -->
+    <div class="callout" style="margin-top:2.2rem;max-width:80ch">
+      <span class="eyebrow">Routing headroom</span>
+      <p>
+        <span data-val="d.routing_note"></span>
+        <span data-val="d.routing_caveat"></span>
+        Nor is the ordering invariant to the judges:
+        <span data-val="latest.robustness.n_families_that_invert_it" data-fmt="int"></span> of
+        <span data-val="latest.robustness.n_families" data-fmt="int"></span> judge families scoring
+        alone rank the vendors in a different order. The routing case above is a cost one — take a
+        known quality gap where it is small enough.
+        <a href="results.html#quality">Per-category tiers</a> ·
+        <a href="methodology.html#aggregation">how a cell is built</a>
+      </p>
+    </div>
   </div>
 </section>
 
@@ -249,7 +271,8 @@
 
     <p class="note" style="margin-top:1.3rem;max-width:76ch">
       Current data, <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> in.
-      Ordering is the finding; absolute scores move with judge choice.
+      Ordering resolves less than it looks like it does — see the tiers on the results page — and
+      absolute scores move with judge choice.
       <a href="#limits">Known limits</a> · <a href="results.html">Full table</a>
     </p>
   </div>
@@ -470,10 +493,11 @@
           What actually holds — drop any one judge family and the top
           <span data-val="latest.robustness.stable_prefix_leave_one_out" data-fmt="int"></span> of
           <span data-val="latest.robustness.n_vendors" data-fmt="int"></span> places are unchanged.
-          Score with a single family alone and even first place moves:
+          Score with a single family alone and the order moves:
           <span data-val="latest.robustness.n_families_that_invert_it" data-fmt="int"></span> of
-          <span data-val="latest.robustness.n_families" data-fmt="int"></span> families put a
-          different vendor on top. A claim like "scores 8.4 out of 10" is softer still.
+          <span data-val="latest.robustness.n_families" data-fmt="int"></span> families rank the
+          vendors differently, and on this run that reaches first place. A claim like "scores 8.4
+          out of 10" is softer still.
         </dd>
       </div>
       <div>
