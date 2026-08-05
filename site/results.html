@@ -64,8 +64,10 @@
       <p>
         <strong>One run, not a trend — and the ordering resolves less than it looks like it does.</strong>
         This block used to say that ordering within a category is what holds. It is the opposite way
-        round. First place overall survives every check applied to it; within a category, the leader
-        is indistinguishable from second place in most of them, because a category is
+        round. First place overall is separated from second place by a paired 95% interval and
+        holds under every leave-one-out variant, though not under a single judge family scoring
+        alone; within a category, the leader is indistinguishable from second place in most of
+        them, because a category is
         <span class="mono" data-val="latest.cells.0.n_queries" data-fmt="int"></span> questions
         scored on a coarse scale. Vendors the run cannot tell apart now share a rank number below,
         and every neighbouring pair is published with its paired interval so you can check any
@@ -180,6 +182,20 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- Same finding as the landing page, stated where the per-category cells
+         actually are. Sentences composed in site.js derived(); figures are slots. -->
+    <div class="callout" style="margin-top:1.4rem;max-width:80ch">
+      <span class="eyebrow">Routing headroom</span>
+      <p>
+        <span data-val="d.routing_note"></span>
+        <span data-val="d.routing_caveat"></span>
+        Per query it is thinner still:
+        <span data-val="latest.wins.n_tied" data-fmt="int"></span> of
+        <span data-val="latest.wins.n_queries_compared" data-fmt="int"></span> queries end with two
+        or more vendors tied for the best median, so on most of them there is no pick to make.
+      </p>
     </div>
   </div>
 </section>
@@ -301,9 +317,18 @@
           </div>
         </div>
         <p class="prose">
-          Rankings survive this because every vendor is scored by every judge, so the bias applies
-          equally across the row. What does not survive is any absolute claim: "scores 8.4 out of
-          10" is a statement about this ensemble, not about the vendor.
+          An earlier version of this page said the ranking survives this because every vendor is
+          scored by every judge. That is false, and the export publishes what disproves it: judge
+          bias interacts with the vendor rather than applying equally across the row. What holds is
+          that dropping any one judge family leaves the top
+          <span data-val="latest.robustness.stable_prefix_leave_one_out" data-fmt="int"></span> of
+          <span data-val="latest.robustness.n_vendors" data-fmt="int"></span> places unchanged;
+          scored by a single family alone,
+          <span data-val="latest.robustness.n_families_that_invert_it" data-fmt="int"></span> of
+          <span data-val="latest.robustness.n_families" data-fmt="int"></span> rank the vendors in
+          a different order — on this run that reordering reaches first place. Absolute claims are
+          softer still: "scores 8.4 out of 10" is a statement about this ensemble, not about the
+          vendor.
         </p>
         <p class="prose">
           The fix is a human-labelled calibration set, scored monthly against the ensemble. It is

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T17:54:56+00:00",
+  "generated_at": "2026-08-05T11:01:09+00:00",
   "note": "basis_per_query_usd is what this benchmark is billed at; payg_per_query_usd is the undiscounted rate. They differ for vendors whose cheapest tier requires a volume commitment. reported_by_vendor says whether the vendor returns a billed figure on the call itself \u2014 where it does, cost_usd in the responses export is measured rather than derived.",
   "vendors": {
     "exa": {

@@ -298,7 +298,75 @@
       heldout_committed: ho && ho.sets.length ? ho.sets[ho.sets.length - 1].committed_at : null,
       heldout_rotation: ho ? ho.rotate_after_weeks : null,
       heldout_max_gap: hoWeek ? hoWeek.max_gap : null,
-      heldout_worst_vendor: hoWeek && hoWeek.vendors.length ? hoWeek.vendors[0].label : null
+      heldout_worst_vendor: hoWeek && hoWeek.vendors.length ? hoWeek.vendors[0].label : null,
+
+      /* ------------------------------------------------- routing headroom
+       * The measured answer to the question this project started from, and it
+       * came back no. Composed here rather than typed into a page for the same
+       * reason spread_note is: on a run where two vendors lead different
+       * categories this sentence has to say something else, and a hand-written
+       * one would go on saying this one. Every branch returns English. */
+      routing_note: (function () {
+        var R = D.latest.routing || {};
+        if (!R.leaders) return "This run published no per-category comparison, so there is no routing gain to report.";
+        var name = {};
+        vs.forEach(function (v) { name[v.vendor] = v.label; });
+        var n = R.n_categories;
+        var best = name[R.best_single_vendor] || R.best_single_vendor;
+        if (!R.single_leader) {
+          var who = Object.keys(R.categories_led).map(function (v) { return name[v] || v; });
+          return joinList(who) + " are top in different categories, and routing each category to " +
+            "its best vendor scores " + R.oracle_score.toFixed(2) + " against " + best + "'s " +
+            R.best_single_score.toFixed(2) + " — a gain of " + R.gain_points.toFixed(2) + " points.";
+        }
+        var one = name[R.single_leader] || R.single_leader;
+        return one + " has the highest score in all " + n + " of " + n + " categories, so a table " +
+          "that sent each category to its best vendor would pick " + one + " every time. That is " +
+          "worth " + R.gain_points.toFixed(2) + " points over sending every query to " + one + ".";
+      })(),
+
+      /* The part that makes the sentence above defensible rather than a second
+       * overclaim. Most of the category leads on this run sit inside their own
+       * 95% interval, and that cuts towards the conclusion rather than against
+       * it: two vendors a run cannot tell apart are two vendors there is
+       * nothing to gain by routing between. */
+      routing_caveat: (function () {
+        var R = D.latest.routing || {};
+        var S = (D.latest.separation && D.latest.separation.by_category) || [];
+        if (!R.leaders || !S.length) return "Separation between category leaders was not published for this run.";
+        var name = {};
+        vs.forEach(function (v) { name[v.vendor] = v.label; });
+        var n = R.n_categories, sep = R.categories_separated;
+        if (sep === n) return "Every one of those leads is separated from second place by a paired 95% interval.";
+        /* A rival is named only when the same vendor shares the top tier in
+         * every category the run cannot resolve. Counting appearances across
+         * all categories names a vendor for categories it is not in, and
+         * `single_leader` is null on a split run, so excluding it alone
+         * excludes nobody and a category leader ends up named as its own
+         * rival. */
+        var led = R.categories_led || {};
+        var unresolved = S.filter(function (e) {
+          return !(e.tiers && e.tiers[0]) || e.tiers[0].vendors.length > 1;
+        });
+        var shares = {};
+        unresolved.forEach(function (e) {
+          ((e.tiers && e.tiers[0]) ? e.tiers[0].vendors : []).forEach(function (v) {
+            if (!led[v]) shares[v] = (shares[v] || 0) + 1;
+          });
+        });
+        var rival = unresolved.length ? Object.keys(shares).filter(function (v) {
+          return shares[v] === unresolved.length;
+        }).sort()[0] : null;
+        var subject = R.single_leader ? "That lead is" : "Those category leads are";
+        var close = R.single_leader
+          ? "That cuts towards the same conclusion rather than against it — where a run cannot " +
+            "tell two vendors apart, routing between them buys nothing either."
+          : "The gain above therefore rests on category leads this run cannot resolve in " +
+            (n - sep) + " of " + n + " cases.";
+        return subject + " only separated from second place in " + sep + " of " + n +
+          " categories; in the other " + (n - sep) + " the paired 95% interval on the gap includes " +
+          "zero" + (rival ? ", level with " + (name[rival] || rival) : "") + ". " + close;
+      })()
     };
   }
 

@@ -1371,6 +1371,57 @@
       }
     ]
   },
+  "routing": {
+    "n_categories": 6,
+    "leaders": [
+      {
+        "category": "general_facts",
+        "vendor": "exa",
+        "score": 9.864
+      },
+      {
+        "category": "breaking_news",
+        "vendor": "exa",
+        "score": 9.458
+      },
+      {
+        "category": "local_shopping",
+        "vendor": "exa",
+        "score": 8.667
+      },
+      {
+        "category": "code_technical",
+        "vendor": "exa",
+        "score": 9.182
+      },
+      {
+        "category": "multi_hop",
+        "vendor": "exa",
+        "score": 8.917
+      },
+      {
+        "category": "long_tail",
+        "vendor": "exa",
+        "score": 8.636
+      }
+    ],
+    "categories_led": {
+      "exa": 6
+    },
+    "single_leader": "exa",
+    "oracle_score": 9.121,
+    "best_single_vendor": "exa",
+    "best_single_score": 9.121,
+    "gain_points": 0.0,
+    "categories_separated": 2,
+    "top_tier_counts": {
+      "exa": 6,
+      "perplexity": 4
+    },
+    "top_tier_everywhere": [
+      "exa"
+    ]
+  },
   "heldout": null,
   "detail": [
     {

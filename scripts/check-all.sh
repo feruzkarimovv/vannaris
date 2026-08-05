@@ -201,8 +201,32 @@ run "held-out set committed" heldout_committed
 # landing page would write without noticing (CLAUDE.md).
 printf '\n\033[1m── forbidden claims\033[0m\n'
 claims=0
-if grep -rniE "continuously (run|updated)|runs (weekly|continuously)|updated weekly" \
-     site/*.html README.md 2>/dev/null | grep -viE "not |until |once |when |has not"; then
+# Scope: every published HTML surface plus the README. `site/vendors/*.html` is
+# written out rather than reached with `site/**/*.html` — this file runs under
+# bash 3.2, where globstar does not exist and `**` collapses to `*`, so the glob
+# form would silently drop index/results/methodology/data: the four pages that
+# actually face the public. check-site.mjs and check-quality.mjs discover the
+# vendor pages by reading the directory; this was the one gate that never saw
+# them, and they are generated from a template, so one template edit would put a
+# claim on all five with nothing to catch it.
+#
+# The second filter is a use/mention distinction, not a list of magic words. A
+# cadence phrase inside quotation marks is being named in order to say it is not
+# yet true — `applications/the-residency.md:143` and `docs/07:33` are the shape —
+# and a gate that fails on those teaches the next agent to delete the honest
+# sentence, which is exactly the near-miss recorded below about Tavily/Brave. It
+# cannot be bolted onto an offending claim: a claim wrapped in quotes stops
+# being a claim.
+#
+# `docs/` and `applications/` are deliberately out of scope. Their cadence
+# sentences are either about someone else (`docs/04`'s "updated weekly" is
+# FreshQA, a Google dataset) or honest by way of a qualifier a line or two away,
+# which a line-oriented grep cannot see; and AUTONOMY item 7 forbids rewriting
+# them in place, so a gate covering them would be red with no legal fix.
+if grep -rniE "continuously[ -](run|updated)|runs? (weekly|continuously)|updated weekly|weekly[ -]refreshed|refreshed weekly|published weekly" \
+     site/*.html site/vendors/*.html README.md 2>/dev/null \
+     | grep -viE "not |until |once |when |has not" \
+     | grep -viE '["“][^"”<>]*(weekly|continuous)[^"”<>]*["”]'; then
   echo "   ^ cadence claimed before the data supports it"
   claims=1
 fi

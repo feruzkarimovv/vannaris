@@ -482,6 +482,77 @@ def build_cells(rows: list[dict]) -> list[dict]:
     return sorted(cells, key=lambda c: (CATEGORY_ORDER.index(c["category"]), -(c["score"] or 0)))
 
 
+def build_routing_gain(cells: list[dict], by_category: list[dict]) -> dict:
+    """What routing on quality per category is actually worth.
+
+    The question this project was started to answer, answered against its own
+    data. A per-category oracle -- send each category to whichever vendor scores
+    highest in it -- is compared against the best single vendor used for
+    everything. Where one vendor is top everywhere the two are the same table
+    and the gain is zero, which is a fact about the routing product and not a
+    quality claim about the vendor.
+
+    Rounded last, from unrounded means. Rounding either side first produces a
+    gain of -0.0 on exactly the run this exists to describe.
+    """
+    published: dict[str, dict[str, float]] = {}
+    for c in cells:
+        if c["score"] is not None:
+            published.setdefault(c["category"], {})[c["vendor"]] = c["score"]
+    cats = [c for c in CATEGORY_ORDER if c in published]
+    if len(cats) < 2:
+        return {}
+
+    # Only vendors with a published cell in every category. A vendor missing a
+    # cell has its overall averaged over a different set than the oracle is, so
+    # the difference would not be a routing gain.
+    complete = sorted(v for v in {v for cat in cats for v in published[cat]}
+                      if all(v in published[cat] for cat in cats))
+    if not complete:
+        return {}
+
+    leaders = [{"category": cat,
+                "vendor": max(published[cat], key=lambda v: published[cat][v]),
+                "score": max(published[cat].values())}
+               for cat in cats]
+    oracle = statistics.mean(l["score"] for l in leaders)
+    overall = {v: statistics.mean(published[cat][v] for cat in cats) for v in complete}
+    best = max(overall, key=lambda v: overall[v])
+    gain = round(oracle - overall[best], 3)
+    if gain == 0:
+        gain = 0.0                      # never publish -0.0
+
+    led: dict[str, int] = {}
+    for l in leaders:
+        led[l["vendor"]] = led.get(l["vendor"], 0) + 1
+
+    # How many category leads the run can actually resolve, and who shares the
+    # top tier. A tier of one is a lead separated from second place.
+    top_tier: dict[str, int] = {}
+    separated = 0
+    for e in by_category:
+        first = e["tiers"][0]["vendors"] if e["tiers"] else []
+        if len(first) == 1:
+            separated += 1
+        for v in first:
+            top_tier[v] = top_tier.get(v, 0) + 1
+
+    n = len(cats)
+    return {
+        "n_categories": n,
+        "leaders": leaders,
+        "categories_led": led,
+        "single_leader": next((v for v, k in led.items() if k == n), None),
+        "oracle_score": round(oracle, 3),
+        "best_single_vendor": best,
+        "best_single_score": round(overall[best], 3),
+        "gain_points": gain,
+        "categories_separated": separated,
+        "top_tier_counts": top_tier,
+        "top_tier_everywhere": sorted(v for v, k in top_tier.items() if k == n),
+    }
+
+
 def _per_query_winners(rows: list[dict]) -> tuple[dict[str, int], dict[str, int]]:
     """Who was best on each query, counting ties as ties.
 
@@ -956,6 +1027,36 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         for r in rows
     ]
 
+    # What the ranking can and cannot resolve, published beside it rather than
+    # left for a reader to derive from the CSV and then ask why it was not
+    # stated. `tiers` is what the table renders instead of five distinct rank
+    # badges; `adjacent` is every neighbouring pair with its paired interval, so
+    # the specific claim "this vendor beat that one" is checkable one row at a
+    # time. Lifted out of the returned literal because `routing` is computed
+    # from `by_category` and the two must not diverge.
+    separation = {
+        "overall_tiers": build_tiers(rows, [t["vendor"] for t in totals]),
+        "adjacent": [
+            {
+                "above": a["vendor"], "below": b["vendor"],
+                **(paired_difference(rows, a["vendor"], b["vendor"]) or {}),
+            }
+            for a, b in zip(totals, totals[1:])
+        ],
+        "by_category": [
+            {
+                "category": cat,
+                "tiers": build_tiers(
+                    rows,
+                    [c["vendor"] for c in cells
+                     if c["category"] == cat and c["score"] is not None],
+                    cat),
+            }
+            for cat in CATEGORY_ORDER
+            if any(c["category"] == cat and c["score"] is not None for c in cells)
+        ],
+    }
+
     return {
         "week": run["week"],
         "run_id": run["id"],
@@ -987,34 +1088,14 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "robustness": build_robustness(rows),
         "cost_spread": build_cost_spread(totals),
         "payload_effect": build_payload_effect(rows),
-        # What the ranking can and cannot resolve, published beside it rather
-        # than left for a reader to derive from the CSV and then ask why it was
-        # not stated. `tiers` is what the table renders instead of five distinct
-        # rank badges; `adjacent` is every neighbouring pair with its paired
-        # interval, so the specific claim "this vendor beat that one" is
-        # checkable one row at a time.
-        "separation": {
-            "overall_tiers": build_tiers(rows, [t["vendor"] for t in totals]),
-            "adjacent": [
-                {
-                    "above": a["vendor"], "below": b["vendor"],
-                    **(paired_difference(rows, a["vendor"], b["vendor"]) or {}),
-                }
-                for a, b in zip(totals, totals[1:])
-            ],
-            "by_category": [
-                {
-                    "category": cat,
-                    "tiers": build_tiers(
-                        rows,
-                        [c["vendor"] for c in cells
-                         if c["category"] == cat and c["score"] is not None],
-                        cat),
-                }
-                for cat in CATEGORY_ORDER
-                if any(c["category"] == cat and c["score"] is not None for c in cells)
-            ],
-        },
+        "separation": separation,
+        # The measured answer to the question this project was started to ask.
+        # A per-category routing table is compared against one vendor for
+        # everything; on a run where one vendor is top in every category the two
+        # are the same table. Published because the answer came back no, and a
+        # benchmark that hides the result running against its own product is the
+        # thing this project exists to be an alternative to.
+        "routing": build_routing_gain(cells, separation["by_category"]),
         "heldout": build_heldout(all_rows, run, manifest or {}),
         "detail": detail,
         # Every run this week produced, not just the one that won selection —
