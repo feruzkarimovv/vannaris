@@ -129,7 +129,7 @@ def build_vendor(latest: dict, vendor_id: str, site: Path) -> str | None:
     standing = (f'#{rank} of {len(vendors)}   ·   {me["score"]:.2f} / 10 overall   ·   '
                 f'${me["cost_per_query_usd"]:.5f} per query   ·   '
                 f'{me["p50_latency_ms"] / 1000:.1f}s p50   ·   '
-                f'{me["wins"]} of {latest["n_queries"]} queries won')
+                f'{me["outright_wins"]} of {latest["n_queries"]} queries won outright')
     parts.append(
         f'<text x="64" y="208" font-family="{MONO}" font-size="19" fill="{INK2}">'
         f'{esc(standing)}</text>'

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T02:46:31+00:00",
+  "generated_at": "2026-08-05T11:01:09+00:00",
   "week": "2026-W31",
   "run_id": "50fbea16-fb03-4e26-bcd1-40c1d40bd871",
   "query_set_hash": "208cb6d7e33aef9b",
@@ -9,7 +9,7 @@
     {
       "file": "judge-scores-2026-W31.csv",
       "rows": 2217,
-      "what": "Every individual judge score. One row per (query, vendor, judge)."
+      "what": "Every individual judge score. One row per (query, vendor, judge). held_out=1 marks a withheld question, scored but not yet named."
     },
     {
       "file": "responses-2026-W31.csv",
@@ -22,9 +22,19 @@
       "what": "The published table: one row per vendor per category."
     },
     {
+      "file": "pricing.json",
+      "rows": 5,
+      "what": "Per-vendor price basis, tier and source URL behind every cost figure."
+    },
+    {
       "file": "queries.csv",
       "rows": 150,
-      "what": "The full query set. Authored in-house, so it ships with no dataset-licence encumbrance."
+      "what": "The full public query set. Authored in-house, so it ships with no dataset-licence encumbrance."
+    },
+    {
+      "file": "queries-heldout-retired.csv",
+      "rows": 0,
+      "what": "Held-out questions, published in full once their set retires. Each set's hash was committed before it ever ran."
     }
   ]
 }

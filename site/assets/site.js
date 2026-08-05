@@ -84,6 +84,20 @@
     D.categories.forEach(function (c) { catLabel[c.id] = c.label; });
     var tr = D.track_record;
 
+    /* Judge disagreement and the withheld set, both of which have to render
+     * something sensible when they are empty. The withheld set in particular
+     * spends its first weeks in states where the honest sentence is about what
+     * has *not* been measured yet, and a page that assumed the data was there
+     * would print an em dash where a caveat belongs. */
+    var byCat = (D.latest.judging.disagreement_by_category || []).slice();
+    var ranked = byCat.slice().sort(function (a, b) { return b.mean - a.mean; });
+    var dis = { worst: ranked[0] || null, best: ranked[ranked.length - 1] || null };
+    var pairs = (D.latest.judging.family_pairs || []).slice()
+      .sort(function (a, b) { return b.mean_abs_diff - a.mean_abs_diff; });
+    var ho = D.heldout || null;
+    var hoWeek = D.latest.heldout || null;
+    var weeksHeld = ho && ho.weeks_with_set ? ho.weeks_with_set.length : 0;
+
     function joinList(items) {
       if (items.length <= 1) return items.join("");
       if (items.length === 2) return items[0] + " and " + items[1];
@@ -149,7 +163,8 @@
           cost_per_query_usd: self.cost_per_query_usd,
           cost_usd: self.cost_usd,
           p50_latency_ms: self.p50_latency_ms,
-          wins: self.wins,
+          outright_wins: self.outright_wins,
+          shared_best: self.shared_best,
           n_scored: self.n_scored,
           n_queries: self.n_queries,
           coverage_pct: 100 * self.n_scored / self.n_queries,
@@ -234,7 +249,124 @@
         : tr.weeks_published + " complete runs. Movement is only as reliable as the number of weeks behind it.",
       record_note: !tr.schedule_started
         ? "Scheduled runs have not started. Elapsed public running time is what the schedule is for, and it is measured in weeks."
-        : "Scheduled since " + tr.first_scheduled_week + ". Elapsed public running time is measured in weeks, not commits."
+        : "Scheduled since " + tr.first_scheduled_week + ". Elapsed public running time is measured in weeks, not commits.",
+
+      /* ------------------------------------------------- judge disagreement
+       * The rates are shares in the export, and the sentence around them has
+       * to change shape with the data: which category is worst is a fact about
+       * the run, not something to type into the page and let rot. */
+      worst_cat: dis.worst && catLabel[dis.worst.category],
+      worst_cat_mean: dis.worst && dis.worst.mean,
+      best_cat: dis.best && catLabel[dis.best.category],
+      best_cat_mean: dis.best && dis.best.mean,
+      disagreement_note: !dis.worst
+        ? "This run published no judge comparison."
+        : catLabel[dis.worst.category] + " splits them hardest, at " +
+          dis.worst.mean.toFixed(2) + " points on average against " +
+          dis.best.mean.toFixed(2) + " on " + catLabel[dis.best.category].toLowerCase() +
+          " — so a rank is least stable exactly where the ensemble is least sure.",
+      /* The pair that disagrees most, named. "The judges disagree" is a
+       * different claim from "these two labs disagree and the third tracks
+       * one of them", and only the second is actionable for a reader. */
+      worst_pair: pairs.length
+        ? pairs[0].pair.split("/").map(function (f) {
+            return f.charAt(0).toUpperCase() + f.slice(1);
+          }).join(" and ") + ", at " + pairs[0].mean_abs_diff.toFixed(2) + " points"
+        : null,
+
+      /* ------------------------------------------------------ withheld set
+       * Four states, and the difference between the middle two is the whole
+       * honesty of the mechanism: a set that is registered has committed to
+       * nothing yet, and a set that has run once has measured nothing yet. */
+      heldout_state: !ho
+        ? "No withheld set is registered."
+        : !ho.active
+          ? "The last withheld set has retired and its questions are published. The next is not registered yet."
+          : !weeksHeld
+            ? "The set is registered and its hash is committed, but it has not run yet. Nothing is measured against it."
+            : weeksHeld + (weeksHeld === 1 ? " week has" : " weeks have") + " run against it.",
+      heldout_reading: !hoWeek
+        ? "No withheld questions have run, so there is no gap to read."
+        : !ho.interpretable
+          ? "One run cannot separate a gap from the two sets differing in difficulty. This becomes evidence at three weeks of consistent signal, and there " +
+            (weeksHeld === 1 ? "has been 1." : "have been " + weeksHeld + ".")
+          : "Read as a series: a vendor scoring consistently better on the published questions across weeks is the signal this exists to catch.",
+      heldout_n: ho && ho.sets.length ? ho.sets[ho.sets.length - 1].n_queries : null,
+      heldout_sha: ho && ho.sets.length ? ho.sets[ho.sets.length - 1].sha256 : null,
+      heldout_sha_short: ho && ho.sets.length
+        ? ho.sets[ho.sets.length - 1].sha256.slice(0, 16) + "…" : null,
+      heldout_committed: ho && ho.sets.length ? ho.sets[ho.sets.length - 1].committed_at : null,
+      heldout_rotation: ho ? ho.rotate_after_weeks : null,
+      heldout_max_gap: hoWeek ? hoWeek.max_gap : null,
+      heldout_worst_vendor: hoWeek && hoWeek.vendors.length ? hoWeek.vendors[0].label : null,
+
+      /* ------------------------------------------------- routing headroom
+       * The measured answer to the question this project started from, and it
+       * came back no. Composed here rather than typed into a page for the same
+       * reason spread_note is: on a run where two vendors lead different
+       * categories this sentence has to say something else, and a hand-written
+       * one would go on saying this one. Every branch returns English. */
+      routing_note: (function () {
+        var R = D.latest.routing || {};
+        if (!R.leaders) return "This run published no per-category comparison, so there is no routing gain to report.";
+        var name = {};
+        vs.forEach(function (v) { name[v.vendor] = v.label; });
+        var n = R.n_categories;
+        var best = name[R.best_single_vendor] || R.best_single_vendor;
+        if (!R.single_leader) {
+          var who = Object.keys(R.categories_led).map(function (v) { return name[v] || v; });
+          return joinList(who) + " are top in different categories, and routing each category to " +
+            "its best vendor scores " + R.oracle_score.toFixed(2) + " against " + best + "'s " +
+            R.best_single_score.toFixed(2) + " — a gain of " + R.gain_points.toFixed(2) + " points.";
+        }
+        var one = name[R.single_leader] || R.single_leader;
+        return one + " has the highest score in all " + n + " of " + n + " categories, so a table " +
+          "that sent each category to its best vendor would pick " + one + " every time. That is " +
+          "worth " + R.gain_points.toFixed(2) + " points over sending every query to " + one + ".";
+      })(),
+
+      /* The part that makes the sentence above defensible rather than a second
+       * overclaim. Most of the category leads on this run sit inside their own
+       * 95% interval, and that cuts towards the conclusion rather than against
+       * it: two vendors a run cannot tell apart are two vendors there is
+       * nothing to gain by routing between. */
+      routing_caveat: (function () {
+        var R = D.latest.routing || {};
+        var S = (D.latest.separation && D.latest.separation.by_category) || [];
+        if (!R.leaders || !S.length) return "Separation between category leaders was not published for this run.";
+        var name = {};
+        vs.forEach(function (v) { name[v.vendor] = v.label; });
+        var n = R.n_categories, sep = R.categories_separated;
+        if (sep === n) return "Every one of those leads is separated from second place by a paired 95% interval.";
+        /* A rival is named only when the same vendor shares the top tier in
+         * every category the run cannot resolve. Counting appearances across
+         * all categories names a vendor for categories it is not in, and
+         * `single_leader` is null on a split run, so excluding it alone
+         * excludes nobody and a category leader ends up named as its own
+         * rival. */
+        var led = R.categories_led || {};
+        var unresolved = S.filter(function (e) {
+          return !(e.tiers && e.tiers[0]) || e.tiers[0].vendors.length > 1;
+        });
+        var shares = {};
+        unresolved.forEach(function (e) {
+          ((e.tiers && e.tiers[0]) ? e.tiers[0].vendors : []).forEach(function (v) {
+            if (!led[v]) shares[v] = (shares[v] || 0) + 1;
+          });
+        });
+        var rival = unresolved.length ? Object.keys(shares).filter(function (v) {
+          return shares[v] === unresolved.length;
+        }).sort()[0] : null;
+        var subject = R.single_leader ? "That lead is" : "Those category leads are";
+        var close = R.single_leader
+          ? "That cuts towards the same conclusion rather than against it — where a run cannot " +
+            "tell two vendors apart, routing between them buys nothing either."
+          : "The gain above therefore rests on category leads this run cannot resolve in " +
+            (n - sep) + " of " + n + " cases.";
+        return subject + " only separated from second place in " + sep + " of " + n +
+          " categories; in the other " + (n - sep) + " the paired 95% interval on the gap includes " +
+          "zero" + (rival ? ", level with " + (name[rival] || rival) : "") + ". " + close;
+      })()
     };
   }
 
@@ -255,6 +387,14 @@
     n2: function (v) { return Number(v).toFixed(2); },
     pct0: function (v) { return Number(v).toFixed(0) + "%"; },
     pct1: function (v) { return Number(v).toFixed(1) + "%"; },
+    /* For values the export carries as a 0..1 share rather than as a number
+     * already scaled to 100 — coverage floors, disagreement rates. Both live
+     * in the same bundle and pct0 was being used on both, which rendered the
+     * 0.60 cell-coverage floor as "1%" on two published pages: a threshold
+     * stated an order of magnitude below the one the code enforces. The two
+     * shapes now have two formatters, so the mistake is not available. */
+    share0: function (v) { return (Number(v) * 100).toFixed(0) + "%"; },
+    share1: function (v) { return (Number(v) * 100).toFixed(1) + "%"; },
     ratio: function (v) { return Number(v).toFixed(0) + "×"; },
     /* Two figures live in this formatter and they have different needs: run
      * totals in dollars, and per-query costs three or four orders of magnitude

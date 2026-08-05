@@ -135,8 +135,23 @@ anything already crawled, the file covers anything that never fetches a page.
 
 - [ ] **The human-labelled calibration set.** 100–200 examples labelled by hand, compared against the
       ensemble monthly, rubric refined against the specific disagreements found. The measured
-      1.22-point spread between judge families is published on the site precisely because it is the
-      largest caveat on every other number — and right now nothing audits it.
+      spread between judge families is published on the site precisely because it is the
+      largest caveat on every other number — and right now nothing audits it. Note that the
+      disagreement *rates* added on 2026-08-04 do not close this: they measure agreement between
+      models, which `docs/12` is explicit is a different and weaker quantity than agreement with
+      a human.
+
+- [ ] **Set `SB_HELDOUT_JSON` in Actions secrets** before the next scheduled run, or the withheld
+      set will not run in CI and the overfitting check stays absent. The set is registered
+      (`src/queries/heldout/manifest.json`, committed 2026-08-04) and its questions are in
+      `data/heldout/`, outside git. Paste that file's contents as the secret. A missing secret is
+      handled — the run proceeds on the public set alone and says so — so this fails quietly rather
+      than loudly, which is the reason it is written down here.
+
+- [ ] **Read `docs/13-conflict-of-interest.md` alongside the methodology in the attorney review**
+      above. It contains public commitments made by a named person about payments not taken and
+      relationships not held, and a disclosure register that has to stay accurate as the business
+      changes. The site mirrors it at `methodology.html#conflicts`.
 
 ---
 
