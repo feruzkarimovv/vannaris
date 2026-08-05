@@ -58,6 +58,14 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # never persisted, so the export could not distinguish a measured cost from
     # an assumed one — while the business case leaned on the ratio between them.
     ("raw_responses", "cost_source", "TEXT"),
+    # 'absolute' or 'pairwise'. Absolute scoring is what the first calibration
+    # pass used and it hit a ceiling: twelve of fifteen human scores were 9 or
+    # 10, leaving a correlation whose interval excluded nothing. Pairwise sets
+    # ask which of two responses is better instead, and the two kinds must not
+    # be pooled or compared -- they are different measurements with different
+    # statistics. NULL on sets written before the column means absolute, which
+    # is what they were, but the reader is told rather than assumed at.
+    ("calibration_sets", "kind", "TEXT"),
 ]
 
 

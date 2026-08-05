@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 import sqlite3
 import statistics
@@ -51,6 +52,32 @@ from .judge.ensemble import JUDGES
 
 ROOT = Path(__file__).resolve().parent.parent
 UI_TEMPLATE = ROOT / "src" / "calibrate_ui.html"
+PAIR_UI_TEMPLATE = ROOT / "src" / "calibrate_pair_ui.html"
+
+# Worked examples, shown to the labeller before the first real item and
+# reachable from every screen afterwards. `docs/12` names their absence as the
+# defect that produced the first pass's ceiling: with nothing showing what a 5
+# or a 7 looks like, "it answered my question" became 10 on twelve of fifteen
+# items, and a correlation over a variable that barely varies is noise.
+#
+# Written as descriptions of result sets rather than as scores of any real
+# response, so that nothing here can be read back as a label for a vendor.
+ANCHORS = [
+    {"score": 9, "label": "Excellent",
+     "body": "The answer is present, current and easy to find — top two or three "
+             "results state it outright, from sources that would actually know. "
+             "Nothing stale, nothing that has to be pieced together."},
+    {"score": 6, "label": "Usable but flawed",
+     "body": "The answer is reachable but you have to work: it sits below the "
+             "fold, or one authoritative result is mixed with two that are out "
+             "of date, or the topic is right and the specific question asked is "
+             "only half addressed."},
+    {"score": 3, "label": "Mostly failed",
+     "body": "On topic but does not answer the question. Results are stale, "
+             "tangential, or the one that would answer it is an aggregator "
+             "quoting something you cannot check. A reader would leave and "
+             "search again."},
+]
 
 # Written outside site/ deliberately — see the module docstring. Gitignored.
 DEFAULT_OUT = ROOT / "calibration"
@@ -68,6 +95,15 @@ DEFAULT_N = 150
 DEFAULT_DISAGREEMENT_SHARE = 0.34
 
 BLINDING = "vendor identity hidden; judge scores hidden; presentation order shuffled per labeller"
+# Pairwise adds one thing absolute scoring had no need of: which side a
+# response is shown on is decided by coin flip rather than by score. Without
+# that a labeller who always clicks left scores 100% agreement having read
+# nothing, and the swapped stratum exists to check that they did not.
+BLINDING_PAIRWISE = (
+    "vendor identity hidden; judge scores hidden; ensemble margin hidden; "
+    "left/right assignment randomised per pair; presentation order interleaved "
+    "by category; repeats and side-swaps held back from the first third"
+)
 
 DIMENSIONS = ("relevance", "freshness", "citation_quality", "overall")
 
@@ -191,8 +227,200 @@ def draw(rows: list[dict], n: int, seed: int, disagreement_share: float) -> list
     for r in dis_pick:
         out.append({**r, "stratum": "disagreement"})
     rng.shuffle(out)  # presentation order carries no signal about stratum
-    for i, r in enumerate(out):
+
+    # Then interleave by category, so that stopping early costs balance rather
+    # than destroying it. A labeller does not finish: the first pass drew a
+    # clean 7-per-category over 42 items and the human labelled 15 of them,
+    # all inside the first 20 presented positions. Under a plain shuffle those
+    # 15 came out 4 multi-hop against 1 general-facts, and `docs/12` then
+    # reported per-category bias off counts as low as n = 2 -- including the
+    # "worst category" figure. The set was balanced; what was read was not.
+    #
+    # Round-robin over categories keeps every prefix as even as the remaining
+    # supply allows, so the honest version of "I did the first twenty" is a
+    # balanced twenty. The shuffle above still fixes the order within each
+    # category, and category turn order is drawn from the same seeded rng, so
+    # this stays a pure function of (rows, seed) and no position predicts a
+    # stratum.
+    queues: dict[str, list[dict]] = defaultdict(list)
+    for r in out:
+        queues[r["category"]].append(r)
+    turn = sorted(queues)
+    rng.shuffle(turn)
+    ordered: list[dict] = []
+    while len(ordered) < len(out):
+        for cat in turn:
+            if queues[cat]:
+                ordered.append(queues[cat].pop(0))
+
+    for i, r in enumerate(ordered):
         r["position"] = i
+    return ordered
+
+
+# ------------------------------------------------------------ pairwise draws
+
+# Defaults chosen from power, not from taste. At the concordance the first pass
+# actually suggests (60.8% on the pairs where the ensemble had an opinion), a
+# decisive stratum of 75 has a Wilson lower bound of exactly 0.500 -- it clears
+# chance only if the point estimate is precisely right, and fails on any adverse
+# draw. That is how the first attempt failed, and repeating it at a larger n is
+# the one outcome this rebuild has to avoid. 150 tolerates the truth sitting as
+# low as 0.584 and still reports something; 75 tolerates 0.607.
+#
+# The other three are sized the same way: 50 swapped detects a position effect
+# larger than ~13 points (25 detects only ~18), and 30 repeats put a 95%
+# interval of roughly +/-0.13 around a labeller's self-agreement. All four are
+# overridable; the numbers are defaults, not commitments.
+DECISIVE_GAP = 1.0
+NEAR_TIE_GAP = 0.5
+N_DECISIVE = 150
+N_NEAR_TIE = 50
+N_SWAPPED = 50
+N_REPEAT = 30
+
+
+def build_pairs(rows: list[dict]) -> list[dict]:
+    """Every within-query pair of responses, with the ensemble's margin.
+
+    Pairs are formed inside a query and never across one: "which of these two
+    answers to the same question is better" is a question a person can answer,
+    and "which of these two answers to different questions is better" is not.
+    """
+    by_query: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_query[r["query_id"]].append(r)
+    out = []
+    for qid in sorted(by_query):
+        items = sorted(by_query[qid], key=lambda r: r["id"])
+        for i, a in enumerate(items):
+            for b in items[i + 1:]:
+                out.append({
+                    "query_id": qid,
+                    "category": a["category"],
+                    "a": a,
+                    "b": b,
+                    # `median` is the ensemble score the site publishes, and
+                    # the same aggregation `collect` reports against.
+                    "gap": abs(a["median"] - b["median"]),
+                    "has_gold": bool(a.get("gold_answer")),
+                })
+    return out
+
+
+def draw_pairs(pairs: list[dict], seed: int, *, n_decisive: int = N_DECISIVE,
+               n_near_tie: int = N_NEAR_TIE, n_swapped: int = N_SWAPPED,
+               n_repeat: int = N_REPEAT) -> list[dict]:
+    """Stratified, seeded, reproducible -- the pairwise analogue of `draw`.
+
+    Four strata, and only the first may ever be quoted as an agreement figure.
+
+    Stratified on **gold presence** as well as category. A question with no
+    recorded gold answer is one where the labeller is judging plausibility
+    rather than correctness, which is a different task; the first sampler did
+    not look at `gold_answer` at all, so what share of the set was answerable
+    on the facts was whatever the draw happened to produce. Here it is half,
+    by construction, and reported.
+
+    Presentation order is interleaved by category for the same reason `draw`
+    interleaves: labellers stop partway, and a prefix has to stay balanced.
+    Re-presentations (`swapped`, `repeat`) are additionally held back from the
+    first third of the order, because a pair shown twice inside a few screens
+    measures short-term memory rather than reliability.
+    """
+    rng = random.Random(seed)
+
+    def stratify(cands: list[dict], want: int) -> list[dict]:
+        """Even over (category, gold presence), deterministic remainder."""
+        buckets: dict[tuple, list[dict]] = defaultdict(list)
+        for p in cands:
+            buckets[(p["category"], p["has_gold"])].append(p)
+        keys = sorted(buckets)
+        picked: list[dict] = []
+        for i, k in enumerate(keys):
+            quota = want // len(keys) + (1 if i < want % len(keys) else 0)
+            pool = sorted(buckets[k], key=lambda p: (p["a"]["id"], p["b"]["id"]))
+            picked.extend(rng.sample(pool, min(quota, len(pool))))
+        # A thin bucket leaves the quota short; top up rather than silently
+        # returning a smaller stratum than was asked for.
+        if len(picked) < want:
+            chosen = {id(p) for p in picked}
+            rest = [p for p in sorted(cands, key=lambda p: (p["a"]["id"], p["b"]["id"]))
+                    if id(p) not in chosen]
+            picked.extend(rng.sample(rest, min(want - len(picked), len(rest))))
+        return picked
+
+    decisive = stratify([p for p in pairs if p["gap"] >= DECISIVE_GAP], n_decisive)
+    used = {id(p) for p in decisive}
+    near_tie = stratify([p for p in pairs
+                         if p["gap"] <= NEAR_TIE_GAP and id(p) not in used], n_near_tie)
+
+    out: list[dict] = []
+    for p in decisive:
+        out.append({**p, "stratum": "decisive"})
+    for p in near_tie:
+        out.append({**p, "stratum": "near_tie"})
+
+    # Sides are assigned by coin flip, not by score. Putting the higher-scoring
+    # response on the left every time would let a labeller who always picks
+    # left score 100% agreement without reading anything.
+    for i, p in enumerate(out):
+        p["pair_id"] = f"p{i:04d}"
+        p["flip"] = rng.random() < 0.5
+
+    extras: list[dict] = []
+    for src in rng.sample(decisive, min(n_swapped, len(decisive))):
+        base = next(p for p in out if p["a"] is src["a"] and p["b"] is src["b"])
+        extras.append({**base, "stratum": "swapped", "source_pair_id": base["pair_id"],
+                       "flip": not base["flip"]})
+    for src in rng.sample(decisive + near_tie, min(n_repeat, len(decisive) + len(near_tie))):
+        base = next(p for p in out if p["a"] is src["a"] and p["b"] is src["b"])
+        extras.append({**base, "stratum": "repeat", "source_pair_id": base["pair_id"],
+                       "flip": base["flip"]})
+    for i, p in enumerate(extras):
+        p["pair_id"] = f"x{i:04d}"
+    for p in out:
+        p.setdefault("source_pair_id", None)
+
+    ordered = _interleave(out, rng)
+
+    # Each re-presentation is released only once its original is at least
+    # MIN_GAP screens behind. Two things go wrong otherwise, and both did:
+    # spacing the extras evenly can put a repeat *before* the pair it repeats,
+    # which is not a repeat at all; and a repeat shown a few screens after its
+    # original measures short-term memory rather than reliability.
+    MIN_GAP = 6
+    at = {p["pair_id"]: i for i, p in enumerate(ordered)}
+    queue = sorted(extras, key=lambda e: (at[e["source_pair_id"]], e["pair_id"]))
+    merged: list[dict] = []
+    qi = 0
+    for i, p in enumerate(ordered):
+        merged.append(p)
+        # At most one re-presentation between two real screens, so they stay
+        # spread out rather than arriving in a block.
+        if qi < len(queue) and at[queue[qi]["source_pair_id"]] + MIN_GAP <= i:
+            merged.append(queue[qi]); qi += 1
+    merged.extend(queue[qi:])
+
+    for i, p in enumerate(merged):
+        p["position"] = i
+    return merged
+
+
+def _interleave(items: list[dict], rng: random.Random) -> list[dict]:
+    """Round-robin over categories, so every prefix stays balanced."""
+    shuffled = list(items)
+    rng.shuffle(shuffled)
+    queues: dict[str, list[dict]] = defaultdict(list)
+    for p in shuffled:
+        queues[p["category"]].append(p)
+    turn = sorted(queues)
+    rng.shuffle(turn)
+    out: list[dict] = []
+    while len(out) < len(shuffled):
+        for cat in turn:
+            if queues[cat]:
+                out.append(queues[cat].pop(0))
     return out
 
 
@@ -235,6 +463,61 @@ def write_task(set_id: str, picked: list[dict], out_dir: Path) -> Path:
         "window.VN_TASK = " + json.dumps(payload, indent=1) + ";\n"
     )
     (out_dir / "label.html").write_text(UI_TEMPLATE.read_text())
+    return out_dir
+
+
+def _render(r: dict) -> dict:
+    """One response as the labeller sees it — no vendor, no scores."""
+    results = json.loads(r["results"]) if r["results"] else []
+    return {
+        "response_mode": r["response_mode"],
+        "answer": r["answer"],
+        "results": [
+            {"rank": x.get("rank"), "title": x.get("title"),
+             "url": x.get("url"), "snippet": x.get("snippet")}
+            for x in results
+        ],
+    }
+
+
+def write_pair_task(set_id: str, picked: list[dict], out_dir: Path) -> Path:
+    """The pairwise labelling task.
+
+    Carries no stratum, no ensemble margin and no `source_pair_id`: a labeller
+    who can see that a pair is a repeat, or that the judges thought it easy,
+    is answering a different question. The analysis rejoins all three from the
+    database afterwards.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    items = []
+    for p in sorted(picked, key=lambda p: p["position"]):
+        left, right = (p["b"], p["a"]) if p["flip"] else (p["a"], p["b"])
+        items.append({
+            "pair_id": p["pair_id"],
+            "position": p["position"],
+            "query": left["query_text"],
+            "category": p["category"],
+            "gold_answer": left["gold_answer"],
+            "left": _render(left),
+            "right": _render(right),
+        })
+    payload = {
+        "set_id": set_id,
+        "kind": "pairwise",
+        "created_at": _now(),
+        "blinding": BLINDING_PAIRWISE,
+        # The worked anchors, not the judges' rubric string: that is a format
+        # template full of placeholders, and pasting it in front of a person
+        # would be showing them a prompt rather than an instruction.
+        "anchors": ANCHORS,
+        "items": items,
+    }
+    (out_dir / "task.js").write_text(
+        "// Generated by src/calibrate.py — do not edit.\n"
+        "// Contains vendor-retrieved content: never commit, never publish.\n"
+        "window.VN_TASK = " + json.dumps(payload, indent=1) + ";\n"
+    )
+    (out_dir / "label.html").write_text(PAIR_UI_TEMPLATE.read_text())
     return out_dir
 
 
@@ -288,11 +571,52 @@ def cmd_sample(args: argparse.Namespace) -> int:
 
 # ----------------------------------------------------------------- importing
 
+def _import_pairs(conn: sqlite3.Connection, args: argparse.Namespace,
+                  payload: dict, set_id: str) -> int:
+    known = {r["pair_id"] for r in conn.execute(
+        "SELECT pair_id FROM calibration_pairs WHERE set_id = ?", (set_id,))}
+    if not known:
+        raise SystemExit(f"no pairwise calibration set {set_id} in this database")
+
+    rows, skipped, seconds = [], 0, []
+    for lab in payload["labels"]:
+        pid = lab.get("pair_id")
+        if pid not in known or lab.get("choice") not in ("left", "right", "tie"):
+            skipped += 1        # unfinished is absent data, not a tie
+            continue
+        rows.append((uuid.uuid4().hex, set_id, pid, args.labeller, args.labeller_kind,
+                     lab["choice"], lab.get("note"), lab.get("seconds"), _now()))
+        if lab.get("seconds"):
+            seconds.append(lab["seconds"])
+    conn.executemany(
+        "INSERT OR REPLACE INTO pair_labels (id, set_id, pair_id, labeller, "
+        "labeller_kind, choice, note, seconds, labelled_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        rows)
+    conn.commit()
+    print(f"imported {len(rows)} pairwise judgements into {set_id} "
+          f"as {args.labeller} [{args.labeller_kind}]"
+          + (f"; skipped {skipped} unjudged" if skipped else ""))
+    if seconds:
+        print(f"  median {statistics.median(seconds):.0f}s per screen; "
+              f"{sum(1 for s in seconds if s < 10)} under 10s")
+    if args.labeller_kind != "human":
+        print("  NOT A CALIBRATION — model labels measure agreement between "
+              "models (docs/12).")
+    conn.close()
+    return 0
+
+
 def cmd_import(args: argparse.Namespace) -> int:
     conn = storage.connect(Path(args.db))
     conn.row_factory = sqlite3.Row
     payload = json.loads(Path(args.labels).read_text())
     set_id = payload["set_id"]
+
+    # Routed on what the task declared, not on what the file looks like. A
+    # pairwise export guessed at as absolute would import zero rows and say so
+    # in a way that reads like an empty labelling session.
+    if payload.get("kind") == "pairwise":
+        return _import_pairs(conn, args, payload, set_id)
 
     known = {r["response_id"] for r in conn.execute(
         "SELECT response_id FROM calibration_items WHERE set_id = ?", (set_id,))}
@@ -377,6 +701,39 @@ def _spearman(xs: list[float], ys: list[float]) -> float | None:
     return _pearson(_rank(xs), _rank(ys)) if len(xs) >= 3 else None
 
 
+def _fisher_ci(r: float | None, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """95% interval on a correlation, via the Fisher z transform.
+
+    Reported because the first calibration pass published `r 0.10` on n = 15 and
+    that number was read as "the judges do not agree with people". Its interval
+    is [-0.437, +0.581]: both signs are inside it, so the pass established
+    neither direction. A correlation from fifteen items without its interval is
+    not a weak finding, it is not a finding.
+    """
+    if r is None or n < 4 or abs(r) >= 1:
+        return None
+    z0 = 0.5 * math.log((1 + r) / (1 - r))
+    se = 1 / math.sqrt(n - 3)
+    lo, hi = z0 - z * se, z0 + z * se
+    back = lambda t: (math.exp(2 * t) - 1) / (math.exp(2 * t) + 1)   # noqa: E731
+    return back(lo), back(hi)
+
+
+def _pearson_ceiling(xs: list[float], ys: list[float]) -> float | None:
+    """The largest r these two sets of numbers could produce, marginals fixed.
+
+    Sorting both and correlating is the comonotonic rearrangement, which
+    maximises the correlation attainable without changing either distribution.
+    It exists to keep an argument honest: the first pass explained its low r as
+    an artefact of most human scores being 9 or 10, and that explanation is
+    checkable. On those labels the ceiling is 0.935, so compression accounts for
+    at most 0.065 of a shortfall of 0.903 -- about 7% of it, not "partly". Any
+    future pass that wants to blame its distribution has to clear this number
+    first (`docs/12`).
+    """
+    return _pearson(sorted(xs), sorted(ys))
+
+
 def agreement(pairs: list[tuple[float, float]]) -> dict:
     """One judge's scores against the human's, on the same responses."""
     if not pairs:
@@ -384,15 +741,155 @@ def agreement(pairs: list[tuple[float, float]]) -> dict:
     js = [p[0] for p in pairs]
     hs = [p[1] for p in pairs]
     diffs = [j - h for j, h in pairs]
+    r = _pearson(js, hs)
     return {
         "n": len(pairs),
         "mae": statistics.fmean(abs(d) for d in diffs),
         "bias": statistics.fmean(diffs),          # signed: + means judge is generous
-        "pearson": _pearson(js, hs),
+        "pearson": r,
+        "pearson_ci95": _fisher_ci(r, len(pairs)),
+        "pearson_max": _pearson_ceiling(js, hs),
         "spearman": _spearman(js, hs),
         "within_1": sum(1 for d in diffs if abs(d) <= 1) / len(diffs),
         "off_by_3": sum(1 for d in diffs if abs(d) > 3),
     }
+
+
+def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """Interval on a proportion. Wilson rather than normal-approximation
+    because the counts here are small and near the boundary is exactly where
+    the normal interval misbehaves."""
+    if n <= 0:
+        return None
+    p = k / n
+    d = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / d
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    # Clamped: at k=0 the arithmetic lands on -2.8e-17, which formats as
+    # "-0.0%" — a negative share of a proportion, printed next to a claim about
+    # rigour.
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def pairwise_concordance(pairs: list[tuple[float, float]]) -> dict:
+    """How often the ensemble orders two responses the way the human did.
+
+    Absolute scores from one labeller already contain ordering information: any
+    two items the labeller scored differently are a preference. Reading them
+    that way sidesteps the 9-10 ceiling that flattened the first pass, because
+    an ordering does not care that both numbers were high.
+
+    Ensemble ties are reported both ways on purpose. Dropping them conditions
+    the result on the ensemble having an opinion, which raised the first pass's
+    apparent concordance from 47.0% to 60.8% -- a real difference, arrived at by
+    conditioning on the thing under audit. Publish the denominator or neither
+    number (`docs/12`).
+    """
+    ordered = [(j1, h1, j2, h2)
+               for i, (j1, h1) in enumerate(pairs)
+               for (j2, h2) in pairs[i + 1:]
+               if h1 != h2]
+    if not ordered:
+        return {"n_pairs": 0}
+    agree = sum(1 for j1, h1, j2, h2 in ordered if (h1 - h2) * (j1 - j2) > 0)
+    tied = sum(1 for j1, h1, j2, h2 in ordered if j1 == j2)
+    decided = len(ordered) - tied
+    return {
+        "n_pairs": len(ordered),
+        "n_ensemble_tied": tied,
+        "agree": agree,
+        "concordance_all": agree / len(ordered),
+        "ci95_all": _wilson(agree, len(ordered)),
+        # Conditional on the ensemble expressing a preference. Higher, and
+        # narrower in scope; never report it without `n_ensemble_tied`.
+        "concordance_decided": agree / decided if decided else None,
+        "ci95_decided": _wilson(agree, decided) if decided else None,
+    }
+
+
+def pairwise_report(labels: list[dict]) -> dict:
+    """Judge-vs-human agreement read off a pairwise set.
+
+    `labels` are dicts carrying: stratum, choice ('left'|'right'|'tie'),
+    ensemble_choice ('left'|'right'|'tie'), source_pair_id, and shown_left /
+    shown_right response ids.
+
+    Three separate questions, deliberately not combined into one number:
+
+    - **concordance**, on the decisive stratum alone. This is the only figure
+      that may ever be quoted as agreement. The near-tie stratum is excluded
+      because the ensemble has no opinion there by construction, so counting it
+      measures the labeller against a coin.
+    - **position bias**, from the swapped stratum. A labeller who picks the
+      same *side* both times, rather than the same *response*, is answering
+      about the layout.
+    - **self-agreement**, from the repeat stratum. Without it, a labeller
+      disagreeing with the judges cannot be distinguished from a labeller
+      disagreeing with themselves, and the first number is worthless without
+      the second.
+
+    Re-presentations never count toward concordance. They are the same evidence
+    shown twice and pooling them would narrow the interval on nothing.
+    """
+    out: dict = {}
+
+    decisive = [l for l in labels if l["stratum"] == "decisive"]
+    scored = [l for l in decisive if l["choice"] != "tie"]
+    agree = sum(1 for l in scored if l["choice"] == l["ensemble_choice"])
+    out["decisive"] = {
+        "n": len(decisive),
+        "n_human_tied": len(decisive) - len(scored),
+        "n_scored": len(scored),
+        "agree": agree,
+        "concordance": agree / len(scored) if scored else None,
+        "ci95": _wilson(agree, len(scored)) if scored else None,
+    }
+    ci = out["decisive"]["ci95"]
+    # The whole point of sizing the stratum. Said out loud so that a result
+    # which does not clear chance cannot be reported as though it had.
+    out["decisive"]["clears_chance"] = bool(ci and ci[0] > 0.5)
+
+    near = [l for l in labels if l["stratum"] == "near_tie"]
+    near_scored = [l for l in near if l["choice"] != "tie"]
+    out["near_tie"] = {
+        "n": len(near),
+        "n_human_separated": len(near_scored),
+        # Diagnostic only: where the ensemble sees nothing and a human sees a
+        # difference, that is a lead on what the rubric is missing.
+        "human_separates_pct": len(near_scored) / len(near) if near else None,
+    }
+
+    by_id = {l["pair_id"]: l for l in labels}
+    swapped = [l for l in labels if l["stratum"] == "swapped" and l.get("source_pair_id") in by_id]
+    same_side = 0
+    consistent = 0
+    for l in swapped:
+        src = by_id[l["source_pair_id"]]
+        if l["choice"] == "tie" or src["choice"] == "tie":
+            continue
+        if l["choice"] == src["choice"]:
+            same_side += 1          # same SIDE across a swap = picked the position
+        if l.get("shown_" + l["choice"]) == src.get("shown_" + src["choice"]):
+            consistent += 1         # same RESPONSE across a swap = picked the answer
+    n_sw = sum(1 for l in swapped
+               if l["choice"] != "tie" and by_id[l["source_pair_id"]]["choice"] != "tie")
+    out["position_bias"] = {
+        "n": n_sw,
+        "picked_same_side": same_side,
+        "picked_same_response": consistent,
+        "side_rate": same_side / n_sw if n_sw else None,
+        "ci95": _wilson(same_side, n_sw) if n_sw else None,
+    }
+
+    repeats = [l for l in labels if l["stratum"] == "repeat" and l.get("source_pair_id") in by_id]
+    same = sum(1 for l in repeats if l["choice"] == by_id[l["source_pair_id"]]["choice"])
+    out["self_agreement"] = {
+        "n": len(repeats),
+        "agree": same,
+        "rate": same / len(repeats) if repeats else None,
+        "ci95": _wilson(same, len(repeats)) if repeats else None,
+    }
+    return out
 
 
 def collect(conn: sqlite3.Connection, set_id: str) -> dict[tuple, dict[str, list[dict]]]:
@@ -437,9 +934,174 @@ def _fmt(a: dict) -> str:
         return "no data"
     def num(x, spec=".2f"):
         return "  n/a" if x is None else format(x, spec)
+    ci = a.get("pearson_ci95")
+    # An r without its interval is what let `r 0.10` be read as a finding when
+    # both signs were inside the interval (docs/12). They travel together.
+    ci_s = f" [{ci[0]:+.2f},{ci[1]:+.2f}]" if ci else ""
     return (f"n={a['n']:<4} MAE {a['mae']:.2f}  bias {a['bias']:+.2f}  "
-            f"r {num(a['pearson'])}  rho {num(a['spearman'])}  "
+            f"r {num(a['pearson'])}{ci_s}  rho {num(a['spearman'])}  "
             f"within 1pt {a['within_1']:.0%}  off by >3: {a['off_by_3']}")
+
+
+def cmd_sample_pairs(args: argparse.Namespace) -> int:
+    conn = storage.connect(Path(args.db))
+    conn.row_factory = sqlite3.Row
+    run_id = args.run or latest_run(conn)
+
+    rows = candidates(conn, run_id)
+    pairs = build_pairs(rows)
+    picked = draw_pairs(pairs, args.seed, n_decisive=args.decisive,
+                        n_near_tie=args.near_tie, n_swapped=args.swapped,
+                        n_repeat=args.repeat)
+
+    set_id = uuid.uuid4().hex[:12]
+    conn.execute(
+        "INSERT INTO calibration_sets (id, run_id, created_at, seed, n_target, "
+        "disagreement_share, blinding, notes, kind) VALUES (?,?,?,?,?,?,?,?,?)",
+        (set_id, run_id, _now(), args.seed, len(picked), 0.0,
+         BLINDING_PAIRWISE, args.notes, "pairwise"),
+    )
+    conn.executemany(
+        "INSERT INTO calibration_pairs (set_id, pair_id, left_response_id, "
+        "right_response_id, stratum, position, source_pair_id, ensemble_gap) "
+        "VALUES (?,?,?,?,?,?,?,?)",
+        [(set_id, p["pair_id"],
+          (p["b"] if p["flip"] else p["a"])["id"],
+          (p["a"] if p["flip"] else p["b"])["id"],
+          p["stratum"], p["position"], p.get("source_pair_id"), p["gap"])
+         for p in picked],
+    )
+
+    # Written before the commit, so a failure here leaves no set behind. The
+    # other order left two orphans in the database during development -- rows
+    # describing a labelling task that does not exist on disk and can never be
+    # labelled, which a later `report` will happily list as awaiting work.
+    out_dir = Path(args.out) / set_id
+    write_pair_task(set_id, picked, out_dir)
+    conn.commit()
+
+    print(f"pairwise calibration set {set_id}  from run {run_id[:8]}  seed {args.seed}")
+    print(f"  {len(pairs)} pairs available; drew {len(picked)} screens")
+    for stratum in ("decisive", "near_tie", "swapped", "repeat"):
+        rs = [p for p in picked if p["stratum"] == stratum]
+        if not rs:
+            continue
+        gold = sum(1 for p in rs if p["has_gold"])
+        cats = defaultdict(int)
+        for p in rs:
+            cats[p["category"]] += 1
+        print(f"  {stratum:<10} {len(rs):>3}   gold-backed {gold}/{len(rs)}"
+              f"   mean gap {statistics.fmean(p['gap'] for p in rs):.2f}")
+        print("             " + ", ".join(f"{k} {v}" for k, v in sorted(cats.items())))
+
+    # The number this set can and cannot produce, printed before a single label
+    # exists. A design's power is a property of the design, and stating it
+    # afterwards is how an underpowered result gets reported as a finding.
+    n_dec = sum(1 for p in picked if p["stratum"] == "decisive")
+    floor = next((x / 1000 for x in range(500, 1000)
+                  if (_wilson(round(x / 1000 * n_dec), n_dec) or (0,))[0] > 0.5), None)
+    print(f"\n  power: with {n_dec} decisive comparisons, the interval clears chance")
+    print(f"         only if true concordance is at least "
+          f"{floor:.3f}" if floor else "         never clears chance at this n")
+    print(f"         (the first pass suggests 0.608, on 51 pairs — docs/12)")
+    print(f"\n  open  {out_dir / 'label.html'}")
+    print(f"  then  python -m src.calibrate import {out_dir / 'labels.json'} "
+          f"--labeller YOURNAME --labeller-kind human")
+    conn.close()
+    return 0
+
+
+def _report_pairs(conn: sqlite3.Connection, meta: sqlite3.Row, set_id: str,
+                  args: argparse.Namespace) -> int:
+    """Agreement on a pairwise set, one labeller at a time."""
+    ens = {}
+    for r in conn.execute(
+        """SELECT cp.pair_id, cp.stratum, cp.source_pair_id, cp.ensemble_gap,
+                  cp.left_response_id AS l, cp.right_response_id AS r
+           FROM calibration_pairs cp WHERE cp.set_id = ?""", (set_id,)):
+        def med(rid):
+            v = [x[0] for x in conn.execute(
+                "SELECT overall FROM judge_scores WHERE response_id = ?", (rid,))
+                if x[0] is not None]
+            return statistics.median(v) if v else None
+        ml, mr = med(r["l"]), med(r["r"])
+        choice = "tie" if ml == mr else ("left" if (ml or 0) > (mr or 0) else "right")
+        ens[r["pair_id"]] = {
+            "pair_id": r["pair_id"], "stratum": r["stratum"],
+            "source_pair_id": r["source_pair_id"], "ensemble_choice": choice,
+            "shown_left": r["l"], "shown_right": r["r"],
+        }
+
+    labs = defaultdict(list)
+    for r in conn.execute(
+        "SELECT * FROM pair_labels WHERE set_id = ?", (set_id,)):
+        if args.labeller and r["labeller"] != args.labeller:
+            continue
+        base = ens.get(r["pair_id"])
+        if base:
+            labs[(r["labeller"], r["labeller_kind"])].append({**base, "choice": r["choice"]})
+
+    n_pairs = len(ens)
+    print(f"pairwise calibration set {set_id}  run {meta['run_id'][:8]}  "
+          f"seed {meta['seed']}  {n_pairs} screens")
+    print(f"blinding: {meta['blinding']}")
+    if not labs:
+        print("\nnothing judged yet — open the task and import the result.")
+        return 0
+
+    for (labeller, kind), rows in sorted(labs.items()):
+        print()
+        print("#" * 78)
+        print(f"LABELLER: {labeller}  [{kind}]  — {len(rows)}/{n_pairs} screens")
+        if kind != "human":
+            print("NOT A CALIBRATION. These describe agreement between models and say")
+            print("nothing about whether the judges track human judgement (docs/04).")
+        print("#" * 78)
+        rep = pairwise_report(rows)
+
+        d = rep["decisive"]
+        print(f"\nDECISIVE — the only stratum an agreement figure may quote")
+        if d["n_scored"]:
+            lo, hi = d["ci95"]
+            print(f"  {d['agree']}/{d['n_scored']} = {d['concordance']:.1%}"
+                  f"   95% CI [{lo:.1%}, {hi:.1%}]"
+                  f"   ({d['n_human_tied']} called level by the labeller)")
+            print("  " + ("clears chance — the interval excludes 50%"
+                          if d["clears_chance"] else
+                          "DOES NOT clear chance — the interval includes 50%, so this "
+                          "is not\n  evidence the judges track human ordering. It does "
+                          "not go on the site."))
+        else:
+            print("  nothing scored yet")
+
+        nt = rep["near_tie"]
+        if nt["n"]:
+            print(f"\nNEAR-TIE — diagnostic, never quoted as agreement")
+            print(f"  the labeller separated {nt['n_human_separated']}/{nt['n']} "
+                  f"({nt['human_separates_pct']:.0%}) of the pairs the judges scored level")
+
+        pb = rep["position_bias"]
+        if pb["n"]:
+            lo, hi = pb["ci95"]
+            print(f"\nPOSITION BIAS — same pair, sides swapped")
+            print(f"  picked the same SIDE {pb['picked_same_side']}/{pb['n']} "
+                  f"= {pb['side_rate']:.1%}   95% CI [{lo:.1%}, {hi:.1%}]")
+            print(f"  picked the same RESPONSE {pb['picked_same_response']}/{pb['n']}")
+            if lo > 0.5:
+                print("  the labeller is picking the position, not the response — "
+                      "this set is not usable")
+
+        sa = rep["self_agreement"]
+        if sa["n"]:
+            lo, hi = sa["ci95"]
+            print(f"\nSELF-AGREEMENT — same pair shown twice unchanged")
+            print(f"  {sa['agree']}/{sa['n']} = {sa['rate']:.1%}   "
+                  f"95% CI [{lo:.1%}, {hi:.1%}]")
+            print("  a labeller who disagrees with themselves this often cannot "
+                  "disagree\n  with the judges by less — read the figure above "
+                  "against this one.")
+    conn.close()
+    return 0
 
 
 def cmd_report(args: argparse.Namespace) -> int:
@@ -451,6 +1113,8 @@ def cmd_report(args: argparse.Namespace) -> int:
         raise SystemExit("no calibration set in this database — run `sample` first")
 
     meta = conn.execute("SELECT * FROM calibration_sets WHERE id = ?", (set_id,)).fetchone()
+    if (meta["kind"] if "kind" in meta.keys() else None) == "pairwise":
+        return _report_pairs(conn, meta, set_id, args)
     by_labeller = collect(conn, set_id)
     if args.labeller:
         by_labeller = {k: v for k, v in by_labeller.items() if k[0] == args.labeller}
@@ -488,6 +1152,35 @@ def cmd_report(args: argparse.Namespace) -> int:
                 pairs = [(r["judges"][fam], r["human"]) for r in rows if fam in r["judges"]]
                 print(f"  {fam:<10} {_fmt(agreement(pairs))}")
             print(f"  {'ENSEMBLE':<10} {_fmt(agreement([(r['ensemble'], r['human']) for r in rows]))}")
+
+            ens_pairs = [(r["ensemble"], r["human"]) for r in rows]
+            ceiling = agreement(ens_pairs).get("pearson_max")
+            if ceiling is not None:
+                print(f"  ceiling: the most these two distributions could correlate "
+                      f"is r {ceiling:.3f}")
+
+            # The same labels read as orderings. This is the quantity a ranking
+            # actually rests on, and unlike r it is unaffected by a labeller
+            # who uses only the top of the scale.
+            pc = pairwise_concordance(ens_pairs)
+            if pc.get("n_pairs"):
+                a_all = f"{pc['concordance_all']:.1%}"
+                ci_a = pc["ci95_all"]
+                print(f"  ordering: ensemble matches the labeller on {pc['agree']}/"
+                      f"{pc['n_pairs']} pairs = {a_all}"
+                      + (f"  95% CI [{ci_a[0]:.1%}, {ci_a[1]:.1%}]" if ci_a else ""))
+                if pc["n_ensemble_tied"]:
+                    ci_d = pc["ci95_decided"]
+                    print(f"            {pc['n_ensemble_tied']} of those the ensemble "
+                          f"scored level; on the {pc['n_pairs'] - pc['n_ensemble_tied']} "
+                          f"it did not, {pc['concordance_decided']:.1%}"
+                          + (f"  95% CI [{ci_d[0]:.1%}, {ci_d[1]:.1%}]" if ci_d else ""))
+                    print("            (the second conditions on the ensemble having an "
+                          "opinion — quote it with its denominator)")
+                lo = (pc["ci95_all"] or (0, 0))[0]
+                if lo <= 0.5:
+                    print("            interval includes 50% — not evidence of "
+                          "agreement above chance")
 
             gen = sum(1 for r in rows if r["ensemble"] - r["human"] > 2)
             harsh = sum(1 for r in rows if r["human"] - r["ensemble"] > 2)
@@ -601,6 +1294,25 @@ def main() -> int:
     s.add_argument("--out", default=str(DEFAULT_OUT))
     s.add_argument("--notes")
     s.set_defaults(func=cmd_sample)
+
+    p = sub.add_parser("sample-pairs",
+                       help="draw a blinded pairwise comparison set (the calibration "
+                            "that absolute scoring could not deliver)")
+    p.add_argument("--run", help="run id (default: the most complete run)")
+    p.add_argument("--seed", type=int, default=1)
+    p.add_argument("--decisive", type=int, default=N_DECISIVE,
+                   help=f"pairs the ensemble separates by >= {DECISIVE_GAP} "
+                        f"(default {N_DECISIVE}; 75 clears chance only if the "
+                        f"point estimate is exactly right — see docs/12)")
+    p.add_argument("--near-tie", type=int, default=N_NEAR_TIE)
+    p.add_argument("--swapped", type=int, default=N_SWAPPED,
+                   help=f"position-bias checks (default {N_SWAPPED}; 25 detects "
+                        f"only effects above ~18 points)")
+    p.add_argument("--repeat", type=int, default=N_REPEAT,
+                   help=f"intra-rater repeats (default {N_REPEAT})")
+    p.add_argument("--out", default=str(DEFAULT_OUT))
+    p.add_argument("--notes")
+    p.set_defaults(func=cmd_sample_pairs)
 
     i = sub.add_parser("import", help="load a completed labels.json")
     i.add_argument("labels")
