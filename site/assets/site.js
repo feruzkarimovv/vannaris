@@ -69,6 +69,52 @@
   /* --------------------------------------------------------------- values */
   var D = window.SB_DATA;
 
+  /* ------------------------------------------------------------- standing
+   * A vendor's rank is the tier this run can resolve, not its row's position.
+   * Two vendors it cannot separate carry the same number and an `=`: printing
+   * 03 and 04 over a gap of 0.15 points with a standard error of 0.15 asserts
+   * a resolution the instrument does not have. Tiers come from paired
+   * comparisons on the queries both vendors answered — `separation` in the
+   * export.
+   *
+   * It lives here, once, because four surfaces render a rank: the landing
+   * leaderboard, the results table, and the standing sentence and context
+   * table on each vendor page. Three of them were still counting rows after
+   * tiers arrived, so the site said Serper was 3rd and You.com 4th on one page
+   * and that the run could not tell them apart on another.
+   */
+  function tierMap() {
+    var m = {};
+    if (!D || !D.latest || !D.latest.separation) return m;
+    (D.latest.separation.overall_tiers || []).forEach(function (t) {
+      t.vendors.forEach(function (v) { m[v] = t.tier; });
+    });
+    return m;
+  }
+  var TIERS = tierMap();
+
+  /* `position` is the fallback, used only when a run publishes no separation
+   * at all — the number then means what it meant before tiers existed, rather
+   * than the badge rendering empty. */
+  function rank(vendor, position) {
+    var tier = TIERS[vendor] || (position + 1);
+    var peers = (D && D.latest ? D.latest.vendors : []).filter(function (o) {
+      return (TIERS[o.vendor] || 0) === tier;
+    });
+    return {
+      tier: tier,
+      shared: peers.length > 1,
+      peers: peers.filter(function (o) { return o.vendor !== vendor; }),
+      text: String(tier).padStart(2, "0") + (peers.length > 1 ? "=" : "")
+    };
+  }
+  function rankBadge(vendor, position) {
+    var r = rank(vendor, position);
+    return '<span class="rank"' +
+      (r.shared ? ' title="tied — not separated from the other vendors in this tier"' : "") +
+      ">" + r.text + "</span>";
+  }
+
   function derived() {
     if (!D || !D.latest) return {};
     var vs = D.latest.vendors;
@@ -144,7 +190,7 @@
     if (wanted) {
       var self = vs.filter(function (v) { return v.vendor === wanted; })[0];
       if (self) {
-        var rank = vs.indexOf(self) + 1;
+        var R = rank(wanted, vs.indexOf(self));
         var mine = D.latest.cells
           .filter(function (c) { return c.vendor === wanted && c.pct_of_best != null; })
           .sort(function (a, b) { return b.pct_of_best - a.pct_of_best; });
@@ -168,9 +214,11 @@
           n_scored: self.n_scored,
           n_queries: self.n_queries,
           coverage_pct: 100 * self.n_scored / self.n_queries,
-          rank: rank,
+          rank: R.tier,
           rank_of: vs.length,
-          standing: ord(rank) + " of " + vs.length,
+          // "joint 3rd", not "3rd", when the run cannot separate this vendor
+          // from the one the table happens to print below it.
+          standing: (R.shared ? "joint " : "") + ord(R.tier) + " of " + vs.length,
           returns: modes[self.response_mode] || self.response_mode,
           strength: !mine.length
             ? "No category published a comparable cell for it on this run."
@@ -183,10 +231,23 @@
             ? "Too few comparable cells this run to say where it falls furthest behind."
             : "Furthest behind on " + catLabel[mine[mine.length - 1].category].toLowerCase() +
               ", at " + Math.round(mine[mine.length - 1].pct_of_best) + "% of the leader.",
-          gap_note: rank === 1
-            ? "Leads the overall table."
-            : (vs[0].score - self.score).toFixed(2) + " points behind " + vs[0].label +
-              ", which leads the overall table."
+          /* The gap, and whether the run can resolve it. A vendor that shares
+           * its tier is not "behind" the vendor printed above it in any sense
+           * the interval supports, and saying only the point difference on a
+           * page about that vendor is the overclaim the badge stopped making. */
+          gap_note: (function () {
+            var tied = R.peers.map(function (o) { return o.label; });
+            if (R.tier === 1) {
+              return R.shared
+                ? "Shares the top tier with " + joinList(tied) + ". This run cannot separate them."
+                : "Leads the overall table, separated from second place by the paired 95% interval.";
+            }
+            var behind = (vs[0].score - self.score).toFixed(2) + " points behind " + vs[0].label +
+              ", which leads the overall table.";
+            return R.shared
+              ? behind + " Level with " + joinList(tied) + " — this run cannot separate them."
+              : behind;
+          })()
         };
       }
     }
@@ -265,6 +326,43 @@
           dis.worst.mean.toFixed(2) + " points on average against " +
           dis.best.mean.toFixed(2) + " on " + catLabel[dis.best.category].toLowerCase() +
           " — so a rank is least stable exactly where the ensemble is least sure.",
+      /* Which reading of the table the run can actually resolve. The
+       * methodology page used to send readers to the category columns "rather
+       * than the overall score", which was written before separation was
+       * published and is backwards against it: on this run the overall lead
+       * clears its paired interval and four of the six category leads do not.
+       * Composed here rather than typed into the page because on a run where
+       * the categories resolve and the overall does not, the advice reverses
+       * with them — and a hand-written version would go on saying this one. */
+      resolution_note: (function () {
+        var R = D.latest.routing || {};
+        var top = ((D.latest.separation || {}).overall_tiers || [])[0];
+        if (!top || R.categories_separated == null) {
+          return "This run published no separation intervals, so neither reading carries one.";
+        }
+        var n = R.n_categories, sep = R.categories_separated, firm = top.vendors.length === 1;
+        var overall = firm
+          ? "The overall column separates first place from second."
+          : "The overall column does not separate first place from second.";
+        var cats = sep === n
+          ? "Every one of the " + n + " category columns does the same."
+          : "The category columns manage it in " + sep + " of " + n + ".";
+        var advice;
+        if (firm && sep < n) {
+          advice = "So a category ordering is the less resolved reading here, not the more " +
+            "precise one: read the overall score first, and treat a category lead that carries " +
+            "no interval as a lead this run did not measure.";
+        } else if (!firm && sep > 0) {
+          advice = "So read the categories that carry an interval first — the overall ordering " +
+            "is the less resolved reading on this run.";
+        } else if (firm) {
+          advice = "Both readings carry an interval on this run.";
+        } else {
+          advice = "Neither ordering is firm on this run: read the intervals rather than the ranks.";
+        }
+        return overall + " " + cats + " " + advice;
+      })(),
+
       /* The pair that disagrees most, named. "The judges disagree" is a
        * different claim from "these two labs disagree and the third tracks
        * one of them", and only the second is actionable for a reader. */
@@ -680,7 +778,10 @@
     });
   }
 
-  window.SBSite = { fillValues: fillValues, derived: DERIVED, fmt: FMT, scan: scan };
+  // rank/rankBadge are exported because the tables that render a badge live in
+  // each page's own SBPage block, which runs from init() below.
+  window.SBSite = { fillValues: fillValues, derived: DERIVED, fmt: FMT, scan: scan,
+                    rank: rank, rankBadge: rankBadge };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
