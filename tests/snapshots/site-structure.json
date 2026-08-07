@@ -288,6 +288,7 @@
       "d.heldout_state",
       "d.n_categories",
       "d.record_note",
+      "d.resolution_note",
       "d.unbuilt",
       "d.weeks",
       "d.weeks_plural",
