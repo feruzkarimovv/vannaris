@@ -328,8 +328,11 @@ window.SBPage = {
         e.textContent = text;
         return e;
       }
+      // Rank by tier, not by row: this table sits next to a standing sentence
+      // that says "joint 3rd" when the run cannot separate two vendors, and the
+      // two came from different rules until window.SBSite.rankBadge existed.
       var name = document.createElement("td");
-      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") + "</span>";
+      name.innerHTML = window.SBSite.rankBadge(v.vendor, i);
       var label = document.createElement("span");
       label.className = "vendor-name";
       label.textContent = v.label;
