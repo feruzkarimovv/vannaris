@@ -14,6 +14,24 @@ This means two of the nine vendors in scope contractually prohibit exactly what 
 
 ## Per-vendor terms of service table
 
+> **Four of these rows have been superseded by full reads of the primary documents. This table is
+> left as written — it records what one research session found on 2026-07-30, and editing it to
+> match later reads would falsify that record.** Where they disagree, the later document controls.
+>
+> - **Serper** and **Linkup** — read in full 2026-08-02, `docs/11`. Both rows here flagged their own
+>   extraction as thin or unverified; both absences turned out to be genuine.
+> - **Exa** and **You.com** — read in full 2026-08-07, `docs/14`. **Two material corrections.** The
+>   Exa storage/publication cell below describes §1.2(c), the licence granted *to Exa*; the clause
+>   that restricts *the customer* is **§4.2(a)**, which bars publishing "any information contained
+>   on, or obtained from or through, the Services" absent written permission, and is not recorded
+>   here at all. For You.com, a **second and more favourable document** governs contracted API use
+>   (the Master Services Agreement, which assigns Output to the customer), and its consumer terms
+>   carry a **publicity clause at §10.6** that this table does not record.
+> - **Perplexity** — still unverified. Every automated route to its API terms returns HTTP 403; see
+>   `docs/14`. The row below rests on the 2026-07-30 reading and has not been confirmed since.
+>
+> Questions arising, collected for counsel: `docs/15-attorney-brief.md`.
+
 | Vendor | Resale/sublicense prohibition | No-competing-product / no-benchmarking clause | Output storage/training restriction | Rate limits & pricing | Attribution requirement |
 |---|---|---|---|---|---|
 | **Tavily** | Yes — non-sublicensable license; bars "license, sublicense, resell, distribute, lease, rent, lend, transfer, assign" | Yes — bars building "a competitive product or service" and competing "with Tavily or its business"; **§3.2(x) bars disclosing "any performance information or analysis" to third parties.** AUP also bars automated scraping/harvesting without written permission. | Yes — bars using AI-generated output to "develop models that compete with" Tavily; Tavily may use customer input to train its own AI models (one-way) | 100 req/min (dev key), 1,000 req/min (production key); fee-cap trigger above 30,000,000 credits/12 months | None found |
