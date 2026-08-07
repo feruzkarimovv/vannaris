@@ -30,11 +30,16 @@ are recorded there too, and should stay recorded — they are the reason this se
       private Vercel preview on that domain (§5). The rest of this item is still open: **`.ai` is
       not held**, and the name appears on a live public site, which is exactly the condition under
       which squatting a matching domain becomes worth someone's while. Cheap today, not tomorrow.
-- [ ] **A real USPTO search** (Trademark Search / TESS), not a general web search. Still open, and
-      still the blocker it was — every programmatic route is closed, see `docs/10` §3 for the two
-      ways to close it. Search **`VANNARIS`** in classes 009 (software) and 042 (SaaS). A federal
-      search is free. An invented word is the strongest position a mark can have, which makes this
-      likely to clear — likely is not cleared.
+- [x] **A real USPTO search — run 2026-08-07, zero results.** Wordmark `vannaris` at
+      <https://tmsearch.uspto.gov>, **all classes** (broader than the 009/042 this item asked for),
+      all four status filters on: Live/Registered, Live/Pending, Dead/Cancelled, Dead/Abandoned.
+      **Live 0, Dead 0.** No federal application or registration exists for the exact wordmark, in
+      any class, ever. `docs/10` §3 records the search and its limits.
+      **This is not clearance, and the box is checked for the search, not for the conclusion.** The
+      legal test is likelihood of confusion, not identity: `VANARIS`, `VENARIS` or a design mark
+      would not surface in an exact-wordmark search and could still block. A similar-mark/phonetic
+      pass is the remaining step, and the attorney in §2 can run it in the same sitting. Federal
+      register only — common-law use, state registrations and non-US registers are all outside it.
 - [ ] **Claim the handles** the name will need: GitHub organisation, PyPI, npm, X. All were free on
       2026-08-01 except X, which could not be checked without authentication.
 

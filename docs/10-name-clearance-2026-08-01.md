@@ -66,10 +66,30 @@ Package namespaces do not discriminate — `searchbench`, `search-bench`, `searc
 `retrieval-referee` and `retrievalreferee` are **all free on both PyPI and npm**. So the router SDK's
 package name is not an argument for or against any candidate.
 
-## 3. USPTO — still open, and still blocking
+## 3. USPTO — run by hand 2026-08-07, zero results
 
-**This was not completed, and it is the item `PUBLISH-CHECKLIST.md` §1 actually blocks on.** Every
-programmatic route to the federal register is closed:
+**Closed by route 2 below.** The founder ran the search at <https://tmsearch.uspto.gov> on
+2026-08-07: wordmark `vannaris`, **no class filter** (broader than the 009/042 this section asked
+for), with all four status filters on — Live/Registered, Live/Pending, Dead/Cancelled,
+Dead/Abandoned. **No results found; Live 0, Dead 0.**
+
+What that establishes and what it does not:
+
+- It establishes that **no federal application or registration exists for the exact wordmark**, in
+  any class, live or dead. For an invented word that is the single most likely conflict, and its
+  absence is the strongest position a mark can start from.
+- It does **not** establish clearance. The legal test is likelihood of confusion, not identity, so
+  a mark like `VANARIS`, `VENARIS` or `VANNARIS`-with-a-design would not appear in an exact-wordmark
+  search and could still block. Running the same search with USPTO's similar-mark/phonetic options,
+  or having counsel run it, is the remaining step — and it is the kind of thing the attorney in
+  §2 of the checklist can do in the same sitting.
+- It covers the **federal register only**: common-law rights from actual use, state registrations,
+  and non-US registers are all outside it.
+
+Recorded here rather than only in the checklist because a zero result is evidence and evidence in
+this project lives in `docs/`. Everything below this line is the state before the search ran, left
+standing because it documents why it took a week — every programmatic route to the federal register
+is closed:
 
 - `tmsearch.uspto.gov` (Trademark Search, the TESS successor) sits behind an **AWS WAF challenge**;
   the host itself serves a static bundle from S3 and returns `NoSuchKey` for the documented API path.
@@ -172,6 +192,9 @@ That is a story the project can tell later, not a claim the name makes on its ow
 the property the founder asked for and the property "SearchBench" lacked.
 
 ### Still not established
+
+**Superseded 2026-08-07: the USPTO check was run and returned zero — see §3.** The paragraph below
+is left as written, and was accurate from 2026-08-01 to 2026-08-07.
 
 **The USPTO check in §3 is unchanged and still open** — it now applies to `VANNARIS`, in classes 009
 and 042. An invented word is inherently distinctive and therefore the strongest kind of mark to
