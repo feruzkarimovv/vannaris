@@ -56,15 +56,21 @@ Do this **before** buying a domain, filing anything, or putting a public URL any
 
 ## 2. Blocking — legal
 
-- [ ] **An attorney reads the methodology** before launch: what is stored, what is published,
-      whether the derived-scores-only boundary holds, and whether BYOK insulates the router layer.
-      `docs/03` says explicitly that this is the highest-value dollar spent before going public and
-      that it is not a substitute for counsel.
-- [ ] **Confirm the vendor set one more time** against each vendor's *current* terms. Terms change,
-      and the readings in `docs/03` were taken on 2026-07-30. **Two of five are done:** Linkup and
-      Serper — the two `docs/03` flagged as unverified — were read in full on 2026-08-02, and both
-      clear the benchmark (`docs/11`). Exa, Perplexity and You.com still want a re-read. Note that
-      Serper reserves the right to change its terms without notice, so this expires.
+- [ ] **An attorney reads the methodology** — still open, still the blocker it was. **The brief is
+      now written and waiting: `docs/15-attorney-brief.md`**, self-contained, with eight questions
+      in priority order, the vendor table, the stored-versus-published split, and the four things
+      only the founder can answer. It is preparation, not review, and does not tick this box. Send
+      it. `docs/03` says this is the highest-value dollar spent before going public.
+- [x] **Confirm the vendor set against current terms — four of five done.** Linkup and Serper read
+      in full 2026-08-02 (`docs/11`); **Exa and You.com read in full 2026-08-07 (`docs/14`)**.
+      **Perplexity is not done and could not be: every automated route to its API terms returns
+      HTTP 403.** It loads fine in a normal browser — five minutes by hand, impossible from a
+      script, the same wall `docs/10` §3 hit with the USPTO. Two findings from the re-read need a
+      decision rather than filing: **Exa §4.2(a)** bars publishing information obtained through the
+      Services absent written permission, which reaches what this site publishes (Q1 of `docs/15`),
+      and **which You.com document governs** depends on whether the account was opened self-serve or
+      under a signed agreement (Q3). Note that Serper reserves the right to change its terms without
+      notice, so this expires and will need running again.
 - [ ] **Decide on Tavily and Brave.** Approach them for written consent, or launch without them and
       say why. Both run public self-benchmarks of their own, which is real leverage in that
       conversation. Either answer is defensible; leaving it undecided while publishing is not.
