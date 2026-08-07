@@ -103,7 +103,7 @@ recorded in the disclosure register in `docs/13` whether or not it was accepted.
 
 ## 3 — Brave
 
-**To:** api@brave.com
+**To:** bizdev@brave.com (see the addresses note below — Brave publishes no Search API support address)
 **Subject:** Consent to include Brave Search API in a public benchmark (ToS §2(b)(xvi))
 
 > Hi,
@@ -133,12 +133,23 @@ recorded in the disclosure register in `docs/13` whether or not it was accepted.
 
 ---
 
-## Addresses
+## Addresses — checked 2026-08-07
 
-The three `To:` lines are best guesses and should be checked before sending — `hello@exa.ai` is the
-contact address in Exa's own ToS §10.9, so that one is solid; the Tavily and Brave addresses are
-not confirmed and a support form or a named contact may be better. A wrong address is a silent
-failure, and silence here reads identically to refusal.
+- **Exa — `hello@exa.ai`. Confirmed.** It is the contact address in Exa's own ToS §10.9 ("You may
+  contact us regarding the Services or these Terms by e-mail at hello@exa.ai"), which makes it the
+  correct address for a request *about the terms* specifically.
+- **Tavily — `support@tavily.com`. Confirmed** against Tavily's own privacy and terms pages. There
+  is also a form at <https://www.tavily.com/contact>. Worth knowing for the letterhead: the legal
+  entity is **AlphaAI Technologies Inc. dba Tavily**, 33 W 60th St, New York, NY 10023 — and
+  `docs/02` records an agreed acquisition by Nebius, so the counterparty may be changing.
+- **Brave — no Search API address is published.** The API page offers only a HubSpot enterprise
+  form and points technical questions at `community.brave.app`; the footer's business-development
+  address is **`bizdev@brave.com`**, which is the closest fit for a licensing/consent request and is
+  what the draft now uses. The enterprise form is the fallback if that bounces or goes unanswered.
+
+A wrong address is a silent failure, and silence reads identically to refusal — so if any of these
+gets no reply, treat "no answer" as "not asked" rather than as "asked and declined", and try the
+other channel before concluding anything.
 
 ## If a vendor says yes
 
