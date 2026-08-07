@@ -26,10 +26,10 @@ are recorded there too, and should stay recorded — they are the reason this se
       free on PyPI and npm, free as a GitHub organisation, has no repository or Hugging Face model
       carrying the name, and returns **zero results** on the open web. Checked against registry RDAP
       records and the registries' own APIs, not search results. `docs/10` §6.
-- [ ] **Register the domains — nothing is held yet.** Free means unowned, not reserved. The name
-      appears in this repository and will appear in anything public; register `vannaris.com` at
-      minimum, and `.ai` before announcing anywhere. This is the one item here that gets harder if
-      it waits, and it is cheap today.
+- [x] **`vannaris.com` is registered and serving** — done by 2026-08-02, when the site went up as a
+      private Vercel preview on that domain (§5). The rest of this item is still open: **`.ai` is
+      not held**, and the name appears on a live public site, which is exactly the condition under
+      which squatting a matching domain becomes worth someone's while. Cheap today, not tomorrow.
 - [ ] **A real USPTO search** (Trademark Search / TESS), not a general web search. Still open, and
       still the blocker it was — every programmatic route is closed, see `docs/10` §3 for the two
       ways to close it. Search **`VANNARIS`** in classes 009 (software) and 042 (SaaS). A federal
@@ -65,10 +65,11 @@ Do this **before** buying a domain, filing anything, or putting a public URL any
       conversation. Either answer is defensible; leaving it undecided while publishing is not.
 - [ ] Confirm the "not affiliated with any vendor" disclaimer is present on every page footer. It is,
       as of this writing — re-check after any footer edit.
-- [ ] Set `REPO_URL` in `src/export.py` to the public repository URL and re-export. Until it is set,
-      the site's "Source" link renders as inert text reading "not public yet" rather than pointing
-      somewhere unhelpful — which is honest, but it is also the single most important link on a site
-      whose whole claim is that you can check the work.
+- [x] **`REPO_URL` is set** — `src/export.py:87` points at <https://github.com/feruzkarimovv/vannaris>,
+      which is public, and `scripts/check-quality.mjs` now fails the build if a page claims the
+      source is readable while `repo_url` is null. Done 2026-08-04. The "Source" link on every page
+      resolves, which on a site whose whole claim is that you can check the work was the single most
+      important link on it.
 
 ## 3. Blocking — don't overclaim
 
@@ -83,9 +84,11 @@ not before. Before launch:
       "continuously", "weekly", or "regularly" run. The site derives that count from the data
       (`track_record.weeks_published`), so it cannot drift on its own — launch copy written elsewhere
       can, and so can the README, which is hand-written.
-- [ ] Decide whether to launch at one week of data at all. The alternative is to start the schedule
-      first and launch at three or four weeks, when "continuously run" becomes true and the site's
-      most-repeated caveat disappears on its own.
+- [x] **Decided by launching, 2026-08-03, at one published week.** The alternative — hold until
+      three or four weeks, when "continuously run" becomes true on its own — was not taken. The
+      cost of that choice is real and is being paid: the site's most-repeated caveat is still up,
+      and `track_record.scheduled_weeks` was still 0 on 2026-08-07 because the 2026-08-03 scheduled
+      run died on a credit preflight. The first scheduler-invoked run is expected 2026-08-10.
 
 ## 4. Before the repository goes public
 
