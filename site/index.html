@@ -875,13 +875,17 @@ window.SBPage = {
         e.textContent = text;
         return e;
       }
+      // The badge is the tier the run resolves, not the row number: the hero
+      // table is the first thing a visitor reads, and it used to be the one
+      // place on the site that still ranked two tied vendors 03 and 04.
       var name = document.createElement("td");
-      name.innerHTML = '<span class="rank">' + String(i + 1).padStart(2, "0") +
-        '</span><span class="vendor-name"></span>';
+      var r = window.SBSite.rank(v.vendor, i);
+      name.innerHTML = window.SBSite.rankBadge(v.vendor, i) +
+        '<span class="vendor-name"></span>';
       name.querySelector(".vendor-name").textContent = v.label;
       tr.appendChild(name);
 
-      var score = td(h.fmt(v.score), i === 0 ? "num meter best" : "num meter");
+      var score = td(h.fmt(v.score), r.tier === 1 ? "num meter best" : "num meter");
       score.style.setProperty("--pct", span(v.score).toFixed(1));
       tr.appendChild(score);
 
