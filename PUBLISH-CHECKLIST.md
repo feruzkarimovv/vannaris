@@ -56,11 +56,22 @@ Do this **before** buying a domain, filing anything, or putting a public URL any
 
 ## 2. Blocking — legal
 
-- [ ] **An attorney reads the methodology** — still open, still the blocker it was. **The brief is
-      now written and waiting: `docs/15-attorney-brief.md`**, self-contained, with eight questions
-      in priority order, the vendor table, the stored-versus-published split, and the four things
-      only the founder can answer. It is preparation, not review, and does not tick this box. Send
-      it. `docs/03` says this is the highest-value dollar spent before going public.
+- [ ] **An attorney reads the methodology — DEFERRED by founder decision, 2026-08-07. Deferred, not
+      declined.** The brief is written and waiting whenever that changes:
+      `docs/15-attorney-brief.md`, self-contained, eight questions in priority order.
+      **What is being carried in the meantime, on a live site:** whether a derived score is
+      "information obtained from or through the Services" under Exa §4.2(a) (Q1), whether a
+      benchmark or the router built on it is a "competitive product" under Exa §4.2(f) and You.com
+      §3.5(h) (Q2), and the exposure from publishing comparative performance claims if a vendor
+      disputes one (Q6). None of the three is answerable from inside this repository.
+      **What is being done instead**, because it does not require counsel: Exa's §4.2(a) names
+      *written permission* as its own cure, so the email asking for it is drafted at
+      `outreach/vendor-permission-2026-08-07.md` alongside consent requests to Tavily and Brave —
+      which closes Q1 by agreement rather than by opinion if Exa says yes. The cheaper questions
+      (nominative use of vendor marks, a stated retention policy for raw responses, the phonetic
+      trademark search) are all actionable without a lawyer.
+      Re-open this when the project takes outside money, signs a vendor agreement, or a vendor
+      disputes a score — any of the three changes the calculation.
 - [x] **Confirm the vendor set against current terms — four of five done.** Linkup and Serper read
       in full 2026-08-02 (`docs/11`); **Exa and You.com read in full 2026-08-07 (`docs/14`)**.
       **Perplexity is not done and could not be: every automated route to its API terms returns
