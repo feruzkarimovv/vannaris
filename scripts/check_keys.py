@@ -15,6 +15,14 @@ is right, and we can parse what comes back.
 "not working on that vendor today"; under the scheduler it means the run would
 quietly publish a week with a vendor missing from the table, which is worth
 sixty seconds and a fraction of a cent to catch up front.
+
+Every judge is checked with a real call to the model the ensemble actually
+pins, never a /models listing. On 2026-08-10 the OpenAI account went to a
+negative balance; the listing endpoint answered anyway, this script passed, and
+the run died 15 minutes and $3.38 later with 336 judge calls lost to the 429
+that quota exhaustion returns. The ensemble module already carried the lesson
+in a comment — a listing is not an availability signal — and this script was
+the one place not applying it.
 """
 
 from __future__ import annotations
@@ -23,9 +31,19 @@ import argparse
 import asyncio
 import os
 import sys
+from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from src.judge.ensemble import JUDGES  # noqa: E402
+
+# The judge models the benchmark will actually call, so a key that works for
+# some other model cannot pass this check on the strength of it.
+JUDGE_MODEL = dict(JUDGES)
 
 PROBE = "what is the capital of France"
 TIMEOUT = 30.0
@@ -102,7 +120,7 @@ async def check_anthropic(c: httpx.AsyncClient, key: str) -> str:
             "content-type": "application/json",
         },
         json={
-            "model": "claude-haiku-4-5",
+            "model": JUDGE_MODEL["anthropic"],
             "max_tokens": 8,
             "messages": [{"role": "user", "content": "Reply with: ok"}],
         },
@@ -112,18 +130,31 @@ async def check_anthropic(c: httpx.AsyncClient, key: str) -> str:
 
 
 async def check_openai(c: httpx.AsyncClient, key: str) -> str:
-    r = await c.get("https://api.openai.com/v1/models", headers={"Authorization": f"Bearer {key}"})
+    r = await c.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        json={
+            "model": JUDGE_MODEL["openai"],
+            "max_completion_tokens": 16,
+            "messages": [{"role": "user", "content": "Reply with: ok"}],
+        },
+    )
     r.raise_for_status()
-    return f"{len(r.json().get('data', []))} models visible"
+    return r.json().get("model", JUDGE_MODEL["openai"])
 
 
 async def check_google(c: httpx.AsyncClient, key: str) -> str:
-    r = await c.get(
-        "https://generativelanguage.googleapis.com/v1beta/models",
-        headers={"x-goog-api-key": key},
+    model = JUDGE_MODEL["google"]
+    r = await c.post(
+        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+        headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+        json={
+            "contents": [{"parts": [{"text": "Reply with: ok"}]}],
+            "generationConfig": {"maxOutputTokens": 16},
+        },
     )
     r.raise_for_status()
-    return f"{len(r.json().get('models', []))} models visible"
+    return r.json().get("modelVersion", model)
 
 
 CHECKS = [
