@@ -46,6 +46,92 @@ JUDGES: list[tuple[str, str]] = [
     ("google", "gemini-3.1-flash-lite"),
 ]
 
+# Per family, because the three ceilings are not the same, and paced rather
+# than only capped, because the ceiling that actually binds is a token rate.
+#
+# What the 2026-W33 run showed, with all three families sharing one cap of 6:
+# Anthropic and Google each lost 3 calls of 750, OpenAI lost 80 to 429s.
+# OpenAI's own response headers put the account at 500 requests/min and 200,000
+# tokens/min. Requests were never close — 750 calls over a 4.75-minute judging
+# window is 158/min. Tokens were the problem: at ~1,704 tokens a call that rate
+# is ~269,000 tokens/min, or 135% of the ceiling.
+#
+# Why a concurrency number cannot fix that on its own: throughput is
+# concurrency divided by latency, and latency belongs to the API. Measured
+# directly against this account, a judge-sized call returns in ~1.1s, so even
+# concurrency 3 sustains ~166 calls/min — about 326,000 tokens/min, further
+# over the limit than the setting it replaced. The old shared cap of 6 was
+# holding OpenAI down only by accident: a response did not release its slot
+# until all three families answered, so OpenAI spent most of its time waiting
+# on the other two. Removing that head-of-line blocking without adding real
+# pacing would have made the 429s worse, not better.
+#
+# So each family gets a minimum interval between call starts, which fixes the
+# rate regardless of how fast the API happens to be that day. OpenAI's 0.80s is
+# ~75 calls/min, ~142,000 tokens/min at the measured mean of ~1,900 — about 70%
+# of the ceiling. The headroom is deliberately wide: the limit is shared with
+# anything else running on the account, and the prompt varies (2,710 tokens at
+# the longest observed). It costs wall-clock — OpenAI now sets the pace of the
+# judging stage at roughly 10 minutes — and the weekly job has 90.
+#
+# Anthropic and Google are capped but not paced: 3 lost calls in 750 is not a
+# problem worth spending wall-clock on, and slowing them would only drag the
+# whole stage down to OpenAI's speed, which is the failure this replaced.
+#
+# Re-measure before changing any of these. The headers are the evidence, and
+# they move when the account's tier does.
+JUDGE_LIMITS: dict[str, tuple[int, float]] = {
+    # family: (max concurrent, minimum seconds between call starts)
+    "anthropic": (6, 0.0),
+    "openai": (3, 0.80),
+    "google": (6, 0.0),
+}
+
+
+class FamilyLimiter:
+    """A concurrency cap plus a floor on the interval between call starts.
+
+    The interval is reserved before sleeping, not after, so N callers arriving
+    together take N distinct slots instead of all waking to the same one.
+    """
+
+    def __init__(self, concurrency: int, min_interval: float) -> None:
+        self._sem = asyncio.Semaphore(concurrency)
+        self._min_interval = min_interval
+        self._lock = asyncio.Lock()
+        self._next_start = 0.0
+
+    async def __aenter__(self) -> "FamilyLimiter":
+        await self._sem.acquire()
+        if self._min_interval:
+            try:
+                async with self._lock:
+                    loop = asyncio.get_running_loop()
+                    now = loop.time()
+                    start = max(now, self._next_start)
+                    self._next_start = start + self._min_interval
+                delay = start - now
+                if delay > 0:
+                    await asyncio.sleep(delay)
+            except BaseException:
+                # Never hold the slot if the wait is cancelled — an abandoned
+                # permit would shrink the cap for the rest of the run.
+                self._sem.release()
+                raise
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        self._sem.release()
+
+
+def make_judge_semaphores() -> dict[str, FamilyLimiter]:
+    """One limiter per family, built inside the running loop.
+
+    Not at module level: a limiter built at import time binds to whichever loop
+    imported it, which breaks any caller that runs asyncio.run more than once.
+    """
+    return {fam: FamilyLimiter(*JUDGE_LIMITS[fam]) for fam, _ in JUDGES}
+
 # Sampling is pinned as well as the model. Pinning a model version buys nothing
 # for reproducibility if the call is still a temperature-1 sample: across the two
 # runs in the first week's database, on 297 (query, vendor) pairs whose vendor
@@ -346,10 +432,22 @@ async def score_one(
     model: str,
     prompt: str,
     scored_chars: int,
+    sem: "FamilyLimiter | None" = None,
 ) -> JudgeScore:
     score = JudgeScore(judge_family=family, judge_model=model, scored_chars=scored_chars)
     try:
-        data, pt, ot, served = await _call_with_retry(family, client, keys[family], model, prompt)
+        if sem is None:
+            data, pt, ot, served = await _call_with_retry(
+                family, client, keys[family], model, prompt
+            )
+        else:
+            # Held across the retries too: a call that is backing off from a 429
+            # is still the family's problem, and releasing the slot mid-retry
+            # would let a replacement call straight into the limit it just hit.
+            async with sem:
+                data, pt, ot, served = await _call_with_retry(
+                    family, client, keys[family], model, prompt
+                )
     except Exception as exc:  # noqa: BLE001 — a judge failing is data, not a crash
         score.error = f"{type(exc).__name__}: {exc}"[:300]
         return score
@@ -377,12 +475,20 @@ async def score_response(
     query_text: str,
     gold: str | None,
     today: str,
+    sems: "dict[str, FamilyLimiter] | None" = None,
 ) -> list[JudgeScore]:
-    """Run all three judges concurrently over one vendor response."""
+    """Run all three judges concurrently over one vendor response.
+
+    `sems` rate-limits each family independently — see JUDGE_LIMITS. Passing
+    None runs unthrottled, which is only right for a handful of calls.
+    """
     prompt, chars = build_prompt(response, query_text, gold, today)
     return list(
         await asyncio.gather(
-            *(score_one(client, keys, fam, mdl, prompt, chars) for fam, mdl in JUDGES)
+            *(
+                score_one(client, keys, fam, mdl, prompt, chars, sems[fam] if sems else None)
+                for fam, mdl in JUDGES
+            )
         )
     )
 
