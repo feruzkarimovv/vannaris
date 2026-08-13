@@ -25,7 +25,7 @@ import httpx
 from dotenv import load_dotenv
 
 from . import heldout, storage
-from .judge.ensemble import JUDGES, median_overall, score_response
+from .judge.ensemble import JUDGES, make_judge_semaphores, median_overall, score_response
 from .vendors.adapters import build_all
 from .vendors.base import ResponseMode, SearchResponse
 
@@ -36,10 +36,19 @@ DB_PATH = ROOT / "data" / "vannaris.db"
 # what unbounded asyncio.gather would produce, and tripping a rate limit
 # corrupts a weekly datapoint in a way that is not worth the wall-clock saving.
 VENDOR_CONCURRENCY = 4
-# Back to 6: at 10, OpenAI returned 429s on 124/750 calls and exhausted the
-# retry budget. Wall-clock is not the scarce resource here — a weekly job can
-# take an extra ten minutes; it cannot afford a hole in its sample.
-JUDGE_CONCURRENCY = 6
+# How many responses may be mid-judging at once. This is a memory bound, not a
+# rate limit: the rate limits are per judge family and live in
+# ensemble.JUDGE_LIMITS, because the three families have different ceilings and
+# one shared number has to be set for the lowest of them.
+#
+# It has to stay comfortably above the largest per-family concurrency or it
+# becomes the binding constraint by the back door: a response holds its slot
+# here until all three of its judges return, so a cap near OpenAI's would leave
+# Anthropic and Google idling behind a response still waiting on OpenAI. That
+# is what the old shared cap of 6 was doing, and it is why OpenAI's real rate
+# was invisible until it was measured — the head-of-line blocking was throttling
+# OpenAI by accident, at the cost of the other two families' throughput.
+RESPONSE_CONCURRENCY = 16
 
 # Share of responses that must carry a complete three-judge ensemble for the
 # run to be worth publishing. Matches export.MIN_CELL_COVERAGE, which is the
@@ -135,7 +144,8 @@ async def judge_all(
     qmap: dict[str, dict],
     today: str,
 ) -> dict[str, list]:
-    sem = asyncio.Semaphore(JUDGE_CONCURRENCY)
+    sem = asyncio.Semaphore(RESPONSE_CONCURRENCY)
+    judge_sems = make_judge_semaphores()
     scored: dict[str, list] = {}
 
     async def one(resp: SearchResponse):
@@ -145,7 +155,7 @@ async def judge_all(
         q = qmap[resp.query_id]
         async with sem:
             return key, await score_response(
-                client, keys, resp, q["text"], q.get("gold_answer"), today
+                client, keys, resp, q["text"], q.get("gold_answer"), today, judge_sems
             )
 
     tasks = [one(r) for r in responses]

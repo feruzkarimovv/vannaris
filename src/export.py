@@ -1572,13 +1572,18 @@ def main() -> None:
         # so its CSVs were written by the export that produced it and are still
         # correct. Regenerating them from a database that does not hold that run
         # would replace real files with empty ones.
-        manifest = export_dir / "manifest.json"
-        if not manifest.is_file():
+        # Not `manifest`: that name already holds the held-out manifest loaded
+        # in main(), and rebinding it here left assert_heldout_withheld() below
+        # receiving a Path. That is the guard against a withheld question
+        # reaching a published file, and it crashed rather than ran on every
+        # export whose newest week came from history instead of this database.
+        prior_manifest = export_dir / "manifest.json"
+        if not prior_manifest.is_file():
             raise SystemExit(
-                f"week {latest['week']} comes from history but {manifest} is missing — "
+                f"week {latest['week']} comes from history but {prior_manifest} is missing — "
                 "cannot describe an export whose files this run did not write."
             )
-        prior = json.loads(manifest.read_text())
+        prior = json.loads(prior_manifest.read_text())
         files = prior["files"]
         # The manifest keeps naming the week the CSVs actually came from, not
         # the newest week on the site. A manifest headed 2026-W32 listing

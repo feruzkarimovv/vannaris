@@ -19,6 +19,7 @@ Nothing here makes a network call. Every function under test is pure.
 
 from __future__ import annotations
 
+import asyncio
 import sys
 import unittest
 from pathlib import Path
@@ -29,12 +30,15 @@ sys.path.insert(0, str(ROOT))
 import httpx  # noqa: E402
 
 from src.judge.ensemble import (  # noqa: E402
+    JUDGE_LIMITS,
     SNIPPET_CHARS,
+    FamilyLimiter,
     JUDGES,
     JudgeScore,
     _extract,
     _retry_after,
     build_prompt,
+    make_judge_semaphores,
     median_overall,
 )
 from src.vendors.base import ResponseMode, SearchResponse, SearchResult  # noqa: E402
@@ -376,6 +380,98 @@ class TestBuildPrompt(unittest.TestCase):
         prompt, _ = build_prompt(response(results=[
             SearchResult(url="https://example.invalid/a", rank=0)]), "q", None, TODAY)
         self.assertIn("(no title)", prompt)
+
+
+class TestFamilyLimiter(unittest.TestCase):
+    """The pacing that keeps OpenAI under its tokens-per-minute ceiling.
+
+    On the 2026-W33 run OpenAI lost 80 judge calls of 750 to 429s while running
+    at ~269,000 tokens/min against a 200,000 limit. A concurrency cap alone
+    cannot hold a rate — throughput is concurrency over latency, and latency
+    belongs to the API — so the limiter also spaces call starts. These tests
+    assert the spacing exists and survives cancellation, because a limiter that
+    leaks its permit degrades quietly: the run still finishes, just slower and
+    against a cap nobody set.
+    """
+
+    def test_interval_is_enforced_between_starts(self):
+        async def go():
+            lim = FamilyLimiter(concurrency=4, min_interval=0.05)
+            loop = asyncio.get_running_loop()
+            starts = []
+
+            async def one():
+                async with lim:
+                    starts.append(loop.time())
+
+            await asyncio.gather(*(one() for _ in range(4)))
+            return sorted(starts)
+
+        starts = asyncio.run(go())
+        gaps = [b - a for a, b in zip(starts, starts[1:])]
+        # Generous lower bound: the assertion is that the calls were spaced at
+        # all, not that the event loop is a real-time scheduler.
+        for gap in gaps:
+            self.assertGreater(gap, 0.03, f"starts were not spaced: {gaps}")
+
+    def test_concurrency_cap_is_honoured(self):
+        async def go():
+            lim = FamilyLimiter(concurrency=2, min_interval=0.0)
+            live, peak = 0, 0
+
+            async def one():
+                nonlocal live, peak
+                async with lim:
+                    live += 1
+                    peak = max(peak, live)
+                    await asyncio.sleep(0.01)
+                    live -= 1
+
+            await asyncio.gather(*(one() for _ in range(8)))
+            return peak
+
+        self.assertEqual(asyncio.run(go()), 2)
+
+    def test_cancelled_wait_does_not_leak_a_permit(self):
+        """A cancellation during the pacing sleep must release the slot.
+
+        Without this the permit is gone for the rest of the process and the
+        family's effective concurrency silently drops — the kind of failure
+        that looks like "the API got slower this week".
+        """
+        async def go():
+            lim = FamilyLimiter(concurrency=1, min_interval=5.0)
+            async with lim:
+                pass  # first acquire returns immediately, reserving the next slot
+            task = asyncio.create_task(lim.__aenter__())
+            await asyncio.sleep(0.01)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            # The permit is back, so a non-blocking acquire succeeds.
+            self.assertTrue(lim._sem.locked() is False)
+
+        asyncio.run(go())
+
+    def test_every_judge_family_has_limits(self):
+        missing = [fam for fam, _ in JUDGES if fam not in JUDGE_LIMITS]
+        self.assertEqual(missing, [], f"families with no configured limit: {missing}")
+        for fam, (conc, interval) in JUDGE_LIMITS.items():
+            self.assertGreaterEqual(conc, 1, f"{fam} cannot run with concurrency {conc}")
+            self.assertGreaterEqual(interval, 0.0, f"{fam} has a negative interval")
+
+    def test_limiters_are_built_per_loop(self):
+        """Built inside the loop, so two asyncio.run calls both work.
+
+        A module-level limiter binds to the loop that imported it and raises on
+        the second run — which is exactly how the test suite calls it.
+        """
+        for _ in range(2):
+            async def go():
+                sems = make_judge_semaphores()
+                async with sems["openai"]:
+                    return set(sems)
+            self.assertEqual(asyncio.run(go()), {fam for fam, _ in JUDGES})
 
 
 if __name__ == "__main__":
