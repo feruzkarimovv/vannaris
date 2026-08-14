@@ -35,6 +35,7 @@ from src.judge.ensemble import (  # noqa: E402
     FamilyLimiter,
     JUDGES,
     JudgeScore,
+    _describe,
     _extract,
     _retry_after,
     build_prompt,
@@ -222,6 +223,96 @@ class TestRetryAfter(unittest.TestCase):
     def test_anthropics_overloaded_status_is_retried(self):
         # 529 is not a standard code and would be dropped by a naive check.
         self.assertIsNotNone(_retry_after(self.exc(529), 0))
+
+
+# ------------------------------------------------- rate limit vs empty account
+
+OPENAI_QUOTA = ('{"error": {"message": "You exceeded your current quota, please '
+                'check your plan and billing details.", "type": "insufficient_quota", '
+                '"code": "insufficient_quota"}}')
+OPENAI_RATE = ('{"error": {"message": "Rate limit reached for gpt-5.4-mini on tokens '
+               'per min (TPM): Limit 200000, Used 199000, Requested 1900. Please try '
+               'again in 270ms.", "type": "tokens", "code": "rate_limit_exceeded"}}')
+GOOGLE_RATE = ('{"error": {"code": 429, "message": "Quota exceeded for quota metric '
+               "'Generate Content API requests per minute' and limit 'GenerateContent "
+               "request limit per minute per project' of service "
+               '\'generativelanguage.googleapis.com\'.", "status": "RESOURCE_EXHAUSTED"}}')
+ANTHROPIC_CREDIT = ('{"type": "error", "error": {"type": "invalid_request_error", '
+                    '"message": "Your credit balance is too low to access the '
+                    'Anthropic API. Please go to Plans & Billing to upgrade."}}')
+
+
+class TestQuotaIsNotARateLimit(unittest.TestCase):
+    """The 2026-08-10 failure, in one distinction.
+
+    A rate limit lifts and a balance does not, and the retry policy has to tell
+    them apart: waiting out an empty account costs 70 seconds a try while
+    holding a slot the rest of the family needs, and 336 calls did exactly that.
+    """
+
+    exc = staticmethod(TestRetryAfter.exc)
+
+    def test_an_exhausted_balance_is_not_retried(self):
+        self.assertIsNone(_retry_after(self.exc(429, body=OPENAI_QUOTA), 0))
+
+    def test_a_spend_cap_is_not_retried(self):
+        body = '{"error": {"code": "billing_hard_limit_reached"}}'
+        self.assertIsNone(_retry_after(self.exc(429, body=body), 0))
+
+    def test_anthropics_low_credit_is_not_retried_whatever_the_status(self):
+        # Anthropic sends this as a 400, which was already not retried. Matching
+        # the message too means a change of status code on their side does not
+        # silently reinstate five minutes of waiting.
+        self.assertIsNone(_retry_after(self.exc(429, body=ANTHROPIC_CREDIT), 0))
+
+    def test_the_match_survives_the_providers_capitalisation(self):
+        self.assertIn("Your credit balance", ANTHROPIC_CREDIT)   # not lowercase at source
+        self.assertIsNone(_retry_after(self.exc(429, body=ANTHROPIC_CREDIT), 0))
+
+    def test_googles_per_minute_quota_is_still_a_rate_limit(self):
+        # The whole reason this matches error codes and not the word "quota".
+        # Google says "Quota exceeded for quota metric" for ordinary per-minute
+        # throttling — the most common recoverable error the ensemble sees. A
+        # substring match on "quota" would make it fatal and drop a whole judge
+        # family, which is a methodology failure, not a coverage one.
+        self.assertIsNotNone(_retry_after(self.exc(429, body=GOOGLE_RATE), 0))
+
+    def test_openais_own_rate_limit_is_still_retried(self):
+        self.assertIsNotNone(_retry_after(self.exc(429, body=OPENAI_RATE), 0))
+
+    def test_a_retry_after_header_does_not_rescue_an_empty_account(self):
+        # Providers send Retry-After on quota errors too. Reading the header
+        # first would put the old behaviour straight back.
+        got = _retry_after(self.exc(429, {"retry-after": "30"}, body=OPENAI_QUOTA), 0)
+        self.assertIsNone(got)
+
+
+class TestDescribe(unittest.TestCase):
+    """What the run report says, which is what gets acted on at 06:30 Monday."""
+
+    exc = staticmethod(TestRetryAfter.exc)
+
+    def test_quota_exhaustion_says_to_top_the_account_up(self):
+        got = _describe(self.exc(429, body=OPENAI_QUOTA))
+        self.assertIn("quota exhausted", got)
+        self.assertIn("topping up", got)
+
+    def test_a_rate_limit_is_not_described_as_an_empty_account(self):
+        got = _describe(self.exc(429, body=GOOGLE_RATE))
+        self.assertNotIn("quota exhausted", got)
+        self.assertIn("HTTPStatusError", got)
+
+    def test_an_ordinary_failure_keeps_its_type_and_message(self):
+        got = _describe(ValueError("no scores in judge reply"))
+        self.assertTrue(got.startswith("ValueError: "))
+        self.assertIn("no scores in judge reply", got)
+
+    def test_every_description_fits_the_column(self):
+        # score.error is stored at 300 characters; a description that overflows
+        # would be truncated mid-sentence in the one place it is read.
+        for e in (self.exc(429, body=OPENAI_QUOTA), self.exc(500, body="x" * 4000),
+                  ValueError("y" * 4000)):
+            self.assertLessEqual(len(_describe(e)), 300)
 
 
 # --------------------------------------------------- prompt / length normalisation
@@ -452,6 +543,15 @@ class TestFamilyLimiter(unittest.TestCase):
             self.assertTrue(lim._sem.locked() is False)
 
         asyncio.run(go())
+
+    def test_the_pinned_models_are_distinct(self):
+        # Two families pinned to one model would be a methodology failure on its
+        # own — the cross-family split *is* the bias mitigation — but it also
+        # breaks storage silently: judge_scores is UNIQUE on (response_id,
+        # judge_model), so the second write of a shared model raises and takes
+        # the whole commit of judgements with it.
+        models = [m for _, m in JUDGES]
+        self.assertEqual(len(set(models)), len(models), f"a model is pinned twice: {models}")
 
     def test_every_judge_family_has_limits(self):
         missing = [fam for fam, _ in JUDGES if fam not in JUDGE_LIMITS]
