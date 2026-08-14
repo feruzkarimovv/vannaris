@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from src.judge.ensemble import JUDGES  # noqa: E402
+from src.judge.ensemble import JUDGE_SEED, JUDGES  # noqa: E402
 
 # The judge models the benchmark will actually call, so a key that works for
 # some other model cannot pass this check on the strength of it.
@@ -47,6 +47,25 @@ JUDGE_MODEL = dict(JUDGES)
 
 PROBE = "what is the capital of France"
 TIMEOUT = 30.0
+
+# The judge probes send the same *parameters* as the real judge call, not a
+# reduced version of it. Pinning the model was only half the lesson: a provider
+# that stops accepting `temperature`, `seed`, `response_format` or a zero
+# thinking budget will answer "reply with ok" perfectly and then fail 100% of
+# judging, and a preflight that certifies the one property nobody needed is
+# worse than none — it converts a loud failure into a confident green tick
+# followed by forty minutes of vendor spend.
+#
+# Only two things are allowed to differ, both downward: the token budget and
+# the prompt, because this is meant to cost a fraction of a cent.
+# `tests/test_check_keys.py` compares the two bodies parameter by parameter, so
+# the next change to the real call cannot quietly leave this one behind.
+#
+# The prompt names JSON deliberately: OpenAI rejects `response_format:
+# json_object` outright unless the word appears in the messages, so a probe
+# without it would fail against a perfectly good key.
+JUDGE_PROBE = 'Reply with the JSON object {"ok": true} and nothing else.'
+PROBE_TOKENS = 32
 
 OK, FAIL, SKIP = "\033[32m  ok\033[0m", "\033[31mfail\033[0m", "\033[33mskip\033[0m"
 
@@ -121,8 +140,9 @@ async def check_anthropic(c: httpx.AsyncClient, key: str) -> str:
         },
         json={
             "model": JUDGE_MODEL["anthropic"],
-            "max_tokens": 8,
-            "messages": [{"role": "user", "content": "Reply with: ok"}],
+            "max_tokens": PROBE_TOKENS,
+            "temperature": 0,
+            "messages": [{"role": "user", "content": JUDGE_PROBE}],
         },
     )
     r.raise_for_status()
@@ -135,8 +155,11 @@ async def check_openai(c: httpx.AsyncClient, key: str) -> str:
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
         json={
             "model": JUDGE_MODEL["openai"],
-            "max_completion_tokens": 16,
-            "messages": [{"role": "user", "content": "Reply with: ok"}],
+            "messages": [{"role": "user", "content": JUDGE_PROBE}],
+            "response_format": {"type": "json_object"},
+            "temperature": 0,
+            "seed": JUDGE_SEED,
+            "max_completion_tokens": PROBE_TOKENS,
         },
     )
     r.raise_for_status()
@@ -149,8 +172,13 @@ async def check_google(c: httpx.AsyncClient, key: str) -> str:
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
         headers={"x-goog-api-key": key, "Content-Type": "application/json"},
         json={
-            "contents": [{"parts": [{"text": "Reply with: ok"}]}],
-            "generationConfig": {"maxOutputTokens": 16},
+            "contents": [{"parts": [{"text": JUDGE_PROBE}]}],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "maxOutputTokens": PROBE_TOKENS,
+                "temperature": 0,
+                "thinkingConfig": {"thinkingBudget": 0},
+            },
         },
     )
     r.raise_for_status()
