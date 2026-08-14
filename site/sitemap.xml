@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Checked against the pages that actually exist, by scripts/check-quality.mjs.
+  The per-vendor pages are generated (scripts/make_vendor_pages.py) and the
+  vendor set is a decision governed by docs/03, so adding one without listing it
+  here fails the build rather than quietly shipping a sitemap with a hole in it.
+
+  No <lastmod>. Every page is regenerated on each weekly run whether or not its
+  content moved, so a timestamp taken from the file would announce a change that
+  did not happen — and "state only what was measured" is the rule this project
+  is built on. Publication dates that mean something live in the data, where
+  they are derived from `runs.trigger`.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://vannaris.com/</loc></url>
+  <url><loc>https://vannaris.com/results.html</loc></url>
+  <url><loc>https://vannaris.com/methodology.html</loc></url>
+  <url><loc>https://vannaris.com/data.html</loc></url>
+  <url><loc>https://vannaris.com/vendors/exa.html</loc></url>
+  <url><loc>https://vannaris.com/vendors/linkup.html</loc></url>
+  <url><loc>https://vannaris.com/vendors/perplexity.html</loc></url>
+  <url><loc>https://vannaris.com/vendors/serper.html</loc></url>
+  <url><loc>https://vannaris.com/vendors/youcom.html</loc></url>
+</urlset>

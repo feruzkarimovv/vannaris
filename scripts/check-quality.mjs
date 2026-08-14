@@ -264,6 +264,60 @@ for (const page of PAGES) {
   }
 }
 
+// ------------------------------------------------------- robots and sitemap
+//
+// The sitemap is hand-written and machine-checked rather than generated. What
+// makes it go stale is the vendor set changing, and adding a vendor is a
+// deliberate act under docs/03 with a gate of its own — so the right behaviour
+// is for an unlisted page to stop the build, not for a generator to paper over
+// the omission. The comparison runs both ways: a page missing from the sitemap
+// and a sitemap entry pointing at a page that no longer exists are both wrong.
+
+const CANONICAL_ORIGIN = "https://vannaris.com";
+const asUrl = (page) =>
+  CANONICAL_ORIGIN + "/" + (page === "index.html" ? "" : page);
+
+for (const f of ["robots.txt", "sitemap.xml"]) {
+  if (!existsSync(join(SITE, f))) fail(f, "missing");
+}
+
+if (existsSync(join(SITE, "sitemap.xml"))) {
+  const xml = readFileSync(join(SITE, "sitemap.xml"), "utf8");
+  const listed = new Set([...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]));
+  const expected = new Set(PAGES.map(asUrl));
+
+  for (const url of expected) {
+    if (!listed.has(url)) fail("sitemap.xml", `does not list ${url}`);
+  }
+  for (const url of listed) {
+    if (!expected.has(url)) fail("sitemap.xml", `lists ${url}, which is not a page here`);
+  }
+  // A sitemap and a page disagreeing about the canonical origin would send
+  // crawlers to one host and readers to another.
+  for (const page of PAGES) {
+    const file = join(SITE, page);
+    if (!existsSync(file)) continue;
+    const canonical = readFileSync(file, "utf8")
+      .match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/i)?.[1];
+    if (canonical && canonical !== asUrl(page)) {
+      fail(page, `canonical is ${canonical}, sitemap says ${asUrl(page)}`);
+    }
+  }
+}
+
+if (existsSync(join(SITE, "robots.txt"))) {
+  const robots = readFileSync(join(SITE, "robots.txt"), "utf8");
+  if (!/^\s*Sitemap:\s*\S+/mi.test(robots)) {
+    fail("robots.txt", "does not point at the sitemap");
+  }
+  // docs/03 keeps vendor content off this site entirely, so there is nothing
+  // here that needs hiding — and a Disallow would read as though there were.
+  const disallowed = [...robots.matchAll(/^\s*Disallow:\s*(\S+)/gim)].map((m) => m[1]);
+  if (disallowed.some((d) => d !== "")) {
+    fail("robots.txt", `disallows ${disallowed.join(", ")} — the data is meant to be checkable`);
+  }
+}
+
 // ------------------------------------------------------------------ report
 
 console.log(`  css ${kb(cssBytes)}KB · js ${kb(jsBytes)}KB · data ${kb(dataBytes)}KB`);
