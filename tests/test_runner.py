@@ -28,17 +28,32 @@ sys.path.insert(0, str(ROOT))
 
 from src import storage  # noqa: E402
 from src.judge.ensemble import JUDGES, JudgeScore  # noqa: E402
-from src.runner import MIN_COMPLETE_SHARE, aggregate, validity  # noqa: E402
+from src.runner import (  # noqa: E402
+    MIN_COMPLETE_SHARE,
+    aggregate,
+    load_responses,
+    persist_run,
+    persist_scores,
+    validity,
+)
 from src.vendors.base import ResponseMode, SearchResponse, SearchResult  # noqa: E402
 
 FAMILIES = [f for f, _ in JUDGES]
+JUDGE_MODEL = dict(JUDGES)
 
 
 def ensemble(overall=7.0, families=None, missing=()):
-    """One response's worth of judge scores."""
+    """One response's worth of judge scores.
+
+    Each family carries its own pinned model rather than a shared placeholder.
+    That is not cosmetic: `judge_scores` is UNIQUE on (response_id,
+    judge_model), so three scores sharing one model string are one score as far
+    as the database is concerned, and a fixture that pretends otherwise cannot
+    exercise persistence at all.
+    """
     out = []
     for fam in (families or FAMILIES):
-        out.append(JudgeScore(judge_family=fam, judge_model="m",
+        out.append(JudgeScore(judge_family=fam, judge_model=JUDGE_MODEL.get(fam, fam),
                               overall=None if fam in missing else overall))
     return out
 
@@ -266,6 +281,144 @@ class TestAggregateDowngradeGuard(unittest.TestCase):
             "SELECT n_errors FROM weekly_scores WHERE week=?", ("2099-W01",)).fetchone()[0]
         self.assertEqual(n_queries, 10, "the denominator must include failed calls")
         self.assertEqual(n_errors, 2)
+
+
+# ------------------------------------------- surviving a failure while judging
+
+class TestPersistenceSurvivesJudging(unittest.TestCase):
+    """The vendor calls must outlive the stage most likely to kill the run.
+
+    Everything used to be written in one call *after* judging returned. Judging
+    is the stage that fails — rate limits, an exhausted balance, the workflow's
+    90-minute timeout — so a failure there discarded all 750 vendor calls and
+    the `--rejudge` recovery with them, because `--rejudge` reads a stored run
+    and there was none. 2026-W32 is the hole that made.
+
+    These tests are about the crash, not the happy path: the assertion that
+    matters is that a run interrupted between the two writes is still on disk
+    and still re-judgeable.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.db = Path(self._tmp.name) / "t.db"
+        self.conn = storage.connect(self.db)
+        self.queries = [{"id": f"q{i}", "category": "general_facts",
+                         "text": f"question {i}", "source": "authored"}
+                        for i in range(4)]
+
+    def tearDown(self):
+        self.conn.close()
+        self._tmp.cleanup()
+
+    def store(self, run_id="run-a", n=4, vendor="fixture_alpha"):
+        responses = [resp(f"q{i}", vendor) for i in range(n)]
+        ids = persist_run(self.conn, run_id, "2099-W01", "hash0", self.queries,
+                          responses, "2099-01-01T00:00:00+00:00", "scheduled")
+        return responses, ids
+
+    def count(self, table):
+        return self.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+
+    def test_the_responses_are_on_disk_before_any_judging(self):
+        self.store()
+        self.assertEqual(self.count("raw_responses"), 4)
+        self.assertEqual(self.count("judge_scores"), 0)
+
+    def test_an_interrupted_run_has_no_finished_at(self):
+        # This is what tells a later reader — or a later session — that the run
+        # stopped rather than completed with nothing to say.
+        self.store()
+        finished = self.conn.execute(
+            "SELECT finished_at FROM runs WHERE id=?", ("run-a",)).fetchone()[0]
+        self.assertIsNone(finished)
+
+    def test_finishing_the_scores_closes_the_run(self):
+        responses, ids = self.store()
+        scored = {f"q{i}::fixture_alpha": ensemble() for i in range(4)}
+        persist_scores(self.conn, "run-a", ids, scored)
+        finished = self.conn.execute(
+            "SELECT finished_at FROM runs WHERE id=?", ("run-a",)).fetchone()[0]
+        self.assertIsNotNone(finished)
+        self.assertEqual(self.count("judge_scores"), 4 * len(FAMILIES))
+
+    def test_a_run_that_dies_during_judging_is_still_re_judgeable(self):
+        # The whole point, modelled as it actually happens: responses stored,
+        # judging raises, the process ends, and a later invocation reopens the
+        # database and finds the run waiting.
+        self.store()
+        try:
+            raise TimeoutError("the job timed out mid-judging")
+        except TimeoutError:
+            pass
+        self.conn.close()
+
+        conn = storage.connect(self.db)
+        try:
+            recovered = load_responses(conn, "run-a")
+        finally:
+            conn.close()
+        self.conn = storage.connect(self.db)   # for tearDown
+
+        self.assertEqual(len(recovered), 4)
+        self.assertEqual({r.query_id for r in recovered},
+                         {"q0", "q1", "q2", "q3"})
+
+    def test_the_recovered_responses_carry_what_a_judge_needs(self):
+        self.store()
+        recovered = load_responses(self.conn, "run-a")
+        one = next(r for r in recovered if r.query_id == "q0")
+        self.assertEqual(one.vendor, "fixture_alpha")
+        self.assertEqual([x.url for x in one.results],
+                         ["https://example.invalid/a"])
+        self.assertEqual(one.latency_ms, 100)
+
+    def test_re_judging_a_recovered_run_costs_no_vendor_money(self):
+        # The claim printed on the console at the point of failure. Counting the
+        # spend twice would overstate what the benchmark costs to operate.
+        self.store()
+        recovered = load_responses(self.conn, "run-a")
+        self.assertEqual([r.cost_usd for r in recovered], [0.0] * 4)
+
+    def test_every_response_gets_an_id_the_scores_can_use(self):
+        responses, ids = self.store()
+        self.assertEqual(set(ids), {f"q{i}::fixture_alpha" for i in range(4)})
+        self.assertEqual(len(set(ids.values())), 4, "ids must be distinct")
+
+    def test_the_scores_land_on_their_own_response(self):
+        responses, ids = self.store()
+        scored = {f"q{i}::fixture_alpha": ensemble(float(i)) for i in range(4)}
+        persist_scores(self.conn, "run-a", ids, scored)
+        rows = dict(self.conn.execute(
+            "SELECT r.query_id, j.overall FROM judge_scores j "
+            "JOIN raw_responses r ON r.id = j.response_id GROUP BY r.query_id"))
+        self.assertEqual(rows, {"q0": 0.0, "q1": 1.0, "q2": 2.0, "q3": 3.0})
+
+    def test_a_judge_that_errored_is_not_stored_as_a_score(self):
+        responses, ids = self.store(n=1)
+        failed = JudgeScore(judge_family=FAMILIES[0], judge_model="m")
+        failed.error = "quota exhausted, not rate-limited"
+        scored = {"q0::fixture_alpha": [failed]}
+        persist_scores(self.conn, "run-a", ids, scored)
+        self.assertEqual(self.count("judge_scores"), 0)
+
+    def test_a_score_for_an_unstored_response_is_dropped_not_raised(self):
+        # `response_id` is NOT NULL, so writing an orphan would abort the whole
+        # commit and lose every other judgement in it.
+        responses, ids = self.store(n=1)
+        scored = {"q0::fixture_alpha": ensemble(),
+                  "q99::never_fetched": ensemble()}
+        persist_scores(self.conn, "run-a", ids, scored)
+        self.assertEqual(self.count("judge_scores"), len(FAMILIES))
+
+    def test_a_second_run_does_not_disturb_the_first(self):
+        # `--rejudge` stores the recovered responses under a new run id, so both
+        # have to coexist: the original stays exactly as it was.
+        self.store("run-a")
+        self.store("run-b")
+        self.assertEqual(len(load_responses(self.conn, "run-a")), 4)
+        self.assertEqual(len(load_responses(self.conn, "run-b")), 4)
+        self.assertEqual(self.count("raw_responses"), 8)
 
 
 if __name__ == "__main__":
