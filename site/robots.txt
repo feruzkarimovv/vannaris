@@ -1,0 +1,15 @@
+# vannaris.com
+#
+# Nothing here is disallowed, and that is deliberate rather than lazy. The whole
+# claim is that the numbers can be checked by anyone who wants to, so the raw
+# export under /export/ and the per-week JSON under /data/ are as crawlable as
+# the pages that summarise them. A benchmark that keeps its own data out of the
+# index is asking for exactly the trust it exists to make unnecessary.
+#
+# Vendor-retrieved content is not here to exclude: it never leaves the machine
+# that ran the benchmark (docs/03), so there is no path to disallow.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://vannaris.com/sitemap.xml
