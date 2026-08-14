@@ -287,48 +287,65 @@ class TestCanonicalRun(unittest.TestCase):
     """Chosen, not inherited — the most recent run must not win by being last."""
 
     @staticmethod
-    def run(rid, week="2099-W01", complete=100, min_cat=10, completeness=0.9,
+    def a_run(rid, week="2099-W01", complete=100, min_cat=10, completeness=0.9,
             started="2099-01-04T06:00:00+00:00"):
         return {"id": rid, "week": week, "complete": complete,
                 "min_per_category": min_cat, "completeness": completeness,
                 "categories": len(export.CATEGORY_META), "started_at": started}
 
     def test_the_most_complete_eligible_run_wins(self):
-        runs = [self.run("a", complete=50), self.run("b", complete=140)]
+        runs = [self.a_run("a", complete=50), self.a_run("b", complete=140)]
         self.assertEqual(export.canonical_run(runs, "2099-W01")["id"], "b")
 
     def test_a_later_smoke_test_does_not_win_by_being_later(self):
-        runs = [self.run("full", complete=140),
-                self.run("smoke", complete=6, min_cat=2,
+        runs = [self.a_run("full", complete=140),
+                self.a_run("smoke", complete=6, min_cat=2,
                          started="2099-01-04T23:00:00+00:00")]
         self.assertEqual(export.canonical_run(runs, "2099-W01")["id"], "full")
 
     def test_too_few_queries_per_category_is_ineligible(self):
-        runs = [self.run("smoke", min_cat=export.MIN_QUERIES_PER_CATEGORY - 1)]
+        runs = [self.a_run("smoke", min_cat=export.MIN_QUERIES_PER_CATEGORY - 1)]
         self.assertIsNone(export.canonical_run(runs, "2099-W01"))
 
     def test_exactly_the_minimum_per_category_is_eligible(self):
-        runs = [self.run("edge", min_cat=export.MIN_QUERIES_PER_CATEGORY)]
+        runs = [self.a_run("edge", min_cat=export.MIN_QUERIES_PER_CATEGORY)]
         self.assertIsNotNone(export.canonical_run(runs, "2099-W01"))
 
     def test_too_few_complete_ensembles_is_ineligible(self):
-        runs = [self.run("thin", completeness=export.MIN_RUN_COMPLETENESS - 0.01)]
+        runs = [self.a_run("thin", completeness=export.MIN_RUN_COMPLETENESS - 0.01)]
         self.assertIsNone(export.canonical_run(runs, "2099-W01"))
 
     def test_a_missing_category_is_ineligible(self):
         # Five of six categories is not a partial week, it is a different
         # query set, and publishing it in the same table would compare
         # differently-shaped runs.
-        run = self.run("partial")
+        run = self.a_run("partial")
         run["categories"] = len(export.CATEGORY_META) - 1
         self.assertIsNone(export.canonical_run([run], "2099-W01"))
 
     def test_runs_from_another_week_are_not_considered(self):
-        runs = [self.run("other", week="2099-W02", complete=999)]
+        runs = [self.a_run("other", week="2099-W02", complete=999)]
         self.assertIsNone(export.canonical_run(runs, "2099-W01"))
 
     def test_no_runs_at_all_is_none_not_a_crash(self):
         self.assertIsNone(export.canonical_run([], "2099-W01"))
+
+    def test_a_run_interrupted_before_judging_cannot_be_published(self):
+        # `runner.persist_run` writes the vendor responses before any judge is
+        # called, so a run killed mid-judging now leaves rows on disk where
+        # previously it left nothing. That is the point — it is what makes
+        # `--rejudge` reachable — but it also means the export sees a run with
+        # responses and no scores, which must never become a week on the site.
+        # Nothing new guards it: completeness is 0.0, which is below the floor.
+        # This test is here so that stays true if the floor is ever revisited.
+        stalled = self.a_run("interrupted", complete=0, completeness=0.0)
+        self.assertIsNone(export.canonical_run([stalled], "2099-W01"))
+
+    def test_a_re_judged_run_beats_the_interrupted_one_it_recovered(self):
+        runs = [self.a_run("interrupted", complete=0, completeness=0.0),
+                self.a_run("rejudged", complete=140,
+                         started="2099-01-04T09:00:00+00:00")]
+        self.assertEqual(export.canonical_run(runs, "2099-W01")["id"], "rejudged")
 
 
 # ------------------------------------------------------- the routing gain
