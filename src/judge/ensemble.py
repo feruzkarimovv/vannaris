@@ -387,11 +387,59 @@ _DISPATCH = {"anthropic": _call_anthropic, "openai": _call_openai, "google": _ca
 # dropped to a 429 is a hole in a published score, so retry rather than lose it.
 MAX_RETRIES = 4
 
+# A 429 means two unrelated things, and the difference decides whether waiting
+# helps at all. A *rate* limit lifts on its own, so sleeping is exactly right.
+# An exhausted balance does not lift, and waiting for it is expensive in a way
+# that is easy to miss: the retry sleeps happen *inside* the family limiter
+# (score_one holds the slot across retries, deliberately), so four attempts
+# against a dead account occupy one of OpenAI's three slots for up to four and
+# a half minutes and return nothing.
+#
+# That is the 2026-08-10 run. The account went to a negative balance, 336 judge
+# calls each waited out a limit that was never going to lift, and the run died
+# after spending $3.38 of vendor money — with no stored responses to re-judge,
+# because nothing persists until judging finishes.
+#
+# Matched on the provider's own error code, never on the word "quota". Google
+# sends "Quota exceeded for quota metric ..." for ordinary per-minute
+# throttling, which is the single most common recoverable error the ensemble
+# sees; a substring match on "quota" would convert it into a fatal one and take
+# a whole judge family down with it. There is a test named for that.
+_QUOTA_EXHAUSTED = (
+    "insufficient_quota",          # OpenAI — the account is out of credit
+    "billing_hard_limit_reached",  # OpenAI — a spend cap was reached
+    "billing_not_active",          # OpenAI — the account cannot bill at all
+    "credit balance is too low",   # Anthropic, which usually sends this as a 400
+)
+
+
+def _is_quota_exhaustion(response: httpx.Response) -> bool:
+    """Is this a balance that will not refill, as opposed to a rate that will?"""
+    return any(marker in response.text.lower() for marker in _QUOTA_EXHAUSTED)
+
+
+def _describe(exc: Exception) -> str:
+    """The failure as it will appear in the run report.
+
+    Quota exhaustion is named rather than left as a bare 429, because the report
+    is what a person reads on a Monday morning to decide whether to top up an
+    account or debug a pipeline, and those two answers look identical in
+    `HTTPStatusError: Client error '429 Too Many Requests'`.
+    """
+    if isinstance(exc, httpx.HTTPStatusError) and _is_quota_exhaustion(exc.response):
+        return ("quota exhausted, not rate-limited — this account needs topping up: "
+                f"{exc.response.text[:180].strip()}")
+    return f"{type(exc).__name__}: {exc}"[:300]
+
 
 def _retry_after(exc: httpx.HTTPStatusError, attempt: int) -> float | None:
     """Seconds to wait, or None if this error is not worth retrying."""
     status = exc.response.status_code
     if status not in (429, 500, 502, 503, 529):
+        return None
+    # Retrying this one cannot succeed, and each attempt costs a slot as well as
+    # the wait. Failing now turns an hour of stalling into a legible error.
+    if _is_quota_exhaustion(exc.response):
         return None
     header = exc.response.headers.get("retry-after")
     if header:
@@ -449,7 +497,7 @@ async def score_one(
                     family, client, keys[family], model, prompt
                 )
     except Exception as exc:  # noqa: BLE001 — a judge failing is data, not a crash
-        score.error = f"{type(exc).__name__}: {exc}"[:300]
+        score.error = _describe(exc)
         return score
 
     def num(field: str) -> float | None:
