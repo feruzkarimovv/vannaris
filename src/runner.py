@@ -219,8 +219,29 @@ def load_responses(conn, run_id: str) -> list[SearchResponse]:
     return out
 
 
-def persist(conn, run_id, week, digest, queries, responses, scored,
-            started_at, trigger, heldout_set=None) -> None:
+def persist_run(conn, run_id, week, digest, queries, responses,
+                started_at, trigger, heldout_set=None) -> dict[str, str]:
+    """Write the run, its questions and its vendor responses — before judging.
+
+    Split from the scores deliberately. Everything used to be written in one
+    call *after* judging returned, which meant the most expensive and least
+    reliable stage of the run was also the one with nothing behind it: a crash,
+    a stall, or the workflow's 90-minute timeout during judging discarded all
+    750 vendor calls, and took the `--rejudge` recovery path down with them,
+    because `--rejudge` reads a stored run and there was no stored run. That is
+    how 2026-W32 became a hole that cannot be backfilled.
+
+    The vendor responses are the part that costs money and cannot be recreated
+    — re-fetching them days later asks different questions of a moving web, and
+    within minutes it asks the same ones of a warm vendor cache, which corrupts
+    the latency column (see `load_responses`). So they go to disk the moment
+    they exist. `finished_at` stays NULL until the scores land, which is what
+    makes an interrupted run visible as an interrupted run rather than a
+    complete one that scored nothing.
+
+    Returns the stored row id for each `query_id::vendor`, which the judge
+    scores reference.
+    """
     cur = conn.cursor()
     # started_at is the real start, threaded in from main(). It used to be
     # stamped here, at persist time, which made every run look instantaneous
@@ -228,7 +249,7 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
     cur.execute(
         "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash, trigger, "
         "heldout_set) VALUES (?,?,?,?,?,?,?)",
-        (run_id, started_at, now(), week, digest, trigger, heldout_set),
+        (run_id, started_at, None, week, digest, trigger, heldout_set),
     )
     for q in queries:
         cur.execute(
@@ -245,8 +266,10 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
              int(q.get("rotates", 0)), int(bool(q.get("held_out")))),
         )
 
+    ids: dict[str, str] = {}
     for r in responses:
         rid = str(uuid.uuid4())
+        ids[f"{r.query_id}::{r.vendor}"] = rid
         cur.execute(
             "INSERT INTO raw_responses (id, run_id, query_id, vendor, response_mode, answer, "
             "citations, results, latency_ms, cost_usd, cost_source, error, raw_payload, "
@@ -260,7 +283,29 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
                 r.latency_ms, r.cost_usd, r.cost_source, r.error, json.dumps(r.raw), now(),
             ),
         )
-        for s in scored.get(f"{r.query_id}::{r.vendor}", []):
+    conn.commit()
+    return ids
+
+
+def persist_scores(conn, run_id, response_ids: dict[str, str], scored) -> None:
+    """Attach the judge scores to responses already on disk, and close the run.
+
+    Stamping `finished_at` here rather than at the start is the whole point of
+    the split: a row with responses and no `finished_at` is a run that can be
+    re-judged, and one with a timestamp is a run that completed.
+    """
+    cur = conn.cursor()
+    for key, scores in scored.items():
+        rid = response_ids.get(key)
+        # A score whose response this run did not store has nowhere to hang.
+        # `response_id` is NOT NULL, so writing it anyway would raise and take
+        # every other score in this commit with it — a whole run's judgements
+        # lost to one orphan. (The column also declares a foreign key, but this
+        # connection does not enable `PRAGMA foreign_keys`, so NOT NULL is the
+        # constraint that would actually fire.)
+        if rid is None:
+            continue
+        for s in scores:
             if s.error:
                 continue
             cur.execute(
@@ -273,6 +318,7 @@ def persist(conn, run_id, week, digest, queries, responses, scored,
                  s.scored_chars, s.prompt_tokens, s.output_tokens,
                  s.judge_model_returned, now()),
             )
+    cur.execute("UPDATE runs SET finished_at = ? WHERE id = ?", (now(), run_id))
     conn.commit()
 
 
@@ -536,21 +582,33 @@ async def main() -> int:
         conn.close()
         print(f"re-judging {len(responses)} stored responses from run "
               f"{args.rejudge[:8]} — no vendor calls, no vendor spend")
-        async with httpx.AsyncClient(timeout=90.0) as client:
-            scored = await judge_all(client, keys, responses, qmap, today)
     else:
         print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
               f"= {len(queries) * len(adapters)} calls, "
               f"{len(queries) * len(adapters) * len(JUDGES)} judgements\n")
         async with httpx.AsyncClient(timeout=90.0) as client:
             responses = await fetch_all(client, adapters, queries)
-            ok = sum(1 for r in responses if r.ok)
-            print(f"  {ok}/{len(responses)} vendor calls ok")
-            scored = await judge_all(client, keys, responses, qmap, today)
+        ok = sum(1 for r in responses if r.ok)
+        print(f"  {ok}/{len(responses)} vendor calls ok")
+
+    # On disk before a single judge is called. Judging is the stage that fails —
+    # rate limits, an exhausted balance, a 90-minute job timeout — and until
+    # this line ran after it, a failure there threw away every vendor call the
+    # run had paid for. Now the worst case is a run that has to be re-judged,
+    # which costs judge tokens and no vendor spend at all.
+    conn = connect()
+    response_ids = persist_run(conn, run_id, week, digest, queries, responses,
+                               started_at, args.trigger, heldout_id)
+    conn.close()
+    print(f"  stored {len(responses)} responses. If judging fails from here, "
+          f"recover with:\n    python -m src.runner --queries {args.queries} "
+          f"--rejudge {run_id}")
+
+    async with httpx.AsyncClient(timeout=90.0) as client:
+        scored = await judge_all(client, keys, responses, qmap, today)
 
     conn = connect()
-    persist(conn, run_id, week, digest, queries, responses, scored, started_at,
-            args.trigger, heldout_id)
+    persist_scores(conn, run_id, response_ids, scored)
     # Public responses only. A published cell has to be recomputable from the
     # published questions, so a withheld question must never enter one — the
     # withheld set is reported separately, as a gap.
