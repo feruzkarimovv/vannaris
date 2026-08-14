@@ -9,11 +9,18 @@ the number it prints is the one used to decide whether the judge can be trusted.
 
 from __future__ import annotations
 
+import json
+import re
+import sqlite3
+import tempfile
 import unittest
+from pathlib import Path
 
+from src import storage
 from src.calibrate import (_fisher_ci, _pearson, _pearson_ceiling, _rank, _spearman,
                            _wilson, agreement, build_pairs, draw, draw_pairs,
-                           pairwise_concordance, pairwise_report)
+                           load_pair_set, pairwise_concordance, pairwise_report,
+                           write_pair_task)
 
 
 def rows(specs):
@@ -553,6 +560,119 @@ class TestPairwiseReport(unittest.TestCase):
         self.assertEqual(r["decisive"]["n"], 0)
         self.assertIsNone(r["decisive"]["concordance"])
         self.assertFalse(r["decisive"]["clears_chance"])
+
+
+# ------------------------------------------- recovering a set without redrawing
+
+class TestLoadPairSet(unittest.TestCase):
+    """Rebuilding a drawn set must restore it, never re-draw it.
+
+    A pairwise set lives in two places: the rows recording what was drawn, in
+    the database, and the task the labeller opens, on disk outside git because
+    it shows vendor-retrieved content. The second is the half that goes missing,
+    and the only previous way to get it back was `sample-pairs` — which draws a
+    *new* sample. Doing that to set `96afde9bfef3`, registered 2026-08-05 with
+    280 screens, would have replaced a sample drawn before anyone saw the scores
+    with one drawn after. These tests are about that distinction.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.conn = storage.connect(Path(self._tmp.name) / "c.db")
+        self.conn.row_factory = sqlite3.Row
+        c = self.conn
+        c.execute("INSERT INTO runs (id, started_at, week, query_set_hash) "
+                  "VALUES ('r1','2099-01-01T00:00:00+00:00','2099-W01','h')")
+        c.execute("INSERT INTO queries (id, category, text, gold_answer) "
+                  "VALUES ('q1','general_facts','how tall is the tower','330 m')")
+        for rid, answer in (("A", "answer A"), ("B", "answer B")):
+            c.execute(
+                "INSERT INTO raw_responses (id, run_id, query_id, vendor, "
+                "response_mode, answer, results, created_at) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (rid, "r1", "q1", f"fixture_{rid}", "ranked_results", answer,
+                 json.dumps([{"rank": 0, "title": f"t{rid}", "url": "https://e.invalid",
+                              "snippet": "s"}]), "2099-01-01T00:00:00+00:00"))
+        c.execute("INSERT INTO calibration_sets (id, run_id, created_at, seed, "
+                  "n_target, disagreement_share, blinding, kind) "
+                  "VALUES ('set1','r1','2099-01-01T00:00:00+00:00',7,2,0.0,'b','pairwise')")
+        # Deliberately inserted out of order, with the second screen showing the
+        # same two responses the other way round — the `swapped` stratum.
+        c.executemany(
+            "INSERT INTO calibration_pairs (set_id, pair_id, left_response_id, "
+            "right_response_id, stratum, position, source_pair_id, ensemble_gap) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            [("set1", "p2", "B", "A", "swapped", 1, "p1", 2.0),
+             ("set1", "p1", "A", "B", "decisive", 0, None, 2.0)])
+        c.commit()
+
+    def tearDown(self):
+        self.conn.close()
+        self._tmp.cleanup()
+
+    def test_the_screens_come_back_in_the_order_they_were_drawn(self):
+        got = load_pair_set(self.conn, "set1")
+        self.assertEqual([p["pair_id"] for p in got], ["p1", "p2"])
+        self.assertEqual([p["position"] for p in got], [0, 1])
+
+    def test_the_recorded_side_order_is_not_re_randomised(self):
+        # The whole measurement of position bias depends on this. `sample-pairs`
+        # applies the flip before writing the rows, so left in the database is
+        # left on the screen; re-shuffling here would silently destroy the
+        # swapped stratum by making it identical to the decisive one.
+        got = {p["pair_id"]: p for p in load_pair_set(self.conn, "set1")}
+        self.assertEqual(got["p1"]["a"]["answer"], "answer A")
+        self.assertEqual(got["p1"]["b"]["answer"], "answer B")
+        self.assertEqual(got["p2"]["a"]["answer"], "answer B")
+        self.assertEqual(got["p2"]["b"]["answer"], "answer A")
+        self.assertTrue(all(p["flip"] is False for p in got.values()))
+
+    def test_rebuilding_twice_gives_the_same_task(self):
+        self.assertEqual(load_pair_set(self.conn, "set1"),
+                         load_pair_set(self.conn, "set1"))
+
+    def test_the_question_and_reference_answer_travel_with_each_side(self):
+        p = load_pair_set(self.conn, "set1")[0]
+        self.assertEqual(p["category"], "general_facts")
+        for side in ("a", "b"):
+            self.assertEqual(p[side]["query_text"], "how tall is the tower")
+            self.assertEqual(p[side]["gold_answer"], "330 m")
+
+    def test_the_task_carries_no_stratum_or_margin(self):
+        # Read straight out of what write_pair_task will be handed: a labeller
+        # who can see that a screen is a repeat is answering a different
+        # question, and the analysis rejoins all of this from the database.
+        for p in load_pair_set(self.conn, "set1"):
+            for leak in ("stratum", "ensemble_gap", "source_pair_id"):
+                self.assertNotIn(leak, p)
+
+    def test_a_set_with_no_pairs_says_so_rather_than_returning_nothing(self):
+        self.conn.execute(
+            "INSERT INTO calibration_sets (id, run_id, created_at, seed, n_target, "
+            "disagreement_share, blinding) "
+            "VALUES ('abs1','r1','2099-01-01T00:00:00+00:00',1,10,0.3,'b')")
+        with self.assertRaises(SystemExit):
+            load_pair_set(self.conn, "abs1")
+
+    def test_an_unknown_set_raises(self):
+        with self.assertRaises(SystemExit):
+            load_pair_set(self.conn, "nope")
+
+    def test_the_written_task_is_stamped_with_the_draw_date(self):
+        # Not the rebuild date. A set recovered on a later machine that claimed
+        # to have been created that day would misdate the one thing the design
+        # rests on — that the sample predates anyone seeing the scores.
+        out = Path(self._tmp.name) / "task"
+        write_pair_task("set1", load_pair_set(self.conn, "set1"), out,
+                        created_at="2099-01-01T00:00:00+00:00")
+        # Anchored on the trailing `;\n` rather than split on ";", which the
+        # vendor content is full of.
+        body = re.search(r"window\.VN_TASK = (.*);\n\Z",
+                         (out / "task.js").read_text(), re.S).group(1)
+        payload = json.loads(body)
+        self.assertEqual(payload["created_at"], "2099-01-01T00:00:00+00:00")
+        self.assertEqual(payload["kind"], "pairwise")
+        self.assertEqual([i["pair_id"] for i in payload["items"]], ["p1", "p2"])
 
 
 if __name__ == "__main__":

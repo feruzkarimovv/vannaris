@@ -95,17 +95,40 @@ export_fixture() {
                     --out "$FIXTURE/site"
 }
 
+# Both task shapes, always, and drawn through the real commands rather than
+# hand-built so the gate exercises the path that produces a labelling task.
+#
+# Both, because they are two different measurements with two different UIs, and
+# for a long time only one of them was ever checked: the pairwise set drawn on
+# 2026-08-05 had no task on disk, so `check-labeller.mjs` never saw the shape,
+# and the UI that will actually collect the calibration labels was the one with
+# no smoke test. Drawing both here means neither branch of that script can rot
+# on a machine that happens not to have a set of that kind lying around — which
+# includes every CI run.
 labeller_fixture() {
   make_fixture || return 1
-  # Drawn through `calibrate sample` rather than hand-built, so the gate
-  # exercises the path that actually produces a labelling task. The set id is a
-  # fresh uuid, so the directory is found rather than known.
+  local dir fails=0
   $PY -m src.calibrate --db "$FIXTURE/fixture.db" sample \
       --n 24 --out "$FIXTURE/calibration" >/dev/null || return 1
-  local dir
-  dir=$(find "$FIXTURE/calibration" -mindepth 1 -maxdepth 1 -type d | head -1)
-  [ -n "$dir" ] || { echo "   fixture calibration set was not written"; return 1; }
-  node scripts/check-labeller.mjs "$dir"
+  $PY -m src.calibrate --db "$FIXTURE/fixture.db" sample-pairs \
+      --seed 3 --decisive 6 --near-tie 3 --swapped 3 --repeat 2 \
+      --out "$FIXTURE/calibration-pairs" >/dev/null || return 1
+
+  for base in "$FIXTURE/calibration" "$FIXTURE/calibration-pairs"; do
+    dir=$(find "$base" -mindepth 1 -maxdepth 1 -type d | head -1)
+    [ -n "$dir" ] || { echo "   no calibration set written to $base"; return 1; }
+    node scripts/check-labeller.mjs "$dir" || fails=1
+  done
+
+  # And the recovery path: a set rebuilt from the database has to produce a task
+  # the same script accepts, or `render` restores something unlabellable.
+  local set_id
+  set_id=$(basename "$(find "$FIXTURE/calibration-pairs" -mindepth 1 -maxdepth 1 -type d | head -1)")
+  $PY -m src.calibrate --db "$FIXTURE/fixture.db" render \
+      --set "$set_id" --out "$FIXTURE/calibration-rebuilt" >/dev/null || return 1
+  node scripts/check-labeller.mjs "$FIXTURE/calibration-rebuilt/$set_id" || fails=1
+
+  return "$fails"
 }
 
 # The withheld set is worth something only because its hash was committed before
@@ -188,10 +211,16 @@ run "site: quality"       node scripts/check-quality.mjs
 # Same shape as the export gate. The real calibration/ directory is gitignored
 # because the task shows the labeller the vendors' actual retrieved content, so
 # the fixture stands in for it and the real one is left untouched.
+# The fixture pass runs everywhere, so both task shapes and the rebuild path are
+# covered on every machine and in CI. A real drawn set, where one exists, is
+# checked as well rather than instead: it is the only thing carrying actual
+# vendor content, and the blinding assertions are worth running against it.
+run "labeller UI (fixture)" labeller_fixture
 if ls calibration/*/label.html >/dev/null 2>&1; then
-  run "labeller UI"           node scripts/check-labeller.mjs
-else
-  run "labeller UI (fixture)" labeller_fixture
+  for real in calibration/*/; do
+    [ -f "$real/label.html" ] || continue
+    run "labeller UI ($(basename "$real"))" node scripts/check-labeller.mjs "$real"
+  done
 fi
 
 run "held-out set committed" heldout_committed
