@@ -480,13 +480,19 @@ def _render(r: dict) -> dict:
     }
 
 
-def write_pair_task(set_id: str, picked: list[dict], out_dir: Path) -> Path:
+def write_pair_task(set_id: str, picked: list[dict], out_dir: Path,
+                    created_at: str | None = None) -> Path:
     """The pairwise labelling task.
 
     Carries no stratum, no ensemble margin and no `source_pair_id`: a labeller
     who can see that a pair is a repeat, or that the judges thought it easy,
     is answering a different question. The analysis rejoins all three from the
     database afterwards.
+
+    `created_at` is when the set was *drawn*, not when this file was written.
+    They are the same thing for `sample-pairs` and are not for `render`, which
+    rebuilds a task drawn weeks earlier; stamping the rebuild date would make a
+    set look freshly drawn every time its task was recovered.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     items = []
@@ -504,7 +510,7 @@ def write_pair_task(set_id: str, picked: list[dict], out_dir: Path) -> Path:
     payload = {
         "set_id": set_id,
         "kind": "pairwise",
-        "created_at": _now(),
+        "created_at": created_at or _now(),
         "blinding": BLINDING_PAIRWISE,
         # The worked anchors, not the judges' rubric string: that is a format
         # template full of placeholders, and pasting it in front of a person
@@ -1011,6 +1017,111 @@ def cmd_sample_pairs(args: argparse.Namespace) -> int:
     return 0
 
 
+def load_pair_set(conn: sqlite3.Connection, set_id: str) -> list[dict]:
+    """Rebuild a drawn pairwise set from the database, in write_pair_task's shape.
+
+    A drawn set lives in two places. What was drawn is in the database; the task
+    the labeller opens is written to disk *outside* git, because it necessarily
+    shows the vendors' retrieved content and `docs/03` is why that never gets
+    committed. The half that goes missing is therefore always the second one — a
+    different machine, a clean checkout, a tidied directory — and until now the
+    only way to get it back was `sample-pairs`, which draws a **new** set.
+
+    That is the move this function exists to avoid. Re-drawing would replace a
+    sample recorded against a seed and a date with a different one, and would do
+    it silently; set `96afde9bfef3` has been in this database since 2026-08-05
+    with 280 screens and no task on disk, and re-drawing it would have quietly
+    thrown away the sample that was registered in favour of one drawn after
+    somebody had already seen the scores. The held-out manifest exists to make
+    exactly that impossible for questions, and the argument is the same here.
+
+    `calibration_pairs` stores left and right in the order the labeller was meant
+    to see them — `sample-pairs` applies the flip before writing the rows — so
+    nothing is re-randomised here and `flip` is False by construction. Position
+    bias stays measurable because the `swapped` stratum is recorded as its own
+    rows, not recreated by shuffling on the way out.
+    """
+    rows = conn.execute(
+        """
+        SELECT cp.pair_id, cp.position,
+               q.category, q.text AS query_text, q.gold_answer,
+               l.response_mode AS l_mode, l.answer AS l_answer, l.results AS l_results,
+               r.response_mode AS r_mode, r.answer AS r_answer, r.results AS r_results
+        FROM calibration_pairs cp
+        JOIN raw_responses l ON l.id = cp.left_response_id
+        JOIN raw_responses r ON r.id = cp.right_response_id
+        JOIN queries q ON q.id = l.query_id
+        WHERE cp.set_id = ?
+        ORDER BY cp.position
+        """,
+        (set_id,),
+    ).fetchall()
+    if not rows:
+        raise SystemExit(
+            f"no pairs recorded for set {set_id!r}. A pairwise set has rows in "
+            f"calibration_pairs; an absolute set does not and cannot be rebuilt "
+            f"by this command."
+        )
+
+    # Pairs are formed inside a query and never across one (see build_pairs), so
+    # both sides share the question, and joining it through the left response is
+    # not an approximation.
+    def side(row: sqlite3.Row, prefix: str) -> dict:
+        return {
+            "response_mode": row[f"{prefix}_mode"],
+            "answer": row[f"{prefix}_answer"],
+            "results": row[f"{prefix}_results"],
+            "query_text": row["query_text"],
+            "gold_answer": row["gold_answer"],
+        }
+
+    return [
+        {
+            "pair_id": r["pair_id"],
+            "position": r["position"],
+            "category": r["category"],
+            "flip": False,
+            "a": side(r, "l"),
+            "b": side(r, "r"),
+        }
+        for r in rows
+    ]
+
+
+def cmd_render(args: argparse.Namespace) -> int:
+    """Write the labelling task for a set that was already drawn."""
+    conn = storage.connect(Path(args.db))
+    conn.row_factory = sqlite3.Row
+    meta = conn.execute(
+        "SELECT id, run_id, created_at, seed, kind FROM calibration_sets WHERE id = ?",
+        (args.set,),
+    ).fetchone()
+    if not meta:
+        have = [r["id"] for r in conn.execute("SELECT id FROM calibration_sets")]
+        raise SystemExit(
+            f"no calibration set {args.set!r} in {args.db}. This database holds: "
+            + (", ".join(have) or "none")
+        )
+
+    picked = load_pair_set(conn, args.set)
+    out_dir = Path(args.out) / args.set
+    write_pair_task(args.set, picked, out_dir, created_at=meta["created_at"])
+    labelled = conn.execute(
+        "SELECT COUNT(*) FROM pair_labels WHERE set_id = ?", (args.set,)
+    ).fetchone()[0]
+    conn.close()
+
+    print(f"rebuilt pairwise set {args.set}: {len(picked)} screens, drawn "
+          f"{meta['created_at'][:10]} with seed {meta['seed']}")
+    print("  the set was not re-drawn — these are the pairs recorded when it was "
+          "registered")
+    print(f"  {labelled} label(s) already in the database for this set")
+    print(f"\n  open  {out_dir / 'label.html'}")
+    print(f"  then  python -m src.calibrate import {out_dir / 'labels.json'} "
+          f"--labeller YOURNAME --labeller-kind human")
+    return 0
+
+
 def _report_pairs(conn: sqlite3.Connection, meta: sqlite3.Row, set_id: str,
                   args: argparse.Namespace) -> int:
     """Agreement on a pairwise set, one labeller at a time."""
@@ -1313,6 +1424,16 @@ def main() -> int:
     p.add_argument("--out", default=str(DEFAULT_OUT))
     p.add_argument("--notes")
     p.set_defaults(func=cmd_sample_pairs)
+
+    # Recovery, not re-drawing. The task lives outside git (it shows vendor
+    # content), so it is the half of a set that goes missing; `sample-pairs`
+    # would replace the registered sample rather than restore it.
+    d = sub.add_parser("render",
+                       help="rebuild the labelling task for a set already drawn, "
+                            "without drawing a new one")
+    d.add_argument("--set", required=True, help="calibration set id")
+    d.add_argument("--out", default=str(DEFAULT_OUT))
+    d.set_defaults(func=cmd_render)
 
     i = sub.add_parser("import", help="load a completed labels.json")
     i.add_argument("labels")
