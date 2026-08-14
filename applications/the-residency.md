@@ -237,3 +237,34 @@ that the benchmark accrues value every week whether or not it is funded, that th
 was scoped around real contractual constraints rather than ignoring them, and that the
 product thesis has already been revised once in response to its own data — which is
 evidence of how the founder handles being wrong.
+
+---
+
+## Note appended 2026-08-14 — do not submit this as written
+
+*Appended, not edited (`AUTONOMY.md` item 7). Sourced from `AUDIT-2026-08-13.md` §9.*
+
+This draft's pitch rests on two things that have since changed, and submitting it unrevised would
+put a claim in front of a selector that the project's own published data contradicts.
+
+**The router is not the business.** The benchmark measured the quality gain of routing per category
+against always calling the best single vendor: 0.000 points in 2026-W31, 0.017 in 2026-W33. Routing
+on cost is worth roughly 18% at −0.12 quality; routing on *quality* has nothing to route on at this
+instrument's current resolution. Any answer here framed around a router is arguing against the
+evidence this project published itself.
+
+**"Benchmark plus router" is no longer an unoccupied phrase.** NativePort posted an 11-vendor
+web-search-API leaderboard attached to a routing gateway on 2026-08-13 (`docs/02`, note appended the
+same week as this one).
+
+The frame that survives both is **the independent evals lab for the agent tool stack, search
+first** — the harness generalises to every tool category agents depend on, and LLM Stats (YC S2025)
+and speko.ai (YC S2026) are precedents investors have already funded for models and voice.
+
+Two claims in the draft above also need checking against the live site before they are repeated
+anywhere: elapsed time (no scheduled run has landed — `track_record.scheduled_weeks` is 0 after
+three attempts, and 2026-W32 is a permanent gap), and any cost-spread figure, which is 7× like for
+like and not 23×.
+
+`applications/zfellows.md` §8 is the version of this story that is current, and Z Fellows is the
+right first submission. This one waits for a rewrite.

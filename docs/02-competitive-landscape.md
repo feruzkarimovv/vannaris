@@ -67,3 +67,39 @@ Reviewing YC's Search and Infrastructure industry directories directly turned up
 ## What this means for sequencing
 
 Two new, real, funded entrants (Seltz, Search Router) appeared in the four months between the prior research round and this one — this space is moving quickly and getting more crowded at the single-vendor-with-self-benchmark layer, which is exactly the noise SearchBench needs to cut through by being visibly, verifiably neutral (public methodology, no vendor stake, third-party-auditable data) rather than by being first. The whitespace is specifically the *neutral, ongoing, cross-vendor* combination — not "a search benchmark exists," which is now common, but "a search benchmark nobody can dismiss as marketing" plus "a router that acts on it," which nobody has shipped.
+
+---
+
+## Note appended 2026-08-14 — the load-bearing sentence above has expired
+
+*Appended rather than edited, per `AUTONOMY.md` item 7: this document is a record of what was
+found on the date it was written, and the reason it is worth keeping is that it can be checked
+against what happened next. Sourced from `AUDIT-2026-08-13.md` §3.*
+
+**The claim this document ends on — that nobody has shipped "a benchmark nobody can dismiss as
+marketing" plus "a router that acts on it" — stopped being safely true on 2026-08-13.** NativePort
+(nativeport.ai) posted a "Web Search API Leaderboard: Quality, Latency, and Cost per Useful Result"
+to Hacker News that morning: 11 vendors, measurement dated 2026-08-05, covering all five vendors
+this benchmark runs plus Tavily, Brave, Parallel, Jina, SerpApi and DataForSEO. NativePort is itself
+a metered gateway routing agents across roughly 32 APIs — benchmark and router in one product.
+
+What survives is narrower and still real: NativePort sells the routing it benchmarks, so it is not
+neutral; it is apparently not BYOK; and its methodology and reproducibility are unverified. The
+differentiation that remains is **neutral, open-data, multi-judge, disclosure-first** — not
+"first to combine the two". What does not survive is the assumption that there is time.
+
+**Two further corrections to the sequencing section above.** First, the valuations recorded earlier
+in this document are badly low: Exa raised $250M at **$2.2B** (Bloomberg, 2026-05-20), Parallel is
+at **$2B** (TechCrunch, 2026-04-29), and the Tavily/Nebius deal is reported at up to **$400M**. The
+market-size objection to this space is weaker than this document assumes. Second, Keiro launched at
+$0.10/1K queries with a self-published benchmark (HN, 2026-07-24), and LiteLLM shipped Auto-Router
+v2 on 2026-07-28 — still LLM-model routing with no search-quality signal, so that specific gap
+remains open.
+
+**And the router half of the framing is contradicted by this project's own data.** The measured
+quality gain of a per-category router over always calling the best single vendor is 0.000 points
+(2026-W31) and 0.017 (2026-W33). The durable frame is therefore not "benchmark plus router" — a
+phrase NativePort now occupies and the data does not support — but **the independent evals lab for
+the agent tool stack, with search as the wedge**. The precedent this document already identifies,
+LLM Stats (YC S2025), is the right one; it is just the whole business rather than an adjacent
+comparison. speko.ai (YC S2026) is the same pattern applied to voice.

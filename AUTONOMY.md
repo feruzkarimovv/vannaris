@@ -94,8 +94,41 @@ reviewable work, not deployed work.
 
 ## Known state to work from
 
+*Updated 2026-08-14. Anything here that can be checked, check — this paragraph
+has been wrong before, and a stale statement of state is how an agent starts
+work from a premise nobody holds any more.*
+
 The runner is armed and fires Mondays 06:23 UTC — unattended agents must not
-interfere with it. One week of real data is published. The judges have never
-been measured against a human; a 150-item calibration set is drawn and unlabelled
-at `calibration/`, and labelling it requires a person. The name is `Vannaris`,
-chosen 2026-08-01, and nothing is registered. The USPTO check is open.
+interfere with it, and must not dispatch it.
+
+**Two weeks of real data are published, and none of them arrived on a schedule.**
+`2026-W31` and `2026-W33`; `track_record.scheduled_weeks` is 0 and
+`schedule_started` is false. Three scheduled attempts have not landed a week:
+2026-08-03 died on a credit preflight, 2026-08-10 spent the vendor money and
+then lost 336 judge calls to quota-exhaustion 429s, and 2026-W33 was published
+by a hand-dispatched run. **`2026-W32` is a permanent gap** — a missed week is
+not backfillable, which is what `heartbeat.yml` exists to notice.
+
+**The judges have still never been measured against a human.** Total human
+labels ever: 15, on the absolute set `07aa5e654034` — `docs/12` reports r = 0.10
+with an interval that includes zero, over scores that barely vary. The
+replacement design is a 280-screen pairwise set, `96afde9bfef3`, registered
+2026-08-05 and **unlabelled**; its task can be rebuilt with `python -m
+src.calibrate render --set 96afde9bfef3` and must never be re-drawn with
+`sample-pairs`, which would replace a sample registered before anyone saw the
+scores. Labelling it requires a person. Until a set clears chance, every page
+must keep saying the judges are unaudited — the gate checks.
+
+**The withheld set has never run.** `ho-2026-08` was registered 2026-08-04, 30
+questions, hash committed; both published weeks carry `n_heldout_queries: 0`,
+because the `SB_HELDOUT_JSON` Actions secret is not set. Nothing in code tracks
+the rotation, and `first_week` in the manifest is written by nothing.
+
+The name is `Vannaris`, chosen 2026-08-01. `docs/10` records the domain, package
+and USPTO exact-match searches; what remains open there is the phonetic and
+similar-mark search and the `.ai` domain. Nothing is registered.
+
+The repository is public. `AUDIT-2026-08-13.md` records the site as live at
+vannaris.com since early August and is the current statement of where the
+project stands; `PLAN-2026-08-13.md` is the ordered response to it. Item 3
+above still holds regardless: publishing anything further is a person's call.
