@@ -9,6 +9,7 @@ the number it prints is the one used to decide whether the judge can be trusted.
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sqlite3
@@ -18,9 +19,9 @@ from pathlib import Path
 
 from src import storage
 from src.calibrate import (_fisher_ci, _pearson, _pearson_ceiling, _rank, _spearman,
-                           _wilson, agreement, build_pairs, draw, draw_pairs,
-                           load_pair_set, pairwise_concordance, pairwise_report,
-                           write_pair_task)
+                           _wilson, agreement, build_pairs, cmd_export, draw,
+                           draw_pairs, load_pair_set, pairwise_concordance,
+                           pairwise_report, write_pair_task)
 
 
 def rows(specs):
@@ -673,6 +674,132 @@ class TestLoadPairSet(unittest.TestCase):
         self.assertEqual(payload["created_at"], "2099-01-01T00:00:00+00:00")
         self.assertEqual(payload["kind"], "pairwise")
         self.assertEqual([i["pair_id"] for i in payload["items"]], ["p1", "p2"])
+
+
+class TestExport(unittest.TestCase):
+    """The export is the only copy of a label that survives the laptop.
+
+    `export` read `human_labels` and nothing else, so pointing it at the
+    pairwise set `96afde9bfef3` on 2026-08-16 — 280 screens, four hours of
+    labelling — found zero rows, wrote an empty file over the export, and said
+    "wrote ... 0 label(s)" on the way out. Nothing crashed. These tests are the
+    gate on both halves of that: read the right table, and never write an empty
+    export no matter which table was wrong.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.out = Path(self._tmp.name) / "labels"
+        self.db = Path(self._tmp.name) / "c.db"
+        c = storage.connect(self.db)
+        c.execute("INSERT INTO runs (id, started_at, week, query_set_hash) "
+                  "VALUES ('r1','2099-01-01T00:00:00+00:00','2099-W01','h')")
+        c.execute("INSERT INTO queries (id, category, text, gold_answer) "
+                  "VALUES ('q1','general_facts','q','a')")
+        for rid in ("A", "B"):
+            c.execute(
+                "INSERT INTO raw_responses (id, run_id, query_id, vendor, "
+                "response_mode, answer, results, created_at) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (rid, "r1", "q1", f"fixture_{rid}", "ranked_results", "x",
+                 "[]", "2099-01-01T00:00:00+00:00"))
+        # A scores 8, B scores 5 — the ensemble picks left on p1.
+        for jid, (rid, model, score) in enumerate(
+                [("A", "m1", 8.0), ("A", "m2", 8.0),
+                 ("B", "m1", 5.0), ("B", "m2", 5.0)]):
+            c.execute("INSERT INTO judge_scores (id, response_id, judge_model, "
+                      "judge_family, overall, created_at) VALUES (?,?,?,?,?,?)",
+                      (f"j{jid}", rid, model, model, score,
+                       "2099-01-01T00:00:00+00:00"))
+        c.execute("INSERT INTO calibration_sets (id, run_id, created_at, seed, "
+                  "n_target, disagreement_share, blinding, kind) "
+                  "VALUES ('set1','r1','2099-01-01T00:00:00+00:00',7,1,0.0,'b','pairwise')")
+        c.execute("INSERT INTO calibration_pairs (set_id, pair_id, "
+                  "left_response_id, right_response_id, stratum, position, "
+                  "source_pair_id, ensemble_gap) "
+                  "VALUES ('set1','p1','A','B','decisive',0,NULL,3.0)")
+        c.commit()
+        c.close()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _label(self):
+        c = storage.connect(self.db)
+        c.execute("INSERT INTO pair_labels (id, set_id, pair_id, labeller, "
+                  "labeller_kind, choice, note, seconds, labelled_at) "
+                  "VALUES ('l1','set1','p1','feruz','human','left','n',55,"
+                  "'2099-01-01T00:00:00+00:00')")
+        c.commit()
+        c.close()
+
+    def _run(self):
+        return cmd_export(argparse.Namespace(
+            db=str(self.db), set="set1", out=str(self.out)))
+
+    def test_a_pairwise_set_exports_its_labels(self):
+        self._label()
+        self._run()
+        got = json.loads((self.out / "set1.json").read_text())
+        self.assertEqual(got["kind"], "pairwise")
+        self.assertEqual(len(got["labels"]), 1)
+        self.assertEqual(got["labels"][0]["choice"], "left")
+        self.assertEqual(got["labels"][0]["labeller_kind"], "human")
+
+    def test_the_ensemble_choice_travels_with_the_human_choice(self):
+        # Without this the file records an opinion with nothing to compare it
+        # against: judge_scores lives in the database, which is never committed,
+        # so agreement could never be recomputed from the export alone.
+        self._label()
+        self._run()
+        got = json.loads((self.out / "set1.json").read_text())
+        self.assertEqual(got["labels"][0]["ensemble_choice"], "left")
+        self.assertEqual(got["labels"][0]["stratum"], "decisive")
+
+    def test_a_model_only_pass_never_reports_clearing_chance(self):
+        # check-all.sh unlatches the site copy on cleared_chance + a
+        # labeller_kinds of exactly ["human"]. Agreement between models is a
+        # different measurement (docs/12); letting it set this field would
+        # publish "the judges track humans" off the judges marking themselves.
+        c = storage.connect(self.db)
+        c.execute("INSERT INTO pair_labels (id, set_id, pair_id, labeller, "
+                  "labeller_kind, choice, note, seconds, labelled_at) "
+                  "VALUES ('l1','set1','p1','gpt','model','left',NULL,NULL,"
+                  "'2099-01-01T00:00:00+00:00')")
+        c.commit()
+        c.close()
+        self._run()
+        got = json.loads((self.out / "set1.json").read_text())
+        self.assertFalse(got["cleared_chance"])
+        self.assertEqual(got["labeller_kinds"], ["model"])
+
+    def test_one_agreeing_pair_is_not_enough_to_clear_chance(self):
+        # The field is a statistical claim, not a tally: a single decisive pair
+        # agrees 1/1 = 100% and still cannot exclude 50%.
+        self._label()
+        self._run()
+        got = json.loads((self.out / "set1.json").read_text())
+        self.assertEqual(got["decisive"]["agree"], 1)
+        self.assertFalse(got["cleared_chance"])
+
+    def test_it_refuses_to_write_an_empty_export(self):
+        with self.assertRaises(SystemExit):
+            self._run()
+        self.assertFalse((self.out / "set1.json").exists())
+
+    def test_an_empty_read_never_overwrites_a_good_export(self):
+        # The failure that made this expensive: the file already existed and was
+        # replaced with nothing.
+        self._label()
+        self._run()
+        before = (self.out / "set1.json").read_text()
+        c = storage.connect(self.db)
+        c.execute("DELETE FROM pair_labels")
+        c.commit()
+        c.close()
+        with self.assertRaises(SystemExit):
+            self._run()
+        self.assertEqual((self.out / "set1.json").read_text(), before)
 
 
 if __name__ == "__main__":
