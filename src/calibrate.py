@@ -1351,12 +1351,22 @@ def cmd_export(args: argparse.Namespace) -> int:
     laptop does, which is the same failure the run history had before per-week
     JSON was committed. Labels are scores, not vendor content, so unlike the
     task itself they are safe to keep in git.
+
+    Pairwise and absolute sets live in different tables, and this used to read
+    only the absolute pair of them. Run against `96afde9bfef3` on 2026-08-16 it
+    found nothing in `human_labels`, printed "wrote ... 0 label(s)" and left an
+    empty file where 280 screens of labelling should have been — the one
+    artifact that outlives the database, overwritten with nothing, reported as
+    success. Hence both the branch below and `_write_labels`' refusal.
     """
     conn = storage.connect(Path(args.db))
     conn.row_factory = sqlite3.Row
     meta = conn.execute("SELECT * FROM calibration_sets WHERE id = ?", (args.set,)).fetchone()
     if not meta:
         raise SystemExit(f"no calibration set {args.set} in this database")
+
+    if meta["kind"] == "pairwise":
+        return _export_pairs(conn, meta, args)
 
     items = {r["response_id"]: r["stratum"] for r in conn.execute(
         "SELECT response_id, stratum FROM calibration_items WHERE set_id = ?", (args.set,))}
@@ -1378,7 +1388,98 @@ def cmd_export(args: argparse.Namespace) -> int:
         "created_at": meta["created_at"], "blinding": meta["blinding"],
         "notes": meta["notes"], "n_items": len(items), "labels": labels,
     }
-    out = Path(args.out) / f"{args.set}.json"
+    _write_labels(payload, labels, args)
+    conn.close()
+    return 0
+
+
+def _export_pairs(conn: sqlite3.Connection, meta: sqlite3.Row,
+                  args: argparse.Namespace) -> int:
+    """Write a pairwise set's labels to the repository.
+
+    The ensemble's own choice is written alongside the labeller's. It is derived
+    from `judge_scores`, which lives only in the uncommitted database, so an
+    export without it records what the human said and destroys what it was
+    evidence about — leaving a file from which no agreement figure can ever be
+    recomputed.
+    """
+    pairs = {}
+    for r in conn.execute(
+        """SELECT pair_id, stratum, source_pair_id, ensemble_gap,
+                  left_response_id AS l, right_response_id AS r
+           FROM calibration_pairs WHERE set_id = ?""", (meta["id"],)):
+        def med(rid):
+            v = [x[0] for x in conn.execute(
+                "SELECT overall FROM judge_scores WHERE response_id = ?", (rid,))
+                if x[0] is not None]
+            return statistics.median(v) if v else None
+        ml, mr = med(r["l"]), med(r["r"])
+        pairs[r["pair_id"]] = {
+            "stratum": r["stratum"], "source_pair_id": r["source_pair_id"],
+            "ensemble_gap": r["ensemble_gap"],
+            "ensemble_choice": ("tie" if ml == mr
+                                else "left" if (ml or 0) > (mr or 0) else "right"),
+            "shown_left": r["l"], "shown_right": r["r"],
+        }
+
+    labels = []
+    for r in conn.execute(
+            "SELECT * FROM pair_labels WHERE set_id = ? ORDER BY labeller, pair_id",
+            (meta["id"],)):
+        p = pairs.get(r["pair_id"], {})
+        labels.append({
+            "pair_id": r["pair_id"],
+            "stratum": p.get("stratum"),
+            "source_pair_id": p.get("source_pair_id"),
+            "ensemble_gap": p.get("ensemble_gap"),
+            "ensemble_choice": p.get("ensemble_choice"),
+            "labeller": r["labeller"], "labeller_kind": r["labeller_kind"],
+            "choice": r["choice"], "seconds": r["seconds"], "note": r["note"],
+        })
+    # `check-all.sh`'s "calibration is not published early" gate reads its state
+    # from these two fields rather than from a flag someone can set. No exporter
+    # had ever written them, so the gate's `cleared` was false by construction —
+    # it could hold the copy down forever but could never let it up, which looks
+    # identical to working right up until the day a calibration succeeds.
+    #
+    # Computed from the decisive stratum of human labels only. Model passes are
+    # a different measurement (`docs/12`) and pooling them would let an
+    # all-model set unlatch the gate.
+    human = [l for l in labels if l["labeller_kind"] == "human"]
+    rep = pairwise_report([{**pairs[l["pair_id"]], **l} for l in human]) if human else {}
+    _write_labels({
+        "set_id": meta["id"], "kind": "pairwise", "run_id": meta["run_id"],
+        "seed": meta["seed"], "created_at": meta["created_at"],
+        "blinding": meta["blinding"], "notes": meta["notes"],
+        "n_items": len(pairs),
+        "labeller_kinds": sorted({l["labeller_kind"] for l in labels}),
+        "cleared_chance": bool(rep.get("decisive", {}).get("clears_chance")),
+        "decisive": rep.get("decisive"),
+        "position_bias": rep.get("position_bias"),
+        "self_agreement": rep.get("self_agreement"),
+        "near_tie": rep.get("near_tie"),
+        "labels": labels,
+    }, labels, args)
+    conn.close()
+    return 0
+
+
+def _write_labels(payload: dict, labels: list, args: argparse.Namespace) -> int:
+    """Write the export, or refuse if there is nothing in it.
+
+    An empty export is never a legitimate outcome of this command: a set with no
+    labels has nothing to preserve, and a set with labels this function could not
+    see is a bug in the reader. Both used to land as a zero-length file written
+    over the previous one, announced as success.
+    """
+    out = Path(args.out) / f"{payload['set_id']}.json"
+    if not labels:
+        raise SystemExit(
+            f"refusing to write {out}: no labels found for set {payload['set_id']}. "
+            "Either nothing has been labelled yet, or this set's labels are in a "
+            "table this command does not read — check before re-running, because "
+            "writing would replace any existing export with an empty one."
+        )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=1) + "\n")
     kinds = {}
@@ -1387,7 +1488,6 @@ def cmd_export(args: argparse.Namespace) -> int:
     print(f"wrote {out} — {len(labels)} label(s)")
     for (who, kind), n in sorted(kinds.items()):
         print(f"  {who} [{kind}]: {n}")
-    conn.close()
     return 0
 
 
