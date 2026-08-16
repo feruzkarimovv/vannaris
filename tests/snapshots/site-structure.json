@@ -1,117 +1,44 @@
 {
   "index.html": {
-    "title": "Vannaris — an independent benchmark of the search APIs your agents call",
+    "title": "Vannaris: search APIs, scored in public",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
       "main",
-      "div[role=group] \"Current run\"",
-      "section#vendors",
-      "section#finding",
-      "section#picks",
-      "section#how",
-      "section#prior",
-      "section#product",
-      "section#limits",
-      "section#contact",
+      "section#standings",
       "footer"
     ],
     "outline": [
-      "h1 Pick the search API your agent should be calling. On evidence.",
-      "h2 Current standings",
-      "h2 Every vendor gets the identical query set.",
-      "h3 Quality by vendor and category",
-      "h2 The cheapest API is not worse everywhere. It is worse in specific places.",
-      "h3 Share of the best score",
-      "h2 Four jobs an agent actually does, and what this run says to use for each.",
-      "h2 Four steps, all of them inspectable.",
-      "h3 The same queries, to every vendor",
-      "h3 Three judges, three model families",
-      "h3 Median, and only when complete",
-      "h3 Everything published, including the holes",
-      "h2 Other people have compared these APIs. Here is what is different.",
-      "h2 The benchmark is free. The eval on your own traffic is not.",
-      "h3 Your queries, this harness",
-      "h3 The client is free and open source",
-      "h3 The live feed is the paid part",
-      "h3 Priced so it cannot bend the benchmark",
-      "h2 Known limits",
-      "h3 The judges disagree, measurably",
-      "h3 The scores cluster high",
-      "h2 Questions, corrections, early access."
+      "h1 Search APIs. Scored in public.",
+      "h2 This run"
     ],
-    "figures": [
-      "#fig-heatmap",
-      "#fig-retained",
-      "#fig-disagreement",
-      "#fig-distribution"
-    ],
-    "tables": [
-      "#leaderboard [Vendor | Score | Cost / query | p50]"
-    ],
+    "figures": [],
+    "tables": [],
     "controls": [
-      "button[type=button] \"Menu\"",
-      "button[type=button][data-theme-toggle] \"Switch theme\""
+      "button[type=button] \"Menu\""
     ],
     "slots": [
-      "config.top_k",
-      "d.cheap_cost|money",
-      "d.cheap_vendor ×2",
-      "d.n_categories ×2",
-      "d.n_judge_families ×2",
-      "d.n_judges ×3",
-      "d.n_vendors ×2",
-      "d.routing_caveat",
-      "d.routing_note",
-      "d.schedule_note",
-      "d.spread_note",
-      "d.top_cost|money",
-      "d.top_vendor",
-      "d.track_dd",
-      "d.track_dt",
-      "d.weeks ×3",
-      "d.weeks_plural ×2",
-      "generated_at|date",
-      "latest.completeness.complete_ensembles|int",
-      "latest.completeness.pct|n1",
-      "latest.completeness.responses|int ×2",
-      "latest.cost_spread.as_billed_ratio|ratio",
-      "latest.cost_spread.cheapest_tier",
-      "latest.cost_spread.like_for_like_ratio|ratio ×3",
-      "latest.judging.disagreement_rates.over_3pt|share1",
-      "latest.judging.family_spread|n2",
-      "latest.judging.mean_disagreement|n2",
-      "latest.n_judgements|int",
-      "latest.n_queries|int ×3",
-      "latest.ran_at|date",
-      "latest.robustness.n_families_that_invert_it|int ×2",
-      "latest.robustness.n_families|int ×2",
-      "latest.robustness.n_vendors|int",
-      "latest.robustness.stable_prefix_leave_one_out|int",
-      "latest.vendor_spend_usd|money",
-      "latest.week"
+      "d.calibration_state",
+      "d.finding_note",
+      "d.n_judge_families",
+      "d.weeks",
+      "d.weeks_plural",
+      "generated_at|when",
+      "latest.n_judges",
+      "latest.n_queries|int",
+      "latest.n_vendors",
+      "latest.ran_at|when"
     ],
     "links": [
-      "#contact",
-      "#limits",
-      "#product",
       "data.html",
-      "export/pricing.json",
       "index.html",
       "methodology.html",
-      "methodology.html#aggregation",
-      "methodology.html#changelog",
-      "methodology.html#conflicts",
-      "methodology.html#disagreement",
-      "methodology.html#heldout",
-      "methodology.html#vendors",
-      "results.html",
-      "results.html#judging",
-      "results.html#quality"
+      "methodology.html#calibration",
+      "results.html"
     ]
   },
   "results.html": {
-    "title": "Results — Vannaris",
+    "title": "Results: Vannaris",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
@@ -125,7 +52,7 @@
       "footer"
     ],
     "outline": [
-      "h1 Every vendor, every category, one run.",
+      "h1 One run. Every cell.",
       "h2 Quality by vendor and category",
       "h3 Score matrix",
       "h3 Where each vendor's queries land",
@@ -150,34 +77,29 @@
       "#fig-judges"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie — which is itself the most useful thing this table says.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie, which is itself the most useful thing this table says.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
       "#query-table []"
     ],
     "controls": [
       "button[type=button] \"Menu\"",
-      "button[type=button][data-theme-toggle] \"Switch theme\"",
       "select#retained-vendor \"Vendor to compare against the best score\"",
       "select#q-category \"all\"",
       "input#q-search[type=search] \"filter query text\""
     ],
     "slots": [
+      "d.calibration_note",
+      "d.calibration_state",
       "d.n_categories",
-      "d.n_judge_families ×2",
-      "d.n_judges",
       "d.routing_caveat",
       "d.routing_note",
-      "d.schedule_note",
       "d.weeks",
-      "latest.cells.0.n_queries|int",
       "latest.completeness.complete_ensembles|int",
       "latest.completeness.pct|n1",
       "latest.completeness.responses|int",
-      "latest.completeness.vendor_errors|int",
-      "latest.judging.family_spread|n2 ×2",
-      "latest.judging.mean_disagreement|n2 ×2",
+      "latest.judging.family_spread|n2",
+      "latest.judging.mean_disagreement|n2",
       "latest.judging.n_compared|int",
       "latest.judging.responses_over_3pts|int",
-      "latest.n_judgements|int",
       "latest.n_judges",
       "latest.n_queries|int ×2",
       "latest.n_vendors",
@@ -191,17 +113,15 @@
       "latest.wins.n_tied|int ×2"
     ],
     "links": [
-      "#judging",
       "data.html",
       "index.html",
-      "index.html#contact",
       "methodology.html",
-      "methodology.html#judges",
+      "methodology.html#calibration",
       "results.html"
     ]
   },
   "methodology.html": {
-    "title": "Methodology — Vannaris",
+    "title": "Methodology: Vannaris",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
@@ -211,6 +131,7 @@
       "section#normalisation",
       "section#judges",
       "section#disagreement",
+      "section#calibration",
       "section#heldout",
       "section#aggregation",
       "section#gaps",
@@ -220,7 +141,7 @@
       "footer"
     ],
     "outline": [
-      "h1 Everything here is meant to be checked.",
+      "h1 How a score is made.",
       "h2 Six categories that fail differently",
       "h3 Where the queries come from",
       "h3 Breaking-news queries carry no expected answer",
@@ -242,6 +163,10 @@
       "h3 It concentrates by category",
       "h3 Which two families",
       "h3 Spread by category",
+      "h2 How well the judges track a person",
+      "h3 What the number is",
+      "h3 What it is not",
+      "h3 How the labeller was blinded",
       "h2 Questions nobody can tune against, committed before they run",
       "h3 Withheld, not hidden",
       "h3 What it measures",
@@ -271,14 +196,31 @@
       "#heldout-table [Vendor | Public | Withheld | Gap]"
     ],
     "controls": [
-      "button[type=button] \"Menu\"",
-      "button[type=button][data-theme-toggle] \"Switch theme\""
+      "button[type=button] \"Menu\""
     ],
     "slots": [
+      "calibration.blinding",
+      "calibration.decisive.concordance|share1",
+      "calibration.decisive.n_scored",
+      "calibration.n_screens|int",
+      "calibration.position_bias.n",
+      "calibration.position_bias.side_rate|share0",
+      "calibration.self_agreement.n",
+      "calibration.self_agreement.rate|share0",
+      "calibration.set_id",
       "config.min_cell_coverage|share0 ×2",
       "config.min_queries_per_category",
       "config.rubric",
       "config.top_k ×2",
+      "d.calibration_check",
+      "d.calibration_ci",
+      "d.calibration_dt",
+      "d.calibration_labellers",
+      "d.calibration_limits ×2",
+      "d.calibration_near_tie",
+      "d.calibration_note",
+      "d.calibration_state",
+      "d.calibration_when",
       "d.disagreement_note",
       "d.heldout_committed",
       "d.heldout_n",
@@ -307,11 +249,12 @@
       "latest.payload_effect.within_vendor_r_max|n2",
       "latest.payload_effect.within_vendor_r_min|n2",
       "latest.query_set_hash",
+      "latest.ran_at|when",
       "latest.vendor_spend_usd|money",
-      "latest.week",
       "repo_url"
     ],
     "links": [
+      "#calibration",
       "#changelog",
       "#gaps",
       "#heldout",
@@ -319,13 +262,12 @@
       "data.html#recompute",
       "export/pricing.json",
       "index.html",
-      "index.html#contact",
       "methodology.html",
       "results.html"
     ]
   },
   "data.html": {
-    "title": "Data export — Vannaris",
+    "title": "Data: Vannaris",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
@@ -338,11 +280,8 @@
       "footer"
     ],
     "outline": [
-      "h1 Take the whole thing. Check it yourself.",
+      "h1 Take the data. Check the work.",
       "h2 What is in the export",
-      "h3 JSON, this week",
-      "h3 JSON, by week",
-      "h3 Manifest",
       "h2 What is deliberately not in here",
       "h2 Column dictionary",
       "h3 judge-scores.csv",
@@ -363,13 +302,12 @@
       "table [Column | Meaning]"
     ],
     "controls": [
-      "button[type=button] \"Menu\"",
-      "button[type=button][data-theme-toggle] \"Switch theme\""
+      "button[type=button] \"Menu\""
     ],
     "slots": [
       "config.min_cell_coverage|share0",
-      "generated_at|date",
-      "latest.week ×4"
+      "generated_at|when",
+      "latest.ran_at|when"
     ],
     "links": [
       "#",
@@ -378,7 +316,6 @@
       "data/latest.json",
       "export/manifest.json",
       "index.html",
-      "index.html#contact",
       "methodology.html",
       "methodology.html#changelog",
       "results.html"

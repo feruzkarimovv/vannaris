@@ -1,62 +1,52 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Methodology — Vannaris</title>
+<title>Methodology: Vannaris</title>
 <meta name="description" content="How Vannaris scores web-search APIs: the query set, the vendor set, the judge ensemble, the aggregation rules, and what is deliberately not claimed.">
 <link rel="canonical" href="https://vannaris.com/methodology.html">
-<meta property="og:title" content="Methodology — Vannaris">
+<meta property="og:title" content="Methodology: Vannaris">
 <meta property="og:description" content="The query set, the vendor set, the judge ensemble, the aggregation rules, and what is deliberately not claimed.">
 <meta property="og:url" content="https://vannaris.com/methodology.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
-<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <header class="masthead">
-  <div class="shell">
-    <div class="navbar">
-      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
-      <nav class="nav" id="site-nav" aria-label="Primary">
-        <a href="results.html">Results</a>
-        <a href="methodology.html">Methodology</a>
-        <a href="data.html">Data</a>
-        <a href="https://github.com/" data-repo>Source</a>
-      </nav>
-      <div class="navbar__actions">
-        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
-                aria-expanded="false" aria-label="Menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
-        <a class="btn btn--sm" href="index.html#contact">Get in touch</a>
-      </div>
-    </div>
+  <div class="shell masthead__inner navbar">
+    <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+    <nav class="nav" id="site-nav" aria-label="Primary">
+      <a href="results.html">Results</a>
+      <a href="methodology.html">Methodology</a>
+      <a href="data.html">Data</a>
+      <a href="https://github.com/" data-repo>Source</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Menu">
+      <span></span>
+    </button>
   </div>
+  <div class="progress" aria-hidden="true"></div>
 </header>
-<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<section class="hero" style="padding-bottom:clamp(2rem,4vw,3rem)">
-  <div class="bloom" style="width:460px;height:460px;right:-200px;top:-80px"></div>
+<section class="page-hero">
   <div class="shell">
-    <span class="eyebrow eyebrow--accent">Methodology</span>
-    <h1 style="margin-top:1rem;max-width:18ch">Everything here is meant to be checked.</h1>
-    <p class="lead" style="margin-top:1.35rem">
-      A benchmark is only worth as much as the parts of it you can verify. This page describes what
-      is measured, how, and where the measurement is weak. The code that implements all of it is in
-      the repository, and the scores it produced are on <a href="data.html">the data page</a>.
+    <h1>How a score is made.</h1>
+    <p class="lead">
+      What is measured, how, and where the measurement is weak.
+      <span data-val="d.calibration_state"></span> — <a href="#calibration">the calibration</a>.
+      Raw scores are on <a href="data.html">the data page</a>.
     </p>
-
-    <div class="callout" style="margin-top:2rem;max-width:74ch">
-      <span class="eyebrow">Open items</span>
+    <div class="callout" style="margin-top:1.6rem;max-width:68ch">
       <p>
         <span data-val="d.unbuilt"></span>
         Tracked in <a href="#gaps">open gaps</a>.
@@ -234,7 +224,7 @@
 
     <p class="note" style="margin-top:1.5rem">
       Vendors: written consent is the only route into the published set.
-      <a href="index.html#contact">Get in touch</a>.
+      <a href="mailto:feruz.karimov@rutgers.edu">Get in touch</a>.
     </p>
   </div>
 </section>
@@ -492,6 +482,90 @@
   </div>
 </section>
 
+<!-- Judge against human. Every figure here is filled from the export's
+     calibration block, which is None until a human pass clears chance — the
+     copy on this page said "none of it is built" for two published weeks and
+     had no way of noticing the day that stopped being true. docs/12 is the
+     reason the four strata are published separately rather than pooled: the
+     decisive pairs are the only ones an agreement figure may be quoted from,
+     and the other three are what tells a reader whether to believe it. -->
+<section id="calibration" class="seam">
+  <div class="shell">
+    <div class="section-head section-head--wide">
+      <span class="eyebrow eyebrow--accent">Calibration</span>
+      <h2>How well the judges track a person</h2>
+      <p>
+        Judge disagreement is agreement between models, which is a weaker and different quantity:
+        three models can agree with each other and be wrong together. This is the other
+        measurement — one human, labelling blind, against the ensemble's own choice.
+      </p>
+    </div>
+
+    <div class="metrics" data-reveal="rows">
+      <div class="metric">
+        <span class="eyebrow metric__label">Judge–human agreement</span>
+        <div class="metric__value" data-count data-val="calibration.decisive.concordance" data-fmt="share1"></div>
+        <div class="metric__note">
+          on <span data-val="calibration.decisive.n_scored"></span> decisive pairs,
+          95% interval <span data-val="d.calibration_ci"></span>
+        </div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Screens labelled</span>
+        <div class="metric__value" data-val="calibration.n_screens" data-fmt="int"></div>
+        <div class="metric__note">
+          <span data-val="d.calibration_labellers"></span>, on the run of
+          <span data-val="d.calibration_when"></span>
+        </div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Self-agreement</span>
+        <div class="metric__value" data-val="calibration.self_agreement.rate" data-fmt="share0"></div>
+        <div class="metric__note">
+          same pair shown twice, <span data-val="calibration.self_agreement.n"></span> repeats
+        </div>
+      </div>
+      <div class="metric">
+        <span class="eyebrow metric__label">Position bias</span>
+        <div class="metric__value" data-val="calibration.position_bias.side_rate" data-fmt="share0"></div>
+        <div class="metric__note">
+          picked the same side on
+          <span data-val="calibration.position_bias.n"></span> swapped repeats
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:2rem">
+      <div class="prose">
+        <h3>What the number is</h3>
+        <p data-val="d.calibration_note"></p>
+        <p data-val="d.calibration_check"></p>
+        <h3>What it is not</h3>
+        <p data-val="d.calibration_limits"></p>
+        <p data-val="d.calibration_near_tie"></p>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <h3>How the labeller was blinded</h3>
+          <span class="label" data-val="calibration.set_id"></span>
+        </div>
+        <div class="panel__body prose">
+          <p data-val="calibration.blinding"></p>
+          <p>
+            The set was drawn and its id committed before any of it was labelled, and the labels
+            themselves are in the repository — <code>labels/</code> — so the figure above can be
+            recomputed rather than taken on trust. Pairwise, not absolute: a person asked to put a
+            number on a search result is unreliable at it, while a person asked which of two is
+            better is not, and the earlier absolute attempt is in the history for anyone who wants
+            to see it fail.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- The withheld set. The commitment is the product here, not the secrecy. -->
 <section id="heldout" class="seam">
   <div class="shell">
@@ -645,16 +719,15 @@
       <h2>Open gaps</h2>
       <p>
         Known distance between the design and what currently runs. If one of these blocks your use
-        of the data, <a href="index.html#contact">say so</a>.
+        of the data, <a href="mailto:feruz.karimov@rutgers.edu">say so</a>.
       </p>
     </div>
     <dl class="deflist" data-reveal="rows">
       <div>
-        <dt>No human calibration</dt>
+        <dt data-val="d.calibration_dt"></dt>
         <dd>
-          The design calls for 100–200 examples labelled by hand, compared against the ensemble
-          monthly, with the rubric refined against the disagreements found. None of it is built.
-          Until it is, the judges are unaudited.
+          <span data-val="d.calibration_limits"></span>
+          <a href="#calibration">The result, in full</a>.
         </dd>
       </div>
       <div>
@@ -811,7 +884,7 @@ cp .env.example .env          # add your keys
     <dl class="deflist" data-reveal="rows">
       <div>
         <dt><span class="mono">2026-08-04</span> · methodology v2 — scores from here are not
-          comparable with 2026-W31</dt>
+          comparable with the 31 Jul 2026 run</dt>
         <dd>
           <p>
             The largest change so far, and the reason it is one entry rather than five: everything
@@ -839,7 +912,7 @@ cp .env.example .env          # add your keys
               harness imposed it, the vendor did not, and it truncated 10 of 150 answers.</li>
           </ul>
           <p>
-            The 2026-W31 table stands as published. It is not being rescored — a corrected week is
+            The 31 Jul 2026 table stands as published. It is not being rescored — a corrected week is
             published beside the original, never over it.
           </p>
         </dd>
@@ -886,7 +959,7 @@ cp .env.example .env          # add your keys
         </dd>
       </div>
       <div>
-        <dt><span class="mono">2026-W31</span> · initial</dt>
+        <dt><span class="mono">2026-07-31</span> · initial</dt>
         <dd>
           First published run. Three-judge cross-family ensemble, median aggregation, top-10
           normalisation, <span data-val="latest.n_queries" data-fmt="int"></span>-query set
@@ -894,7 +967,7 @@ cp .env.example .env          # add your keys
         </dd>
       </div>
       <div>
-        <dt><span class="mono">2026-W31</span> · judge pin reverted</dt>
+        <dt><span class="mono">2026-07-31</span> · judge pin reverted</dt>
         <dd>
           A newer Google judge model was trialled and reverted before publication: it truncated its
           JSON on roughly a third of calls under the production-length judge prompt, having passed
@@ -902,7 +975,7 @@ cp .env.example .env          # add your keys
         </dd>
       </div>
       <div>
-        <dt><span class="mono">2026-W31</span> · aggregate layer guarded</dt>
+        <dt><span class="mono">2026-07-31</span> · aggregate layer guarded</dt>
         <dd>
           A two-query smoke test overwrote one category's published cells, and the result was
           indistinguishable from a real one. Aggregation now refuses to overwrite a cell computed
@@ -919,21 +992,25 @@ cp .env.example .env          # add your keys
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
-      <p style="margin:0;max-width:42ch">
-        Independent benchmark of web-search APIs.<br>
-        Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+      <p class="foot__tagline">
+        Independent evals lab for the search APIs agents call.<br>
+        Public data CC BY 4.0. Not affiliated with any vendor listed.
+      </p>
+      <p class="foot__eval">
+        Private evaluations of this harness on your own traffic:
+        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
-      <p class="foot__links" style="margin:0 0 0.8rem">
-        <a href="index.html">Overview</a>
+      <p class="foot__links">
         <a href="results.html">Results</a>
-        <a href="data.html">Data export</a>
-        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="data.html">Data</a>
+        <a href="https://github.com/" data-repo>Source</a>
       </p>
-      <p class="mono note" style="margin:0">
-        since <span data-val="latest.week"></span>
+      <p class="mono note">
+        since <span data-val="latest.ran_at" data-fmt="when"></span>
       </p>
     </div>
   </div>
@@ -978,8 +1055,8 @@ window.SBPage = {
         name.textContent = v.label;
       }
       var m = byId[v.id];
-      row(vt, [name, cell(m ? (modes[m.response_mode] || m.response_mode) : "—"),
-               cell(v.note || "—")]);
+      row(vt, [name, cell(m ? (modes[m.response_mode] || m.response_mode) : "n/a"),
+               cell(v.note || "n/a")]);
     });
 
     var jt = document.querySelector("#judge-table tbody");
@@ -1025,7 +1102,7 @@ window.SBPage = {
         row(ht, [cell(v.label),
                  cell(h.fmt(v.public), "num"),
                  cell(h.fmt(v.heldout), "num"),
-                 cell(v.gap == null ? "—" : (v.gap > 0 ? "+" : "") + v.gap.toFixed(2), "num")]);
+                 cell(v.gap == null ? "n/a" : (v.gap > 0 ? "+" : "") + v.gap.toFixed(2), "num")]);
       });
     }
   },

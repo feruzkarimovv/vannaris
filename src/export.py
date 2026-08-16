@@ -55,6 +55,12 @@ from .vendors.adapters import REGISTRY, TOP_K
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "vannaris.db"
 
+# Where `python -m src.calibrate export` writes a labelled set. Committed, and
+# read from here rather than from the database for the same reason the week
+# history is: CI exports from a fresh checkout that has never held a labelling
+# session, and a figure that only exists on one laptop is not published.
+LABELS_DIR = ROOT / "labels"
+
 # A (vendor, category) cell needs this share of its queries carrying a complete
 # three-judge ensemble before it is published. 0.6 is deliberately permissive —
 # the point is to catch a smoke run or a rate-limit collapse, not to reject a
@@ -992,6 +998,91 @@ def build_heldout(rows: list[dict], run: dict, manifest: dict) -> dict | None:
     }
 
 
+def build_calibration(labels_dir: Path) -> dict | None:
+    """The judge-vs-human result, read off the committed label exports.
+
+    This is the one figure on the site that measures the instrument rather than
+    the vendors, and until 2026-08-16 it did not exist: every page said the
+    judges were unaudited, `docs/12` explained why an agreement figure between
+    two models is a weaker and different quantity, and `check-all.sh` held the
+    copy down until a human pass cleared chance. One has, so the copy has to
+    move — and it moves from here, because a hand-typed 79% would be exactly the
+    "encouraging interim number" that gate was written to prevent.
+
+    Three constraints on what leaves this function:
+
+    1. **Read from `labels/`, not from the database.** The labels are committed;
+       the database is not, and CI exports from a fresh checkout that has never
+       seen a labelling session. The same reason the week history lives in git.
+    2. **The same definition of "cleared" as the gate**, field for field —
+       `cleared_chance` on a set whose labellers are all human. Two definitions
+       of the same word is how a gate ends up guarding a different claim than
+       the one on the page.
+    3. **Aggregates only.** The per-label notes are a human describing what they
+       read, which means they quote vendor-retrieved content; `docs/03` keeps
+       that out of the export, and `_assert_no_vendor_content` would not catch
+       it because it is prose in a field nobody declared as vendor content.
+
+    Returns None when no human pass has cleared, which is the state every page's
+    copy branched on before this existed and still does.
+    """
+    sets = []
+    for f in sorted(labels_dir.glob("*.json")) if labels_dir.is_dir() else []:
+        try:
+            d = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+        # Mirrors scripts/check-all.sh's `cleared`. A set carrying model labels
+        # alongside human ones is excluded rather than filtered down to its
+        # human rows: the precomputed block would then describe a subset of a
+        # file this function cannot re-derive, and `docs/12` is explicit that
+        # the two kinds of pass are not the same measurement.
+        if d.get("cleared_chance") is not True or d.get("labeller_kinds") != ["human"]:
+            continue
+        dec = d.get("decisive") or {}
+        if not dec.get("n_scored"):
+            continue
+        sets.append((d.get("created_at") or "", d, f.stem))
+    if not sets:
+        return None
+
+    _, d, set_id = sorted(sets)[-1]
+    labellers = {l.get("labeller") for l in d.get("labels", [])
+                 if l.get("labeller_kind") == "human"}
+    keep = lambda block, fields: (
+        {k: block[k] for k in fields if block.get(k) is not None} if block else None)
+    return {
+        "set_id": set_id,
+        "kind": d.get("kind", "pairwise"),
+        # Which run's responses were judged. The calibration is a statement
+        # about the ensemble on the material of one run, not a standing
+        # property of the judges, and a reader cannot check that without it.
+        "run_id": d.get("run_id"),
+        "registered_at": d.get("created_at"),
+        "blinding": d.get("blinding"),
+        "n_screens": d.get("n_items"),
+        "n_labellers": len(labellers),
+        "n_cleared_sets": len(sets),
+        "clears_chance": True,
+        # The only stratum an agreement figure may be quoted from — src/calibrate.py
+        # prints that above the number and the split survives into the export,
+        # because a pooled figure answers neither question the two strata ask.
+        "decisive": keep(d.get("decisive"),
+                         ("n", "n_scored", "n_human_tied", "agree", "concordance",
+                          "ci95", "clears_chance")),
+        # Diagnostics, published beside the headline for the same reason the
+        # judge-disagreement rates are: self-agreement is the ceiling the
+        # headline should be read against, and position bias is the failure that
+        # would make the whole exercise meaningless if it were present.
+        "near_tie": keep(d.get("near_tie"),
+                         ("n", "n_human_separated", "human_separates_pct")),
+        "position_bias": keep(d.get("position_bias"),
+                              ("n", "picked_same_side", "picked_same_response",
+                               "side_rate", "ci95")),
+        "self_agreement": keep(d.get("self_agreement"), ("n", "agree", "rate", "ci95")),
+    }
+
+
 # ------------------------------------------------------------------- assembly
 
 def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
@@ -1134,7 +1225,8 @@ def load_history(data_dir: Path) -> dict[str, dict]:
 
 def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
                  query_set: dict, history: dict[str, dict] | None = None,
-                 manifest: dict | None = None) -> dict:
+                 manifest: dict | None = None,
+                 labels_dir: Path | None = None) -> dict:
     runs = candidate_runs(conn)
     history = history or {}
     manifest = manifest if manifest is not None else heldout.load_manifest()
@@ -1202,6 +1294,15 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
     for q in queries.values():
         counts[q["category"]] = counts.get(q["category"], 0) + 1
 
+    # The week whose responses were labelled, if it is one this export publishes.
+    # Named rather than left as a run id, because "measured on the run behind
+    # week X" is the part a reader can go and check.
+    calibration = build_calibration(labels_dir if labels_dir is not None else LABELS_DIR)
+    if calibration:
+        calibration["week"] = next(
+            (w for w in published
+             if week_payloads[w].get("run_id") == calibration["run_id"]), None)
+
     return {
         "generated_at": _now(),
         "repo_url": REPO_URL,
@@ -1242,6 +1343,11 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
             "weeks_with_set": heldout_weeks,
             "interpretable": len(heldout_weeks) >= 3,
         },
+        # Judge against human. None until a human pass clears chance, and every
+        # sentence about the judges on every page branches on that rather than
+        # asserting either state — the copy said "unaudited" for two published
+        # weeks and would have gone on saying it after it stopped being true.
+        "calibration": calibration,
         # Published so the methodology page shows the rubric and thresholds the
         # code actually used, rather than a prose description of them that can
         # drift. The placeholders are left in — the page is documenting the
@@ -1529,6 +1635,11 @@ def main() -> None:
     # same reason --queries is: the generated fixture has to be able to exercise
     # this path without borrowing the real repository's commitments.
     ap.add_argument("--heldout-manifest", default=None)
+    # Same reason as above: a fixture export must be able to exercise both the
+    # "no calibration has cleared" and "one has" branches without borrowing the
+    # real repository's labels.
+    ap.add_argument("--labels", default=str(LABELS_DIR),
+                    help="directory of exported calibration labels")
     ap.add_argument("--rebuild-weekly", action="store_true",
                     help="also rewrite weekly_scores from each week's canonical run")
     ap.add_argument("--no-history", action="store_true",
@@ -1548,7 +1659,8 @@ def main() -> None:
     history = {} if args.no_history else load_history(data_dir)
 
     conn = connect(Path(args.db))
-    bundle = build_bundle(conn, queries, query_set, history, manifest)
+    bundle = build_bundle(conn, queries, query_set, history, manifest,
+                          Path(args.labels))
     _assert_no_vendor_content(bundle)
 
     if not bundle["weeks"]:

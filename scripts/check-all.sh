@@ -302,61 +302,90 @@ else
   skip "labels" "no labels/ exported yet"
 fi
 
-# The calibration result is the one number on this site that does not exist
-# yet, and the one a future session is most likely to invent. Two things have
-# to stay true together: while no calibration clears chance, every page that
-# discusses the judges must still say they are unaudited; and no page may carry
-# a judge-vs-human agreement figure at all.
+# The calibration result is the one figure on this site that measures the
+# instrument rather than the vendors, and it latches in both directions.
 #
-# The state is read from `labels/`, not from a flag someone can set. A gate a
-# change can bring along with it is not a gate (scripts/check_vendors.py), and
-# the failure mode here is specifically an agent that publishes an encouraging
-# interim number — which is what `docs/12` was written to prevent and what
-# `docs/13` names as a reason a reader should distrust the project.
-printf '\n\033[1m── calibration is not published early\033[0m\n'
+# While no calibration clears chance: every page that discusses the judges must
+# say they are unaudited, and no surface may carry a judge-vs-human agreement
+# figure at all. That half was written first, against an agent publishing an
+# encouraging interim number — `docs/12`'s reason for existing and one of the
+# tells `docs/13` names.
+#
+# Once one clears: the "unaudited" copy must be gone. On 2026-08-16 a pairwise
+# pass cleared, and this gate could hold the old copy down but had no way to let
+# it up — the sentence stayed on three pages, understating what the project knew
+# about its own judges, and only a person reading both would have caught it.
+# Copy that outlives its evidence is the same failure as a cadence claim that
+# outlives its schedule, pointed the other way.
+#
+# Either way the figure itself must be filled from the export, never typed: a
+# claim line carrying a literal percentage is a number no re-export can correct.
+# The state is read from `labels/`, not from a flag someone can set.
+printf '\n\033[1m── calibration copy matches the labels\033[0m\n'
 if $PY - <<'EOF'
 import json, pathlib, re, sys
 
 bad = []
 # Does any exported set actually establish agreement? Absolute passes carry
-# `overall`; a pairwise pass carries `choice`. Neither has ever cleared its
-# interval, and until one does the copy stays up.
+# `overall`; a pairwise pass carries `choice`. src/export.py's
+# build_calibration() selects on these two fields and nothing else, so the gate
+# and the published figure cannot come to different conclusions about whether a
+# calibration exists.
 cleared = False
 for f in pathlib.Path("labels").glob("*.json"):
     d = json.loads(f.read_text())
     if d.get("cleared_chance") is True and d.get("labeller_kinds") == ["human"]:
         cleared = True
 
-pages = {
-    "site/index.html": r"judges are unaudited",
-    "site/results.html": r"judges are unaudited",
-    "site/methodology.html": r"judges are unaudited",
-}
-if not cleared:
-    for page, pat in pages.items():
-        p = pathlib.Path(page)
-        if p.is_file() and not re.search(pat, p.read_text(), re.I):
-            bad.append(f"{page} no longer says the judges are unaudited, and no "
-                       f"calibration has cleared chance")
+UNAUDITED = r"judges are unaudited"
+pages = ["site/index.html", "site/results.html", "site/methodology.html"]
+# Composed copy lives in site.js now — both branches of every calibration
+# sentence are there, not in the markup — so it is scanned alongside the pages.
+# A gate that only reads HTML would be guarding the place the claim used to be.
+surfaces = sorted(pathlib.Path("site").rglob("*.html")) + [pathlib.Path("site/assets/site.js")]
 
-# A figure of the shape "judges agree with humans N% of the time" on any
-# published surface, in either wording.
+for page in pages:
+    p = pathlib.Path(page)
+    if not p.is_file():
+        continue
+    says = bool(re.search(UNAUDITED, p.read_text(), re.I))
+    if not cleared and not says:
+        bad.append(f"{page} no longer says the judges are unaudited, and no "
+                   f"calibration has cleared chance")
+    if cleared and says:
+        bad.append(f"{page} still says the judges are unaudited, and a human "
+                   f"calibration has cleared chance — the copy is out of date")
+
+# A figure of the shape "judges agree with humans N% of the time", in either
+# wording. Before a calibration clears it may not appear at all; after one, it
+# may appear only as a slot the export fills.
 claim = re.compile(
-    r"(agree\w*|concordan\w*|correlat\w*)[^.]{0,60}"
+    r"(agree\w*|concordan\w*|correlat\w*|match\w*|track\w*)[^.]{0,60}"
     r"(human|people|person|labell?er)|"
-    r"(human|people|person|labell?er)[^.]{0,60}(agree\w*|concordan\w*|correlat\w*)",
+    r"(human|people|person|labell?er)[^.]{0,60}(agree\w*|concordan\w*|correlat\w*|match\w*|track\w*)",
     re.I)
-for p in sorted(pathlib.Path("site").rglob("*.html")):
+# A digit bound to a percent sign, i.e. one somebody typed. `(v * 100).toFixed(1)
+# + "%"` and `data-fmt="share1"` both leave no digit touching the `%`.
+typed = re.compile(r"\d\s*%")
+for p in surfaces:
+    if not p.is_file():
+        continue
     for i, line in enumerate(p.read_text().splitlines(), 1):
-        if claim.search(line) and re.search(r"\d", line) and "unaudited" not in line.lower():
-            bad.append(f"{p}:{i} reads like a published judge-vs-human figure")
+        if not claim.search(line) or "unaudited" in line.lower():
+            continue
+        if not cleared and re.search(r"\d", line):
+            bad.append(f"{p}:{i} reads like a published judge-vs-human figure, "
+                       f"and no calibration has cleared chance")
+        elif cleared and typed.search(line):
+            bad.append(f"{p}:{i} carries a hand-typed judge-vs-human percentage; "
+                       f"it has to come from the export")
 
 for b in bad:
     print("   " + b)
 sys.exit(1 if bad else 0)
 EOF
 then printf '\033[32m   ok\033[0m\n'; passed=$((passed + 1))
-else printf '\033[31m   FAILED (calibration published before it holds)\033[0m\n'
+else printf '\033[31m   FAILED (calibration copy does not match the labels)\033[0m\n'
      failed=$((failed + 1)); fi
 
 # Secrets must never reach a commit. The history was clean when this was

@@ -118,6 +118,21 @@ for (const page of PAGES) {
     .map((el) => el.getAttribute("data-val"));
   if (unresolved.length) fail(page, `unresolved data-val: ${[...new Set(unresolved)].join(", ")}`);
 
+  // Visible copy dates a run from ran_at, not from the ISO week id that names
+  // the export files. A leftover 2026-W33 in a heading looks like an internal
+  // filename leaking onto the page. Hrefs may still point at those files.
+  const weekRe = /\d{4}-W\d{2}/;
+  const walker = doc.createTreeWalker(doc.body, window.NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const parent = walker.currentNode.parentElement;
+    if (!parent || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(parent.tagName)) continue;
+    const text = walker.currentNode.textContent;
+    if (weekRe.test(text)) {
+      fail(page, `ISO week id in visible copy: ${text.trim().slice(0, 80)}`);
+      break;
+    }
+  }
+
   // 2. Every chart mount produced an SVG, and every chart has a table view.
   for (const mount of doc.querySelectorAll('[id^="fig-"]')) {
     if (!mount.querySelector("svg")) fail(page, `#${mount.id} rendered no svg`);

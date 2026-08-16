@@ -21,6 +21,8 @@ import argparse
 import html
 import json
 import os
+import re
+from datetime import date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,24 +37,22 @@ def rel(p: Path) -> str:
 
 W, H = 1200, 630
 
-# The site's default (light) tokens from site.css. Hard-coded rather than
+# The site's default (dark) tokens from site.css. Hard-coded rather than
 # parsed: the card is one fixed image, and a CSS parser here would be more
 # moving parts than the thing it renders. Keep in step with site.css — a share
 # card in last season's palette is the first thing anyone sees.
-SURFACE, CARD = "#f5f4f2", "#ffffff"
-INK, INK2, INK3 = "#0a0a0a", "#52504b", "#78736c"
-SIGNAL = "#ff6b00"
-# Stepped for the light surface: dark is high, as on the site.
-RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
-# Where the label inside a cell flips from ink to paper. Mirrors onRamp() in
-# site/assets/charts.js; the two have to agree or the card is unreadable at
-# exactly the steps the site handles fine.
-RAMP_FLIP = 3
+SURFACE, CARD = "#07080c", "#11141c"
+INK, INK2, INK3 = "#eef2f7", "#a8b0bd", "#6e7686"
+SIGNAL = "#ff2a4a"
+# Ice to heat on the dark surface. High steps are hot.
+RAMP = ["#161b28", "#1e2a4a", "#31407a", "#4c66c4", "#89a2ff", "#ffb0bb", "#ff2a4a"]
+# Where the label inside a cell flips from ice to chassis.
+RAMP_FLIP = 4
 
 # Same families as the site. A renderer without them falls back through the
 # stack rather than failing, and the card still reads correctly.
-SANS = "Archivo, Helvetica Neue, Helvetica, Arial, sans-serif"
-MONO = "Martian Mono, SFMono-Regular, Menlo, Consolas, monospace"
+SANS = "Geist, Helvetica Neue, Helvetica, Arial, sans-serif"
+MONO = "Geist Mono, SFMono-Regular, Menlo, Consolas, monospace"
 
 CATEGORY_SHORT = {
     "general_facts": "Facts", "breaking_news": "News", "local_shopping": "Local",
@@ -64,6 +64,33 @@ VENDOR_LABEL = {"exa": "Exa", "perplexity": "Perplexity", "serper": "Serper",
 
 def esc(s: object) -> str:
     return html.escape(str(s), quote=True)
+
+
+MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def format_when(v: object) -> str:
+    """Calendar date for a run. ISO week ids name files; ran_at is when it ran."""
+    if v is None or v == "":
+        return "n/a"
+    s = str(v)
+    iso = re.fullmatch(r"(\d{4})-W(\d{2})", s)
+    if iso:
+        d = date.fromisocalendar(int(iso.group(1)), int(iso.group(2)), 1)
+        return f"{d.day} {MONTHS[d.month - 1]} {d.year}"
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except ValueError:
+        return s
+    return f"{dt.day} {MONTHS[dt.month - 1]} {dt.year}"
+
+
+def run_stamp(latest: dict) -> str:
+    when = format_when(latest.get("ran_at") or latest.get("week"))
+    return (f'{when} · {latest["n_queries"]} queries × '
+            f'{latest["n_vendors"]} vendors × {latest["n_judges"]} judges · '
+            f'{latest["completeness"]["pct"]}% complete ensembles')
 
 
 def category_labels(site: Path) -> dict:
@@ -84,11 +111,12 @@ def category_labels(site: Path) -> dict:
 
 
 def wordmark(x: int, y: int, size: int = 26) -> str:
-    """The masthead mark: an ink tile with the signal dot, then the wordmark."""
+    """The masthead mark: a letter V, then the wordmark."""
     tile = size + 10
     return (
-        f'<rect x="{x}" y="{y}" width="{tile}" height="{tile}" rx="{tile // 3}" fill="{INK}"/>'
-        f'<circle cx="{x + tile / 2:.0f}" cy="{y + tile / 2:.0f}" r="{tile / 5:.0f}" fill="{SIGNAL}"/>'
+        f'<rect x="{x}" y="{y}" width="{tile}" height="{tile}" fill="{SIGNAL}"/>'
+        f'<text x="{x + tile / 2:.0f}" y="{y + tile * 0.72:.0f}" font-family="{SANS}" '
+        f'font-size="{size * 0.72:.0f}" font-weight="700" text-anchor="middle" fill="#ffffff">V</text>'
         f'<text x="{x + tile + 14}" y="{y + tile * 0.74:.0f}" font-family="{SANS}" '
         f'font-size="{size}" font-weight="700" letter-spacing="-0.9" fill="{INK}">Vannaris</text>'
     )
@@ -148,21 +176,19 @@ def build_vendor(latest: dict, vendor_id: str, site: Path) -> str | None:
         y = top + i * step
         pct = max(70.0, min(100.0, float(c["pct_of_best"])))
         w = max(5.0, (x1 - x0) * (pct - 70.0) / 30.0)
-        fill = SIGNAL if c["pct_of_best"] < 90 else "#c9c3b6"
+        fill = SIGNAL if c["pct_of_best"] < 90 else "#8aa2c4"
         parts.append(
             f'<text x="{x0 - 20}" y="{y + 15}" font-family="{SANS}" font-size="19" '
             f'fill="{INK2}" text-anchor="end">'
             f'{esc(labels.get(c["category"], c["category"]))}</text>'
-            f'<rect x="{x0}" y="{y}" width="{x1 - x0}" height="20" rx="4" fill="#e7e3da"/>'
-            f'<rect x="{x0}" y="{y}" width="{w:.0f}" height="20" rx="4" fill="{fill}"/>'
+            f'<rect x="{x0}" y="{y}" width="{x1 - x0}" height="20" fill="#1e2430"/>'
+            f'<rect x="{x0}" y="{y}" width="{w:.0f}" height="20" fill="{fill}"/>'
             f'<text x="{x0 + w + 12:.0f}" y="{y + 15}" font-family="{MONO}" font-size="17" '
             f'fill="{INK2}">{c["pct_of_best"]:.0f}%</text>'
         )
 
     foot = top + max(len(rows), 1) * step + 26
-    stamp = (f'{latest["week"]} · {latest["n_queries"]} queries × '
-             f'{latest["n_vendors"]} vendors × {latest["n_judges"]} judges · '
-             f'{latest["completeness"]["pct"]}% complete ensembles')
+    stamp = run_stamp(latest)
     parts.append(
         f'<text x="64" y="{min(foot, H - 60)}" font-family="{MONO}" font-size="18" '
         f'fill="{INK3}">{esc(stamp)}</text>'
@@ -200,14 +226,14 @@ def build(latest: dict) -> str:
     # signal dot in it — set before the wordmark. Drawn rather than measured,
     # because the mark leads and nothing after it depends on text width.
     parts.append(
-        f'<rect x="64" y="66" width="36" height="36" rx="11" fill="{INK}"/>'
-        f'<circle cx="82" cy="84" r="7" fill="{SIGNAL}"/>'
+        f'<rect x="64" y="66" width="36" height="36" fill="{SIGNAL}"/>'
+        f'<text x="82" y="93" font-family="{SANS}" font-size="22" font-weight="700" '
+        f'text-anchor="middle" fill="#ffffff">V</text>'
         f'<text x="114" y="96" font-family="{SANS}" font-size="32" font-weight="700" '
         f'letter-spacing="-1.1" fill="{INK}">Vannaris</text>'
     )
 
-    for i, line in enumerate(["An independent benchmark of the",
-                              "web-search APIs agents run on."]):
+    for i, line in enumerate(["Search APIs. Scored in public."]):
         parts.append(
             f'<text x="64" y="{170 + i * 58}" font-family="{SANS}" font-size="46" '
             f'font-weight="650" letter-spacing="-1.6" fill="{INK}">{esc(line)}</text>'
@@ -240,19 +266,17 @@ def build(latest: dict) -> str:
             x = grid_x + j * cell_w
             parts.append(
                 f'<rect x="{x}" y="{y}" width="{cell_w - gap}" height="{cell_h - gap}" '
-                f'rx="3" fill="{fill}"/>'
+                f'fill="{fill}"/>'
                 f'<text x="{x + (cell_w - gap) / 2:.0f}" y="{y + cell_h / 2 + 7:.0f}" '
                 f'font-family="{MONO}" font-size="21" fill="{ink}" text-anchor="middle">'
                 f'{cell["score"]:.1f}</text>'
             )
 
     foot = grid_y + len(vendors) * cell_h
-    stamp = (f'{latest["week"]} · {latest["n_queries"]} queries × '
-             f'{latest["n_vendors"]} vendors × {latest["n_judges"]} judges · '
-             f'{latest["completeness"]["pct"]}% complete ensembles')
+    stamp = run_stamp(latest)
     parts.append(
         f'<text x="{grid_x}" y="{foot + 30}" font-family="{SANS}" font-size="18" '
-        f'fill="{INK3}">Ensemble median, 0–10. Darker is better.</text>'
+        f'fill="{INK3}">Ensemble median, 0-10. Hotter is better.</text>'
         f'<text x="64" y="{foot + 66}" font-family="{MONO}" font-size="19" '
         f'fill="{INK3}">{esc(stamp)}</text>'
         f'<text x="64" y="{foot + 94}" font-family="{MONO}" font-size="19" '

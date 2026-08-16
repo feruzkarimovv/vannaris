@@ -1,61 +1,51 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Data export — Vannaris</title>
+<title>Data: Vannaris</title>
 <meta name="description" content="Download every judge score, response timing and aggregate cell as CSV or JSON, under CC BY 4.0, with the column dictionary and a worked recomputation.">
 <link rel="canonical" href="https://vannaris.com/data.html">
-<meta property="og:title" content="Data export — Vannaris">
+<meta property="og:title" content="Data: Vannaris">
 <meta property="og:description" content="Every judge score, response timing and aggregate cell, CC BY 4.0, with the column dictionary and a worked recomputation.">
 <meta property="og:url" content="https://vannaris.com/data.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a0a0a'/><circle cx='16' cy='16' r='6' fill='%23ff6b00'/></svg>">
-<link rel="preload" href="assets/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <header class="masthead">
-  <div class="shell">
-    <div class="navbar">
-      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
-      <nav class="nav" id="site-nav" aria-label="Primary">
-        <a href="results.html">Results</a>
-        <a href="methodology.html">Methodology</a>
-        <a href="data.html">Data</a>
-        <a href="https://github.com/" data-repo>Source</a>
-      </nav>
-      <div class="navbar__actions">
-        <button class="icon-btn nav-toggle" type="button" aria-controls="site-nav"
-                aria-expanded="false" aria-label="Menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-               stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme"></button>
-        <a class="btn btn--sm" href="index.html#contact">Get in touch</a>
-      </div>
-    </div>
+  <div class="shell masthead__inner navbar">
+    <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+    <nav class="nav" id="site-nav" aria-label="Primary">
+      <a href="results.html">Results</a>
+      <a href="methodology.html">Methodology</a>
+      <a href="data.html">Data</a>
+      <a href="https://github.com/" data-repo>Source</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Menu">
+      <span></span>
+    </button>
   </div>
+  <div class="progress" aria-hidden="true"></div>
 </header>
-<div class="progress" aria-hidden="true"></div>
 
 <main>
 
-<section class="hero" style="padding-bottom:clamp(2rem,4vw,3rem)">
-  <div class="bloom" style="width:460px;height:460px;right:-200px;top:-80px"></div>
+<section class="page-hero">
   <div class="shell">
-    <span class="eyebrow eyebrow--accent">Data export</span>
-    <h1 style="margin-top:1rem;max-width:17ch">Take the whole thing. Check it yourself.</h1>
-    <p class="lead" style="margin-top:1.35rem">
-      Everything behind the published numbers, down to what each individual judge said about each
-      individual response. Licensed <strong>CC BY 4.0</strong>. If you think a number here is
-      wrong, this is what you need to prove it.
+    <h1>Take the data. Check the work.</h1>
+    <p class="lead">
+      Every judge score, latency and cost, licensed CC BY 4.0.
     </p>
-    <div class="cta-row" style="margin-top:1.8rem">
-      <a class="btn" href="data/latest.json" download>Download latest.json <span class="arrow" aria-hidden="true">↓</span></a>
+    <div class="cta-row" style="margin-top:1.5rem">
+      <a class="btn" href="data/latest.json" download>Download JSON <span class="arrow" aria-hidden="true">↓</span></a>
       <a class="link-arrow" href="#recompute">See it recomputed <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </div>
@@ -67,8 +57,8 @@
       <span class="eyebrow eyebrow--accent">Files</span>
       <h2>What is in the export</h2>
       <p>
-        Week <span data-val="latest.week"></span>, generated
-        <span data-val="generated_at" data-fmt="date"></span>, licensed CC BY 4.0.
+        This run, generated
+        <span data-val="generated_at" data-fmt="when"></span>, licensed CC BY 4.0.
       </p>
     </div>
     <div class="panel panel--flush">
@@ -86,31 +76,28 @@
       </div>
     </div>
 
-    <div class="grid-3" data-reveal="rows" style="margin-top:1.5rem">
-      <div class="card card--pad card--hover">
-        <h3>JSON, this week</h3>
-        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
-          The full payload the dashboard reads: cells, vendor roll-ups, judge statistics and
-          per-response scores.
-        </p>
-        <a class="btn btn--ghost btn--sm" href="data/latest.json" download>latest.json</a>
-      </div>
-      <div class="card card--pad card--hover">
-        <h3>JSON, by week</h3>
-        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
-          One file per published week, so a historical figure stays retrievable after the latest
-          pointer moves on.
-        </p>
-        <a class="btn btn--ghost btn--sm" id="week-json" href="#" download>week file</a>
-      </div>
-      <div class="card card--pad card--hover">
-        <h3>Manifest</h3>
-        <p class="note note--body" style="margin:0.7rem 0 1.1rem">
-          Which run produced this export, the query-set hash it used, and the publication policy
-          in machine-readable form.
-        </p>
-        <a class="btn btn--ghost btn--sm" href="export/manifest.json" download>manifest.json</a>
-      </div>
+    <div class="channels" data-reveal="rows" style="margin-top:1.5rem">
+      <a class="channel" href="data/latest.json" download>
+        <span class="channel__n">JSON</span>
+        <span class="channel__name">This run</span>
+        <span class="channel__dots" aria-hidden="true"></span>
+        <span class="channel__score">latest.json</span>
+        <span class="channel__cost">cells, roll-ups, judge stats</span>
+      </a>
+      <a class="channel" id="week-json" href="#" download>
+        <span class="channel__n">JSON</span>
+        <span class="channel__name">Frozen copy</span>
+        <span class="channel__dots" aria-hidden="true"></span>
+        <span class="channel__score">run.json</span>
+        <span class="channel__cost">frozen after the pointer moves</span>
+      </a>
+      <a class="channel" href="export/manifest.json" download>
+        <span class="channel__n">MAN</span>
+        <span class="channel__name">Manifest</span>
+        <span class="channel__dots" aria-hidden="true"></span>
+        <span class="channel__score">manifest.json</span>
+        <span class="channel__cost">run id, hash, policy</span>
+      </a>
     </div>
   </div>
 </section>
@@ -157,7 +144,7 @@
         <table>
           <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
           <tbody>
-            <tr><td class="mono">week</td><td>ISO week of the run.</td></tr>
+            <tr><td class="mono">week</td><td>Which run this row belongs to.</td></tr>
             <tr><td class="mono">query_id</td><td>Joins to <code>queries.csv</code>.</td></tr>
             <tr><td class="mono">category</td><td>One of the six taxonomy buckets.</td></tr>
             <tr><td class="mono">vendor</td><td>The search API that produced the response being scored.</td></tr>
@@ -228,7 +215,7 @@ from collections import defaultdict
 # One row per (query, vendor, judge). Keep only responses all three judges scored,
 # because a partial panel is not comparable with a complete one.
 panels = defaultdict(list)
-for r in csv.DictReader(open("judge-scores-<span data-val="latest.week"></span>.csv")):
+for r in csv.DictReader(open("judge-scores.csv")):
     panels[(r["query_id"], r["vendor"], r["category"])].append(float(r["overall"]))
 
 cells = defaultdict(list)
@@ -242,9 +229,10 @@ best  = {c: max(s for (v, c2), s in means.items() if c2 == c) for _, c in means}
 for (vendor, category), score in sorted(means.items()):
     print(f"{vendor:&lt;11}{category:&lt;16}{score:5.2f}  {100 * score / best[category]:5.1f}% of best")</pre>
     <p class="note" style="margin-top:1rem;max-width:78ch">
-      The output matches <code>weekly-scores-<span data-val="latest.week"></span>.csv</code> to
-      three decimal places. Any discrepancy is a bug —
-      <a href="index.html#contact">report it</a>.
+      The output matches <code>weekly-scores.csv</code> to
+      three decimal places. Download the files from the table above (the names
+      on disk still include the run). Any discrepancy is a bug —
+      <a href="mailto:feruz.karimov@rutgers.edu">report it</a>.
     </p>
   </div>
 </section>
@@ -278,13 +266,13 @@ for (vendor, category), score in sorted(means.items()):
         <div class="panel">
           <div class="panel__head">
             <h3>Cite this</h3>
-            <span class="label">week, not just project</span>
+            <span class="label">this run, not just the project</span>
           </div>
           <div class="panel__body" style="padding:0">
             <pre class="code" id="citation" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
           <div class="panel__foot">
-            Cite the week, not just the project: these numbers are a snapshot and will move.
+            Cite the run date, not just the project: these numbers are a snapshot and will move.
           </div>
         </div>
       </div>
@@ -297,21 +285,25 @@ for (vendor, category), score in sorted(means.items()):
 <footer class="foot">
   <div class="shell foot__row">
     <div>
-      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true"></span>Vannaris</a>
-      <p style="margin:0;max-width:42ch">
-        Independent benchmark of web-search APIs.<br>
-        Data CC BY 4.0 · code MIT · not affiliated with any vendor listed.
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+      <p class="foot__tagline">
+        Independent evals lab for the search APIs agents call.<br>
+        Public data CC BY 4.0. Not affiliated with any vendor listed.
+      </p>
+      <p class="foot__eval">
+        Private evaluations of this harness on your own traffic:
+        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
-      <p class="foot__links" style="margin:0 0 0.8rem">
-        <a href="index.html">Overview</a>
+      <p class="foot__links">
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
-        <a href="mailto:feruz.karimov@rutgers.edu">Contact</a>
+        <a href="data.html">Data</a>
+        <a href="https://github.com/" data-repo>Source</a>
       </p>
-      <p class="mono note" style="margin:0">
-        week <span data-val="latest.week"></span>
+      <p class="mono note">
+        <span data-val="latest.ran_at" data-fmt="when"></span>
       </p>
     </div>
   </div>
@@ -330,7 +322,7 @@ window.SBPage = {
       a.className = "mono";
       a.href = "export/" + f.file;
       a.setAttribute("download", "");
-      a.textContent = f.file;
+      a.textContent = f.file.replace(/-\d{4}-W\d{2}(?=\.)/, "");
       name.appendChild(a);
       var rows = document.createElement("td");
       rows.className = "num";
@@ -348,13 +340,18 @@ window.SBPage = {
       ul.appendChild(li);
     });
 
+    var when = (window.SBSite && window.SBSite.fmt && window.SBSite.fmt.when)
+      ? window.SBSite.fmt.when
+      : function (v) { return String(v).slice(0, 10); };
     var wk = document.getElementById("week-json");
     wk.href = "data/" + D.latest.week + ".json";
-    wk.textContent = D.latest.week + ".json";
+    var score = wk.querySelector(".channel__score");
+    if (score) score.textContent = "run.json";
+    else wk.textContent = "run.json";
 
     document.getElementById("citation").textContent =
-      "Vannaris (" + D.latest.week + "). Benchmark of web-search APIs,\n" +
-      "week " + D.latest.week + ", run " + D.latest.run_id.slice(0, 8) + ",\n" +
+      "Vannaris (" + when(D.latest.ran_at) + "). Benchmark of web-search APIs,\n" +
+      "run " + D.latest.run_id.slice(0, 8) + ",\n" +
       "query set " + D.latest.query_set_hash + ". CC BY 4.0.";
   },
   redraw: function () {}

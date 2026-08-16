@@ -5,9 +5,9 @@
  * number cannot drift away from the run that produced it.
  *
  * Three rules the drawing code follows, from the project's dataviz guidance:
- *   - quantity is carried by ONE blue sequential ramp; identity, where it is
+ * ice-to-heat sequential ramp; identity, where it is
  *     needed, is carried by direct labels rather than a second colour scale;
- *   - the vermilion signal colour is emphasis only — it marks the one series
+ *   - the infrared signal colour is emphasis only, it marks the one series
  *     a chart is about, and never means "series 2";
  *   - every chart has a table equivalent behind a toggle, built from the same
  *     rows the SVG is built from, so the two cannot disagree.
@@ -48,9 +48,9 @@
    * otherwise hand back an empty string, and every mark would silently render
    * black. */
   var FALLBACK = {
-    "--d100": "#cde2fb", "--d200": "#9ec5f4", "--d300": "#6da7ec", "--d400": "#3987e5",
-    "--d500": "#256abf", "--d600": "#184f95", "--d700": "#0d366b",
-    "--signal": "#d1521c", "--muted-mark": "#cfcec9", "--surface": "#fcfcfb"
+    "--d100": "#1a1420", "--d200": "#3a1526", "--d300": "#5c1a2e", "--d400": "#851f37",
+    "--d500": "#b32540", "--d600": "#e02f4c", "--d700": "#ff6b7e",
+    "--signal": "#ff2a4a", "--muted-mark": "#2a3140", "--surface": "#11141c"
   };
   /* Tokens resolve against the element the chart is being drawn into, not the
    * document root. A chart inside the ink band therefore picks up that band's
@@ -64,10 +64,10 @@
     return v || FALLBACK[name] || "currentColor";
   }
   function fmt(v, dp) {
-    return v == null ? "—" : Number(v).toFixed(dp == null ? 2 : dp);
+    return v == null ? "n/a" : Number(v).toFixed(dp == null ? 2 : dp);
   }
   function money(v) {
-    if (v == null) return "—";
+    if (v == null) return "n/a";
     return v < 0.01 ? "$" + v.toFixed(4) : "$" + v.toFixed(2);
   }
 
@@ -85,9 +85,12 @@
     // not decide this site's theme.
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
     // On the dark ramp the light steps are the high scores, so the polarity of
-    // the label colour inverts with it.
-    if (dark) return step >= 4 ? "#0e0e10" : "#f6f6f3";
-    return step >= 3 ? "#fbfbf9" : "#121210";
+    // the label colour inverts with it. The crossover moved up a step with the
+    // ramp itself — the old one put dark ink on #b32540 at 3.1:1, and nothing
+    // would have caught it: axe cannot read the contrast of an SVG fill, so
+    // these labels are outside the a11y gate and inside this comment instead.
+    if (dark) return step >= 5 ? "#07080c" : "#eef2f7";
+    return step >= 3 ? "#07080c" : "#eef2f7";
   }
 
   /* ------------------------------------------------------------- tooltip */
@@ -155,7 +158,7 @@
     var tbody = h("tbody");
     spec.table.rows.forEach(function (r) {
       tbody.appendChild(h("tr", {}, r.map(function (c, i) {
-        return h("td", { class: spec.table.numeric[i] ? "num" : "", text: c == null ? "—" : String(c) });
+        return h("td", { class: spec.table.numeric[i] ? "num" : "", text: c == null ? "n/a" : String(c) });
       })));
     });
     table.appendChild(thead); table.appendChild(tbody);
@@ -205,7 +208,7 @@
       return [words[0], words.slice(1).join(" ")];
     });
 
-    var padL = 96, padT = 52, cellH = 42, gap = 2, lineH = 13;
+    var padL = 100, padT = 52, cellH = 48, gap = 2, lineH = 13;
     var cols = CATS.length;
     var W = 760, cellW = (W - padL) / cols;
     var H = padT + vendors.length * cellH + 8;
@@ -241,7 +244,7 @@
         var t = (cell.score - lo) / (hi - lo);
         var fill = ramp(t);
         svg.appendChild(n("rect", { x: x, y: y, width: cellW - gap, height: cellH - gap,
-          fill: fill.hex, rx: 2, class: "cell-in", style: "--i:" + (r * CATS.length + i) }));
+          fill: fill.hex, rx: 0, class: "cell-in", style: "--i:" + (r * CATS.length + i) }));
         svg.appendChild(n("text", {
           x: x + (cellW - gap) / 2, y: y + cellH / 2 + 4, class: "cell-label",
           "text-anchor": "middle", fill: onRamp(fill.step)
@@ -362,7 +365,7 @@
     var legend = h("div", { class: "legend" }, [
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--signal") }),
-        h("span", { text: cheapest.label + " — cheapest per query" })
+        h("span", { text: cheapest.label + " (cheapest per query)" })
       ]),
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--d400") }),
@@ -471,11 +474,11 @@
     var legend = h("div", { class: "legend" }, [
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--signal") }),
-        h("span", { text: "below 90% of the best score — escalate here" })
+        h("span", { text: "below 90% of the best score: escalate here" })
       ]),
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--muted-mark") }),
-        h("span", { text: "90% or above — the cheap vendor is good enough" })
+        h("span", { text: "90% or above: the cheap vendor is good enough" })
       ])
     ]);
 
