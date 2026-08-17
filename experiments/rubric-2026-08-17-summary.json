@@ -1,0 +1,50 @@
+[
+ {
+  "arm": "control",
+  "n": 300,
+  "median": 9.0,
+  "mean": 8.627,
+  "stdev": 1.51,
+  "pct_ge_9": 69.0,
+  "pct_ge_8": 89.0,
+  "min": 1.0,
+  "max": 10.0,
+  "vendor_means": {
+   "exa": 9.25,
+   "linkup": 8.233,
+   "perplexity": 8.95,
+   "serper": 8.433,
+   "youcom": 8.267
+  },
+  "family_means": {
+   "anthropic": 8.157,
+   "google": 9.093,
+   "openai": 8.767
+  },
+  "judge_failures": 0
+ },
+ {
+  "arm": "strict",
+  "n": 300,
+  "median": 9.0,
+  "mean": 8.367,
+  "stdev": 1.507,
+  "pct_ge_9": 56.3,
+  "pct_ge_8": 83.3,
+  "min": 1.0,
+  "max": 10.0,
+  "vendor_means": {
+   "exa": 9.067,
+   "linkup": 7.883,
+   "perplexity": 8.817,
+   "serper": 8.05,
+   "youcom": 8.017
+  },
+  "family_means": {
+   "anthropic": 8.067,
+   "google": 8.837,
+   "openai": 8.273
+  },
+  "judge_failures": 0
+ }
+]
