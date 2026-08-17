@@ -960,7 +960,40 @@
         "mean_abs_diff": 1.026,
         "n": 717
       }
-    ]
+    ],
+    "coverage_by_vendor": [
+      {
+        "vendor": "exa",
+        "complete": 138,
+        "n": 150,
+        "coverage": 0.92
+      },
+      {
+        "vendor": "linkup",
+        "complete": 140,
+        "n": 150,
+        "coverage": 0.9333
+      },
+      {
+        "vendor": "perplexity",
+        "complete": 144,
+        "n": 150,
+        "coverage": 0.96
+      },
+      {
+        "vendor": "serper",
+        "complete": 147,
+        "n": 150,
+        "coverage": 0.98
+      },
+      {
+        "vendor": "youcom",
+        "complete": 148,
+        "n": 150,
+        "coverage": 0.9867
+      }
+    ],
+    "coverage_spread": 0.0667
   },
   "wins": {
     "n_queries_compared": 150,

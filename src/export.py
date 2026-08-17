@@ -845,6 +845,16 @@ def build_judge_stats(rows: list[dict]) -> dict:
     pairs: dict[tuple[str, str], list[float]] = {}
     expected = len(rows)
 
+    # Judge coverage per vendor, kept separately from the per-family coverage
+    # above because they answer different questions. "The OpenAI judge scored
+    # 89% of responses" is a reliability fact; "it scored 83% of Exa's and 98%
+    # of Serper's" is a validity one, and only the second would have caught
+    # 2026-W33, where the missing ensembles concentrated on the three verbose
+    # vendors and left the top of the table comparing differently-filtered
+    # samples. Published rather than merely gated, because the gate protects
+    # future runs and a reader checking a past one deserves the same number.
+    by_vendor: dict[str, list[int]] = {}
+
     for r in rows:
         vals = []
         scored: dict[str, float] = {}
@@ -854,6 +864,13 @@ def build_judge_stats(rows: list[dict]) -> dict:
                 models[fam] = s["judge_model"]
                 vals.append(s["overall"])
                 scored[fam] = s["overall"]
+        # A response the vendor never returned is not one the judges failed to
+        # score, so it does not belong in a judge-coverage figure.
+        if not r.get("error"):
+            seen = by_vendor.setdefault(r["vendor"], [0, 0])
+            seen[0] += 1
+            if len(vals) == len(JUDGES):
+                seen[1] += 1
         if len(vals) > 1:
             spread = max(vals) - min(vals)
             spreads.append(spread)
@@ -920,6 +937,16 @@ def build_judge_stats(rows: list[dict]) -> dict:
             {"pair": f"{a}/{b}", "mean_abs_diff": round(statistics.mean(d), 3), "n": len(d)}
             for (a, b), d in sorted(pairs.items())
         ],
+        "coverage_by_vendor": [
+            {"vendor": v, "complete": c, "n": n, "coverage": round(c / n, 4)}
+            for v, (n, c) in sorted(by_vendor.items(), key=lambda kv: kv[1][1] / kv[1][0])
+        ],
+        # The one number to look at: 0 means every vendor was judged on the same
+        # share of its responses. 2026-W33 ran 0.153 and published anyway.
+        "coverage_spread": round(
+            max(c / n for n, c in by_vendor.values())
+            - min(c / n for n, c in by_vendor.values()), 4
+        ) if len(by_vendor) > 1 else None,
     }
 
 

@@ -57,6 +57,26 @@ RESPONSE_CONCURRENCY = 16
 # to be an exit code rather than a line of output.
 MIN_COMPLETE_SHARE = 0.60
 
+# The share above is a floor on the *total*, and a total cannot see the failure
+# that actually happened. 2026-W33 cleared it comfortably at 89% while its 80
+# missing ensembles fell 26/25/21 on Exa/Linkup/Perplexity against 3 on Serper
+# and 5 on You.com: the OpenAI judge was timing out on long answers, and the
+# three vendors that write long answers are the three being compared at the top
+# of the table. Because only complete ensembles publish, Exa's score that week
+# was computed from 124 of its 150 queries with its longest answers selectively
+# removed — a hole shaped exactly like the comparison being published, and one
+# a reader could find in the exported CSV.
+#
+# Measured spreads: 2026-W31 6.7pp, 2026-W33 15.3pp, 2026-W34 0.0pp. Per-family
+# judge pacing (2026-08-13) is what closed it; this is what notices if it opens
+# again, because nothing else would.
+MAX_VENDOR_MISSINGNESS_SPREAD = 0.05
+
+# ...but not on counts too small to mean anything. At `--limit 20` a single
+# dropped response is a 5pp spread by itself, and a smoke test that fails on
+# one flaky judge call teaches people to ignore the gate.
+MIN_VENDOR_MISSINGNESS_COUNT = 5
+
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -510,6 +530,33 @@ def validity(scored: dict[str, list], responses: list[SearchResponse]) -> list[s
             f"only {share:.0%} of judged responses have a complete ensemble "
             f"(floor {MIN_COMPLETE_SHARE:.0%})"
         )
+
+    # Selective missingness, per MAX_VENDOR_MISSINGNESS_SPREAD. Vendor errors
+    # are already excluded: judge_all stores [] for a response that never came
+    # back, and `judged` drops those. What is left is responses that exist and
+    # did not get scored, which is the judge's doing and nobody else's.
+    by_vendor: dict[str, list[int]] = {}
+    for key, scores in judged.items():
+        vendor = key.rsplit("::", 1)[-1]
+        seen = by_vendor.setdefault(vendor, [0, 0])
+        seen[0] += 1
+        if len([s for s in scores if s.overall is not None]) != len(JUDGES):
+            seen[1] += 1
+
+    if len(by_vendor) > 1:
+        rates = {v: miss / n for v, (n, miss) in by_vendor.items()}
+        worst = max(rates, key=lambda v: rates[v])
+        best = min(rates.values())
+        if (rates[worst] - best > MAX_VENDOR_MISSINGNESS_SPREAD
+                and by_vendor[worst][1] >= MIN_VENDOR_MISSINGNESS_COUNT):
+            problems.append(
+                f"judge coverage is uneven by vendor: {worst} is missing "
+                f"{by_vendor[worst][1]}/{by_vendor[worst][0]} ensembles "
+                f"({rates[worst]:.0%}) against {best:.0%} for the best-covered "
+                f"vendor, a spread above the {MAX_VENDOR_MISSINGNESS_SPREAD:.0%} "
+                f"floor — scores computed from this run would compare vendors on "
+                f"differently-filtered samples"
+            )
 
     if not any(r.ok for r in responses):
         problems.append("every vendor call failed")

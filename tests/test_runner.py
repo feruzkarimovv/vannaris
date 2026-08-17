@@ -162,6 +162,65 @@ class TestValidity(unittest.TestCase):
         scored.update({f"q{i}::fixture_bravo": ensemble() for i in range(10)})
         self.assertEqual(validity(scored, responses), [])
 
+    def _skewed(self, verbose_missing, terse_missing, n=150):
+        """Two vendors, the same query set, judge failures on one of them.
+
+        Shaped after the run this gate exists for: 2026-W33's missing ensembles
+        landed on the vendors that write long answers, not at random.
+        """
+        responses = ([resp(f"q{i}", "fixture_verbose") for i in range(n)] +
+                     [resp(f"q{i}", "fixture_terse") for i in range(n)])
+        scored = {}
+        for i in range(n):
+            scored[f"q{i}::fixture_verbose"] = ensemble(
+                missing={FAMILIES[0]} if i < verbose_missing else ())
+            scored[f"q{i}::fixture_terse"] = ensemble(
+                missing={FAMILIES[0]} if i < terse_missing else ())
+        return scored, responses
+
+    def test_missingness_concentrated_on_one_vendor_stops_the_run(self):
+        # 2026-W33's actual shape: 17.3% of Exa's responses unjudged against
+        # 2.0% of Serper's. The global floor passed it at 89% complete, which
+        # is the whole reason this check is separate from that one.
+        scored, responses = self._skewed(verbose_missing=26, terse_missing=3)
+        problems = [p for p in validity(scored, responses) if "uneven by vendor" in p]
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("fixture_verbose", problems[0])
+
+    def test_missingness_spread_evenly_does_not_stop_the_run(self):
+        # The same total number of dropped ensembles, distributed. This is a
+        # reliability problem, not a validity one: every vendor is compared on
+        # a sample filtered the same way, so the ranking still means something.
+        scored, responses = self._skewed(verbose_missing=15, terse_missing=14)
+        self.assertEqual(
+            [p for p in validity(scored, responses) if "uneven by vendor" in p], [])
+
+    def test_a_clean_run_passes_the_vendor_check(self):
+        # 2026-W34: 0.0pp spread. The gate has to be silent here or it will be
+        # ignored when it is not.
+        scored, responses = self._skewed(verbose_missing=0, terse_missing=0)
+        self.assertEqual(validity(scored, responses), [])
+
+    def test_a_tiny_skew_on_tiny_counts_is_not_a_finding(self):
+        # `--limit 20` smoke runs: one dropped response is a 5pp spread on its
+        # own. Below MIN_VENDOR_MISSINGNESS_COUNT that is noise, and a gate that
+        # cries wolf on smoke tests is a gate people learn to skip.
+        scored, responses = self._skewed(verbose_missing=2, terse_missing=0, n=20)
+        self.assertEqual(
+            [p for p in validity(scored, responses) if "uneven by vendor" in p], [])
+
+    def test_vendor_errors_are_not_counted_as_judge_missingness(self):
+        # A response the vendor never returned has nothing to judge. Counting
+        # it here would flag a vendor outage as a judge bias and stop a week
+        # that is perfectly publishable — the opposite of the intended refusal.
+        n = 150
+        responses = ([resp(f"q{i}", "fixture_verbose") for i in range(n)] +
+                     [resp(f"q{i}", "fixture_terse", ok=False) for i in range(n)])
+        scored = {f"q{i}::fixture_verbose": ensemble() for i in range(n)}
+        # judge_all stores [] for a response that never came back.
+        scored.update({f"q{i}::fixture_terse": [] for i in range(n)})
+        self.assertEqual(validity(scored, responses), [])
+
     def test_problems_accumulate_rather_than_short_circuiting(self):
         # An operator reading a failed scheduled run gets the whole picture in
         # one log, not one problem per re-run.
