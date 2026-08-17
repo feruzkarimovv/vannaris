@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-08-16T18:22:11+00:00",
-  "week": "2026-W33",
-  "run_id": "6ae12c3b-13a5-4d84-8f55-a66888d17d4d",
+  "generated_at": "2026-08-17T07:43:51+00:00",
+  "week": "2026-W34",
+  "run_id": "8d9519e5-a46a-47d5-b9c0-4ed7a6aef558",
   "query_set_hash": "208cb6d7e33aef9b",
   "licence": "CC BY 4.0",
   "excluded_by_policy": "Retrieved URLs, titles, snippets and synthesized answers are stored for reproducibility but never published. See data.html.",
   "files": [
     {
-      "file": "judge-scores-2026-W33.csv",
-      "rows": 2164,
+      "file": "judge-scores-2026-W34.csv",
+      "rows": 2238,
       "what": "Every individual judge score. One row per (query, vendor, judge). held_out=1 marks a withheld question, scored but not yet named."
     },
     {
-      "file": "responses-2026-W33.csv",
+      "file": "responses-2026-W34.csv",
       "rows": 750,
       "what": "One row per API call: timing, cost, result count, ensemble median. No retrieved content."
     },
     {
-      "file": "weekly-scores-2026-W33.csv",
+      "file": "weekly-scores-2026-W34.csv",
       "rows": 30,
       "what": "The published table: one row per vendor per category."
     },
