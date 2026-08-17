@@ -396,10 +396,10 @@ the conservative version of your own result is the trait, stated without having 
 | vannaris.com | 200, real site |
 | github.com/feruzkarimovv | 200 (**the Vannaris repo behind it is still private**) |
 | npmjs.com/package/vchk | live, maintainer `feruzkarimov` |
-| **joinvor.com.uz** | **NXDOMAIN — does not resolve.** `.uz`, `.com`, `www` all fail |
+| **jonivor.com.uz** | **NXDOMAIN — does not resolve.** `.uz`, `.com`, `www` all fail |
 | **feruz.karimov.dev** | **404.** Host answers, no page |
 
-joinvor.com.uz is cited *inside* the expertise answer as well as in the links box. A technical
+jonivor.com.uz is cited *inside* the expertise answer as well as in the links box. A technical
 application to people who fund technical builders, with a dead link next to "it is live with 10+
 clinics" — that is the worst possible failure mode. Either fix DNS, or replace with a link that
 works (Telegram Mini App, App Store, a demo video, screenshots in the README).
@@ -444,7 +444,7 @@ there. Don't lowercase it.
 > you that.
 
 **Expertise (496).** Your version proves you can build *something*; the question asks what makes
-you able to build *this*. Joinvor moves to the past-work box, where it isn't competing:
+you able to build *this*. Jonivor moves to the past-work box, where it isn't competing:
 
 > I built all of Vannaris myself: five vendor adapters, a three-model judge ensemble, the runner,
 > the export and the site, with 2,151 scored judgements inside the first day. The hard part is not
@@ -465,7 +465,7 @@ you able to build *this*. Joinvor moves to the past-work box, where it isn't com
 are intern résumé metrics, and they're the weakest lines on a form where everything else is
 founder-shaped. Trade them for the things only you have:
 
-> A) Joinvor, a pet-care platform in Uzbekistan. Co-founder, CTO and sole engineer: web, backend,
+> A) Jonivor, a pet-care platform in Uzbekistan. Co-founder, CTO and sole engineer: web, backend,
 > auth, Telegram Mini App and iOS, zero to launch in 10 weeks. Live with 10+ clinics, 30+ vets and
 > real bookings. B) Software engineering intern at EPAM Systems: five Spring Boot services, and a
 > 35% cut in build time. C) Four production web apps for small-business clients on Upwork.
@@ -495,7 +495,7 @@ worst month — is the whole answer. Skeleton, with the slot marked:
 > I moved from Uzbekistan to the US and started over. I finished high school in a language I was
 > still learning and worked at Walmart while I did it. [ONE CONCRETE THING YOU DID — the hours,
 > the schedule, the thing you built anyway, the thing you did when it wasn't working.] It worked,
-> slowly: freelance clients, then EPAM, then Joinvor. I don't stop when the work stops being
+> slowly: freelance clients, then EPAM, then Jonivor. I don't stop when the work stops being
 > impressive, and I'd rather be measured than believed.
 
 Also: was the move your decision or your family's? A risk you *chose* is a different and stronger
@@ -516,5 +516,127 @@ you remember it.
 
 1. **Make `feruzkarimovv/vannaris` public.** Still private, confirmed today. Every claim you make
    is checkable except the one that matters most to a technical judge.
-2. **Fix or replace joinvor.com.uz and feruz.karimov.dev.**
+2. **Fix or replace jonivor.com.uz and feruz.karimov.dev.**
 3. **Fix the 23× → 7×** in the problem and competitors boxes, and in the video.
+
+---
+
+## 8. Final answers as agreed (2026-08-05)
+
+Paste-ready. Character counts verified. Supersedes SS3 and SS7 where they differ.
+
+### Where are you based?
+
+```
+Moving to SF in early September.
+```
+*(32 characters.)*
+
+### In school or working? Where at?
+
+```
+Neither. I took a leave of absence from Rutgers (CS, class of 2028) to build Vannaris full time.
+```
+*(96 characters.)*
+
+### Project (500)
+
+```
+Vannaris is an independent benchmark of the web-search APIs that AI agents run on: Exa, Perplexity, Serper, You.com, Linkup. Same queries against every vendor, scored by three LLM judges from three different labs, published free with the raw data. Every vendor here publishes a benchmark and every one wins its own. I built the neutral one. It's live at vannaris.com. The business on top is a router that sends each query to the cheapest vendor that clears the quality bar for that query type.
+```
+*(493 characters.)*
+
+### Problem (500)
+
+```
+A developer building an agent picks a search API on marketing, because there is nothing else to pick on: every benchmark in this category is published by one of the vendors in it. So they pick one and overpay. My first run found the cheapest API returns 92-98% of the best vendor's quality on four of six query types, at 1/7th the price like-for-like and 1/23rd at volume. The gap that justifies the price only opens on two categories. Nobody selling search has a reason to tell you that.
+```
+*(488 characters.)*
+
+### Expertise (500)
+
+```
+I built all of Vannaris myself: five vendor adapters, a three-model judge ensemble, runner, export and site, 2,151 scored judgements on day one. The plumbing isn't the hard part; designing a measurement nobody can dismiss is. So I judge with three labs' models, re-run the ranking with each judge dropped, test whether length drives score (it doesn't), and publish the disagreement, including that my top two swap under one judge. Before this I took Jonivor from zero to live in 10 weeks, alone.
+```
+*(495 characters.)*
+
+### Competitors (500)
+
+```
+My competitors are the vendors themselves. Tavily, Seltz and Quercle each publish a benchmark and each one wins it. LiteLLM unified the plumbing across 12+ providers but still makes you name the vendor on every call, with no quality signal. What they miss: quality routing is worthless. One vendor leads all six categories in my data, so route to the best just means use Exa. That was my own thesis; my own benchmark killed it in a day. The real axis is cost, a 7x spread between APIs sold as equal.
+```
+*(499 characters.)*
+
+### Past work (500)
+
+```
+A) Jonivor, a pet-care platform in Uzbekistan: co-founder, CTO and sole engineer. Web, backend, auth, Telegram Mini App, iOS. Live: 10+ clinics, 30+ vets, real bookings. B) SWE intern at EPAM Systems; cut build time 35% with CI/CD. C) Four production web apps for clients on Upwork. D) Solo: vchk, an npm security scanner for AI code, 81% precision and 87% recall; VibeDuel, a multiplayer AI coding arena judged by an LLM, built in 2 weeks; HAYAT, a 3D globe tracking hospitals in conflict zones.
+```
+*(496 characters.)*
+
+### Nerdiest (250)
+
+```
+There is almost no Uzbek speech data in machine learning, so I hand transcribed 74 audio clips myself, normalized them to 16 kHz, and published the dataset. It took forever. My language now has a little more data than it did.
+```
+*(225 characters.)*
+
+### What drives you (250)
+
+```
+I keep building the thing nobody had a reason to build: Uzbekistan had no pet care platform, so I shipped one. My language had no speech data, so I transcribed it. AI search had no honest benchmark, so I ran one. The gap is what pulls me.
+```
+*(238 characters.)*
+
+### Non-traditional
+
+```
+I taught myself to code at 12 — websites and bots — and was getting paid for freelance work three months later. I learned English on my own, no tutor and no courses, and by 17 I was teaching IELTS and SAT prep to 20+ students in a year, most of them older than me. I picked up Russian the same way. I had been training as a pianist since I was 6, competing nationally through all of it. None of it was assigned to me, and none of it was the normal route out of Uzbekistan.
+```
+*(472 characters.)*
+
+### Risk / challenge (500)
+
+```
+I moved from Uzbekistan to the US and started over: new language, no network, nothing that transferred. That year I was doing three things at once — finishing high school in a language I was still adapting to, working shifts at Walmart, and writing college applications in between. It worked, slowly: Rutgers, then client work, then EPAM, then Jonivor. I don't stop when the work stops being impressive.
+```
+*(403 characters.)*
+
+### Achievements
+
+```
+First place at an international piano competition in Turkey, one other international, and 5+ national competitions. I graduated as a pianist after 11 years of training — four with a private tutor from age 6, then seven at music school. It's the longest thing I've stuck with; I started it six years before I started programming.
+```
+*(328 characters.)*
+
+### Co-founder pick
+
+```
+Ismail Farooq, a friend from Rutgers in CS. He shipped an AR Snap Lens to 35,000+ views, then went into the ML underneath it to claw back 1.5 FPS and 8ms of latency. Externed at Snap and Epic Games, now an AI Fellow at Handshake working on LLMs. He has better options than anything I could offer him today, which is the point. He ships things people actually use, and he goes at the hard layer instead of around it. I'd want him on anything I build.
+```
+*(449 characters.)*
+
+### How did you hear
+
+```
+Twitter, from Cory's posts.
+```
+*(27 characters.)*
+
+### 1 thing you need help with (500)
+
+```
+People. I built the thing; I don't yet know the people. I'm 20, moving to SF in September, and almost everyone in my network I met on the internet. Two kinds would change the next six months: a commercial co-founder who cares about distribution the way I care about measurement, and anyone shipping agents at scale who'd tell me where my benchmark is wrong. I can build alone. I can't meet them alone.
+```
+*(401 characters.)*
+
+### Links
+
+```
+https://vannaris.com
+https://github.com/feruzkarimovv
+https://jonivor.com.uz
+https://npmjs.com/package/vchk
+https://feruz-karimov.dev
+```
+
