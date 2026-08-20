@@ -1,0 +1,3842 @@
+[
+ {
+  "query_id": "gf-h36",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h40",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h02",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h38",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h36",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h38",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ls-h01",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h37",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h34",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h40",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h35",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h39",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h03",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h02",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h01",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h38",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h40",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h39",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h36",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h37",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h34",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 3.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h35",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h04",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h02",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h36",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h01",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h38",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h40",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h04",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h03",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "gf-h39",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h37",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h02",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h05",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h01",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h03",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h40",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h39",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h38",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h05",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 5.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h03",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h04",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h02",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h01",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h37",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h06",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h38",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h39",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h04",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h06",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h07",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h03",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h02",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h40",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "ls-h05",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h01",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h39",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h04",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h40",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h03",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h07",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 5.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h02",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h06",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h01",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h05",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h08",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h02",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ct-h04",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h40",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h08",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h06",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h03",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 5.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h01",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h05",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h07",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h09",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h05",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h03",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h07",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h01",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h09",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h02",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h06",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h04",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h10",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h08",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h06",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h04",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h10",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 5.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h02",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ct-h07",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h05",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h03",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h08",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h09",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h11",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h01",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h07",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h02",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h04",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h03",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ct-h08",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h11",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h05",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "ls-h09",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h06",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h04",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h12",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h10",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h06",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h05",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h03",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h02",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h11",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h07",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h08",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h12",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h10",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "ct-h09",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h11",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h13",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h09",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "gf-h05",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h07",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 2.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h03",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h04",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h13",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h06",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h08",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h10",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h12",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h08",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h04",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "lt-h14",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h10",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h12",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h05",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h06",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h07",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h14",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h09",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h15",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h11",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h05",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h13",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h06",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h08",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h07",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h11",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h15",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h10",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h13",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h09",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h12",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h14",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h16",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h06",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h10",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h08",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h09",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h11",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h07",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h14",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h16",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h13",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h12",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h15",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h17",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h09",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h08",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h17",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h10",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h11",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ct-h13",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h15",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h12",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h14",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h07",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h08",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h14",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h16",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h18",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h12",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h09",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h18",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h10",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ls-h16",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h11",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h15",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h17",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 5.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h13",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h09",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h11",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h19",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h17",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h13",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h10",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h19",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h15",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h16",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h12",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h18",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 4.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h14",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h20",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h14",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h12",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h10",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h11",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h15",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h20",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h19",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h13",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h16",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h18",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h17",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h11",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h21",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h17",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h19",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h15",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h14",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h13",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h20",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h18",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h12",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h21",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h16",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h22",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h12",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h13",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h15",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h16",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h18",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h14",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h17",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h20",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h23",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h22",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h19",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h13",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h21",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h15",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h16",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h17",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h14",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h23",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h21",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "ct-h20",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h19",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h22",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h18",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h24",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h14",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h16",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h18",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h17",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h15",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h20",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h23",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h24",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h21",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h22",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h25",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h19",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h17",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h21",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h18",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h15",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h16",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h25",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h19",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h16",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h24",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h23",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h22",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h26",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h18",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h20",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h17",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h24",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h22",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h19",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h21",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h20",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h26",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h23",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h27",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h21",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h17",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h25",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h25",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h18",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h19",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h27",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h23",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h20",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h22",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h26",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h24",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h18",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h20",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h28",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h28",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h22",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h19",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h24",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h21",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h23",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h26",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h27",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h25",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h21",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h29",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h23",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h25",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h19",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h30",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h26",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h20",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h22",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h24",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h27",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h28",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h22",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h24",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h26",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h20",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 5.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "lt-h30",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h29",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h25",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h23",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h21",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h27",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h28",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h29",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h23",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h25",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h31",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h27",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h21",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h31",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h22",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h28",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h26",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h30",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h32",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h24",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h26",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h22",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h32",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h24",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h28",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h29",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h25",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h23",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h30",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h29",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h27",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h33",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h27",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h23",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h31",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h29",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h24",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h30",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h31",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 5.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h33",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h28",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h26",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h34",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h24",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h32",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h25",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "bn-h25",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h34",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h32",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h27",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h26",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h29",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h30",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h31",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h28",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h35",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h25",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h29",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h33",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 7.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h27",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "bn-h26",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h31",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h28",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h32",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h30",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h34",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h33",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h36",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h35",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h26",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h36",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h28",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h27",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h29",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h31",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h32",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h30",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h33",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h37",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h35",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h31",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h34",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 4.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h27",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h29",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h35",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h28",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h37",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h33",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h30",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h32",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h38",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h36",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h28",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h34",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h30",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h32",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h36",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h33",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h31",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h29",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h34",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h35",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h37",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h38",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h39",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h35",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "mh-h33",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h31",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h37",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h29",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "lt-h39",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h30",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h32",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h36",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h38",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 4.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h34",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h30",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h40",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h32",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h31",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h40",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h34",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 1.0,
+  "n_results": 7,
+  "error": null
+ },
+ {
+  "query_id": "gf-h33",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h35",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h38",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 6.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h37",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h33",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h39",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h36",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 8,
+  "error": null
+ },
+ {
+  "query_id": "bn-h32",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h37",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h31",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 7.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h39",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h35",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h38",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h36",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h34",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h32",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h34",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ls-h40",
+  "category": "local_shopping",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h01",
+  "category": "long_tail",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ct-h38",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h37",
+  "category": "multi_hop",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "bn-h33",
+  "category": "breaking_news",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "gf-h35",
+  "category": "general_facts",
+  "vendor": "exa",
+  "score": 10.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h36",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "bn-h33",
+  "category": "breaking_news",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h39",
+  "category": "code_technical",
+  "vendor": "exa",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "lt-h01",
+  "category": "long_tail",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "ls-h40",
+  "category": "local_shopping",
+  "vendor": "serper",
+  "score": 8.0,
+  "n_results": 10,
+  "error": null
+ },
+ {
+  "query_id": "mh-h37",
+  "category": "multi_hop",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "gf-h35",
+  "category": "general_facts",
+  "vendor": "serper",
+  "score": 10.0,
+  "n_results": 9,
+  "error": null
+ },
+ {
+  "query_id": "ct-h39",
+  "category": "code_technical",
+  "vendor": "serper",
+  "score": 9.0,
+  "n_results": 10,
+  "error": null
+ }
+]
