@@ -104,14 +104,19 @@ jobs:
       # runner verifies the two match and refuses to run a set that was edited
       # after it was registered.
       #
-      # A missing secret is not a failure. The runner says the set is not on
-      # this machine and runs the public questions alone — which is the right
-      # behaviour for a fork, and means the overfitting check degrades to
-      # absent rather than taking the weekly run down with it.
+      # A missing secret used to be tolerated here, on the reasoning that a
+      # fork should not have its CI broken by ours. That reasoning is right for
+      # a fork and was wrong for this run: 2026-W33 and W34 each published
+      # `n_heldout_queries: 0` because this step printed a line and exited 0,
+      # so the week looked healthy both times. --require makes the
+      # absence loud, and does it here — before the vendor calls — so the cost
+      # of a missing secret is a failed cheap step rather than ~$3.40 spent on
+      # a week that cannot answer the question the set exists to answer.
+      # Forks keep the old behaviour by not passing the flag.
       - name: Materialise the held-out set
         env:
           SB_HELDOUT_JSON: ${{ secrets.SB_HELDOUT_JSON }}
-        run: python -m src.heldout install
+        run: python -m src.heldout install --require
 
       # One cheap live call per key before spending anything real. Debugging
       # eight auth schemes inside a 3,000-call pipeline is miserable; a run that
