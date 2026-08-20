@@ -1,0 +1,7202 @@
+[
+ {
+  "pair_id": "gf-010:b_first",
+  "query_id": "gf-010",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10275
+ },
+ {
+  "pair_id": "ct-011:a_first",
+  "query_id": "ct-011",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13148
+ },
+ {
+  "pair_id": "ct-001:b_first",
+  "query_id": "ct-001",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12425
+ },
+ {
+  "pair_id": "gf-007:b_first",
+  "query_id": "gf-007",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10701
+ },
+ {
+  "pair_id": "gf-019:a_first",
+  "query_id": "gf-019",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11027
+ },
+ {
+  "pair_id": "ls-009:a_first",
+  "query_id": "ls-009",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 15974
+ },
+ {
+  "pair_id": "lt-006:a_first",
+  "query_id": "lt-006",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11894
+ },
+ {
+  "pair_id": "lt-022:b_first",
+  "query_id": "lt-022",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11950
+ },
+ {
+  "pair_id": "gf-004:b_first",
+  "query_id": "gf-004",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10853
+ },
+ {
+  "pair_id": "bn-021:b_first",
+  "query_id": "bn-021",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12314
+ },
+ {
+  "pair_id": "ct-011:b_first",
+  "query_id": "ct-011",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13142
+ },
+ {
+  "pair_id": "gf-005:a_first",
+  "query_id": "gf-005",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10552
+ },
+ {
+  "pair_id": "gf-019:b_first",
+  "query_id": "gf-019",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11029
+ },
+ {
+  "pair_id": "ls-009:b_first",
+  "query_id": "ls-009",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 15984
+ },
+ {
+  "pair_id": "lt-013:b_first",
+  "query_id": "lt-013",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12627
+ },
+ {
+  "pair_id": "lt-016:a_first",
+  "query_id": "lt-016",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11784
+ },
+ {
+  "pair_id": "bn-024:a_first",
+  "query_id": "bn-024",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12000
+ },
+ {
+  "pair_id": "ct-022:a_first",
+  "query_id": "ct-022",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12132
+ },
+ {
+  "pair_id": "bn-021:a_first",
+  "query_id": "bn-021",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12316
+ },
+ {
+  "pair_id": "gf-008:a_first",
+  "query_id": "gf-008",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11137
+ },
+ {
+  "pair_id": "gf-020:a_first",
+  "query_id": "gf-020",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10969
+ },
+ {
+  "pair_id": "ls-010:a_first",
+  "query_id": "ls-010",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13229
+ },
+ {
+  "pair_id": "lt-015:a_first",
+  "query_id": "lt-015",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11443
+ },
+ {
+  "pair_id": "mh-002:a_first",
+  "query_id": "mh-002",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12854
+ },
+ {
+  "pair_id": "bn-024:b_first",
+  "query_id": "bn-024",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11975
+ },
+ {
+  "pair_id": "ct-018:a_first",
+  "query_id": "ct-018",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12511
+ },
+ {
+  "pair_id": "bn-006:b_first",
+  "query_id": "bn-006",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11121
+ },
+ {
+  "pair_id": "bn-020:a_first",
+  "query_id": "bn-020",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12901
+ },
+ {
+  "pair_id": "ct-017:a_first",
+  "query_id": "ct-017",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11740
+ },
+ {
+  "pair_id": "gf-020:b_first",
+  "query_id": "gf-020",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10968
+ },
+ {
+  "pair_id": "ls-010:b_first",
+  "query_id": "ls-010",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13213
+ },
+ {
+  "pair_id": "lt-024:a_first",
+  "query_id": "lt-024",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12701
+ },
+ {
+  "pair_id": "lt-025:b_first",
+  "query_id": "lt-025",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12279
+ },
+ {
+  "pair_id": "bn-010:b_first",
+  "query_id": "bn-010",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10641
+ },
+ {
+  "pair_id": "bn-023:a_first",
+  "query_id": "bn-023",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10064
+ },
+ {
+  "pair_id": "bn-002:a_first",
+  "query_id": "bn-002",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9805
+ },
+ {
+  "pair_id": "bn-019:b_first",
+  "query_id": "bn-019",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10700
+ },
+ {
+  "pair_id": "ct-024:b_first",
+  "query_id": "ct-024",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12843
+ },
+ {
+  "pair_id": "gf-018:a_first",
+  "query_id": "gf-018",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11494
+ },
+ {
+  "pair_id": "gf-021:a_first",
+  "query_id": "gf-021",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10888
+ },
+ {
+  "pair_id": "ls-011:a_first",
+  "query_id": "ls-011",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10425
+ },
+ {
+  "pair_id": "lt-023:a_first",
+  "query_id": "lt-023",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12056
+ },
+ {
+  "pair_id": "mh-003:a_first",
+  "query_id": "mh-003",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10078
+ },
+ {
+  "pair_id": "mh-013:b_first",
+  "query_id": "mh-013",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10226
+ },
+ {
+  "pair_id": "bn-001:a_first",
+  "query_id": "bn-001",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10120
+ },
+ {
+  "pair_id": "bn-023:b_first",
+  "query_id": "bn-023",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10063
+ },
+ {
+  "pair_id": "ct-024:a_first",
+  "query_id": "ct-024",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12828
+ },
+ {
+  "pair_id": "bn-019:a_first",
+  "query_id": "bn-019",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10701
+ },
+ {
+  "pair_id": "ct-025:a_first",
+  "query_id": "ct-025",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11727
+ },
+ {
+  "pair_id": "gf-021:b_first",
+  "query_id": "gf-021",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10894
+ },
+ {
+  "pair_id": "ls-011:b_first",
+  "query_id": "ls-011",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10425
+ },
+ {
+  "pair_id": "lt-014:b_first",
+  "query_id": "lt-014",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11853
+ },
+ {
+  "pair_id": "mh-003:b_first",
+  "query_id": "mh-003",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10089
+ },
+ {
+  "pair_id": "bn-005:a_first",
+  "query_id": "bn-005",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11521
+ },
+ {
+  "pair_id": "gf-013:b_first",
+  "query_id": "gf-013",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11169
+ },
+ {
+  "pair_id": "bn-018:b_first",
+  "query_id": "bn-018",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10451
+ },
+ {
+  "pair_id": "ct-025:b_first",
+  "query_id": "ct-025",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11740
+ },
+ {
+  "pair_id": "gf-022:a_first",
+  "query_id": "gf-022",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10663
+ },
+ {
+  "pair_id": "ls-012:a_first",
+  "query_id": "ls-012",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13637
+ },
+ {
+  "pair_id": "lt-013:a_first",
+  "query_id": "lt-013",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12619
+ },
+ {
+  "pair_id": "lt-019:b_first",
+  "query_id": "lt-019",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11079
+ },
+ {
+  "pair_id": "ct-014:a_first",
+  "query_id": "ct-014",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12265
+ },
+ {
+  "pair_id": "gf-007:a_first",
+  "query_id": "gf-007",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10703
+ },
+ {
+  "pair_id": "bn-018:a_first",
+  "query_id": "bn-018",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10459
+ },
+ {
+  "pair_id": "gf-011:b_first",
+  "query_id": "gf-011",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11330
+ },
+ {
+  "pair_id": "gf-022:b_first",
+  "query_id": "gf-022",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10666
+ },
+ {
+  "pair_id": "ls-012:b_first",
+  "query_id": "ls-012",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13642
+ },
+ {
+  "pair_id": "lt-020:b_first",
+  "query_id": "lt-020",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12470
+ },
+ {
+  "pair_id": "lt-025:a_first",
+  "query_id": "lt-025",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12278
+ },
+ {
+  "pair_id": "ct-009:b_first",
+  "query_id": "ct-009",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12081
+ },
+ {
+  "pair_id": "gf-003:a_first",
+  "query_id": "gf-003",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9966
+ },
+ {
+  "pair_id": "bn-017:b_first",
+  "query_id": "bn-017",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10749
+ },
+ {
+  "pair_id": "gf-017:a_first",
+  "query_id": "gf-017",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11919
+ },
+ {
+  "pair_id": "gf-023:a_first",
+  "query_id": "gf-023",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9723
+ },
+ {
+  "pair_id": "ls-013:a_first",
+  "query_id": "ls-013",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12605
+ },
+ {
+  "pair_id": "lt-018:a_first",
+  "query_id": "lt-018",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11387
+ },
+ {
+  "pair_id": "lt-018:b_first",
+  "query_id": "lt-018",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11394
+ },
+ {
+  "pair_id": "mh-025:a_first",
+  "query_id": "mh-025",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10655
+ },
+ {
+  "pair_id": "mh-025:b_first",
+  "query_id": "mh-025",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10645
+ },
+ {
+  "pair_id": "ct-010:a_first",
+  "query_id": "ct-010",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12317
+ },
+ {
+  "pair_id": "ct-016:a_first",
+  "query_id": "ct-016",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12631
+ },
+ {
+  "pair_id": "bn-017:a_first",
+  "query_id": "bn-017",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10770
+ },
+ {
+  "pair_id": "gf-017:b_first",
+  "query_id": "gf-017",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11926
+ },
+ {
+  "pair_id": "gf-023:b_first",
+  "query_id": "gf-023",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9710
+ },
+ {
+  "pair_id": "ls-013:b_first",
+  "query_id": "ls-013",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12603
+ },
+ {
+  "pair_id": "mh-002:b_first",
+  "query_id": "mh-002",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12863
+ },
+ {
+  "pair_id": "lt-024:b_first",
+  "query_id": "lt-024",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12710
+ },
+ {
+  "pair_id": "mh-024:a_first",
+  "query_id": "mh-024",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10462
+ },
+ {
+  "pair_id": "mh-024:b_first",
+  "query_id": "mh-024",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10454
+ },
+ {
+  "pair_id": "ct-013:b_first",
+  "query_id": "ct-013",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11945
+ },
+ {
+  "pair_id": "ct-020:b_first",
+  "query_id": "ct-020",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11934
+ },
+ {
+  "pair_id": "bn-016:b_first",
+  "query_id": "bn-016",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11713
+ },
+ {
+  "pair_id": "gf-005:b_first",
+  "query_id": "gf-005",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10545
+ },
+ {
+  "pair_id": "gf-024:a_first",
+  "query_id": "gf-024",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11410
+ },
+ {
+  "pair_id": "lt-011:a_first",
+  "query_id": "lt-011",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12350
+ },
+ {
+  "pair_id": "ls-014:a_first",
+  "query_id": "ls-014",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13178
+ },
+ {
+  "pair_id": "mh-023:a_first",
+  "query_id": "mh-023",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10552
+ },
+ {
+  "pair_id": "mh-023:b_first",
+  "query_id": "mh-023",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10555
+ },
+ {
+  "pair_id": "mh-001:b_first",
+  "query_id": "mh-001",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9799
+ },
+ {
+  "pair_id": "bn-002:b_first",
+  "query_id": "bn-002",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9817
+ },
+ {
+  "pair_id": "ct-001:a_first",
+  "query_id": "ct-001",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12427
+ },
+ {
+  "pair_id": "bn-016:a_first",
+  "query_id": "bn-016",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11724
+ },
+ {
+  "pair_id": "gf-011:a_first",
+  "query_id": "gf-011",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11324
+ },
+ {
+  "pair_id": "gf-014:b_first",
+  "query_id": "gf-014",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10519
+ },
+ {
+  "pair_id": "gf-024:b_first",
+  "query_id": "gf-024",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11413
+ },
+ {
+  "pair_id": "ls-014:b_first",
+  "query_id": "ls-014",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13177
+ },
+ {
+  "pair_id": "lt-023:b_first",
+  "query_id": "lt-023",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12062
+ },
+ {
+  "pair_id": "mh-001:a_first",
+  "query_id": "mh-001",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9796
+ },
+ {
+  "pair_id": "mh-022:a_first",
+  "query_id": "mh-022",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10066
+ },
+ {
+  "pair_id": "mh-022:b_first",
+  "query_id": "mh-022",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10074
+ },
+ {
+  "pair_id": "bn-022:b_first",
+  "query_id": "bn-022",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11022
+ },
+ {
+  "pair_id": "ct-019:a_first",
+  "query_id": "ct-019",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11400
+ },
+ {
+  "pair_id": "bn-007:b_first",
+  "query_id": "bn-007",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11446
+ },
+ {
+  "pair_id": "bn-015:b_first",
+  "query_id": "bn-015",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10451
+ },
+ {
+  "pair_id": "gf-016:a_first",
+  "query_id": "gf-016",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10986
+ },
+ {
+  "pair_id": "gf-025:a_first",
+  "query_id": "gf-025",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10130
+ },
+ {
+  "pair_id": "ls-015:a_first",
+  "query_id": "ls-015",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13102
+ },
+ {
+  "pair_id": "lt-010:a_first",
+  "query_id": "lt-010",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11850
+ },
+ {
+  "pair_id": "lt-022:a_first",
+  "query_id": "lt-022",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11939
+ },
+ {
+  "pair_id": "mh-021:a_first",
+  "query_id": "mh-021",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9697
+ },
+ {
+  "pair_id": "mh-021:b_first",
+  "query_id": "mh-021",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9692
+ },
+ {
+  "pair_id": "ct-021:a_first",
+  "query_id": "ct-021",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13372
+ },
+ {
+  "pair_id": "ct-002:a_first",
+  "query_id": "ct-002",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12313
+ },
+ {
+  "pair_id": "bn-015:a_first",
+  "query_id": "bn-015",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10450
+ },
+ {
+  "pair_id": "ct-023:b_first",
+  "query_id": "ct-023",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11431
+ },
+ {
+  "pair_id": "gf-025:b_first",
+  "query_id": "gf-025",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10145
+ },
+ {
+  "pair_id": "ls-015:b_first",
+  "query_id": "ls-015",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13102
+ },
+ {
+  "pair_id": "lt-021:a_first",
+  "query_id": "lt-021",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12532
+ },
+ {
+  "pair_id": "mh-020:a_first",
+  "query_id": "mh-020",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11837
+ },
+ {
+  "pair_id": "lt-021:b_first",
+  "query_id": "lt-021",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12531
+ },
+ {
+  "pair_id": "mh-020:b_first",
+  "query_id": "mh-020",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11842
+ },
+ {
+  "pair_id": "gf-010:a_first",
+  "query_id": "gf-010",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10274
+ },
+ {
+  "pair_id": "bn-014:b_first",
+  "query_id": "bn-014",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13046
+ },
+ {
+  "pair_id": "ct-003:a_first",
+  "query_id": "ct-003",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12424
+ },
+ {
+  "pair_id": "ls-016:a_first",
+  "query_id": "ls-016",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12055
+ },
+ {
+  "pair_id": "ct-016:b_first",
+  "query_id": "ct-016",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12922
+ },
+ {
+  "pair_id": "ls-001:a_first",
+  "query_id": "ls-001",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11586
+ },
+ {
+  "pair_id": "lt-020:a_first",
+  "query_id": "lt-020",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12470
+ },
+ {
+  "pair_id": "lt-015:b_first",
+  "query_id": "lt-015",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11450
+ },
+ {
+  "pair_id": "bn-004:b_first",
+  "query_id": "bn-004",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13649
+ },
+ {
+  "pair_id": "mh-019:b_first",
+  "query_id": "mh-019",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10028
+ },
+ {
+  "pair_id": "mh-019:a_first",
+  "query_id": "mh-019",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10025
+ },
+ {
+  "pair_id": "ct-018:b_first",
+  "query_id": "ct-018",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12520
+ },
+ {
+  "pair_id": "ct-005:b_first",
+  "query_id": "ct-005",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12066
+ },
+ {
+  "pair_id": "bn-014:a_first",
+  "query_id": "bn-014",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13382
+ },
+ {
+  "pair_id": "ls-001:b_first",
+  "query_id": "ls-001",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11598
+ },
+ {
+  "pair_id": "ct-019:b_first",
+  "query_id": "ct-019",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11406
+ },
+ {
+  "pair_id": "ls-016:b_first",
+  "query_id": "ls-016",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12052
+ },
+ {
+  "pair_id": "lt-019:a_first",
+  "query_id": "lt-019",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11080
+ },
+ {
+  "pair_id": "lt-011:b_first",
+  "query_id": "lt-011",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12365
+ },
+ {
+  "pair_id": "mh-018:a_first",
+  "query_id": "mh-018",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11842
+ },
+ {
+  "pair_id": "bn-011:b_first",
+  "query_id": "bn-011",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10297
+ },
+ {
+  "pair_id": "ct-006:a_first",
+  "query_id": "ct-006",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11956
+ },
+ {
+  "pair_id": "mh-018:b_first",
+  "query_id": "mh-018",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 8253
+ },
+ {
+  "pair_id": "gf-001:a_first",
+  "query_id": "gf-001",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10651
+ },
+ {
+  "pair_id": "ls-002:a_first",
+  "query_id": "ls-002",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 14048
+ },
+ {
+  "pair_id": "bn-013:b_first",
+  "query_id": "bn-013",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10070
+ },
+ {
+  "pair_id": "gf-008:b_first",
+  "query_id": "gf-008",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11137
+ },
+ {
+  "pair_id": "lt-008:a_first",
+  "query_id": "lt-008",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11043
+ },
+ {
+  "pair_id": "mh-017:a_first",
+  "query_id": "mh-017",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10093
+ },
+ {
+  "pair_id": "ls-017:a_first",
+  "query_id": "ls-017",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13478
+ },
+ {
+  "pair_id": "mh-017:b_first",
+  "query_id": "mh-017",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10092
+ },
+ {
+  "pair_id": "bn-004:a_first",
+  "query_id": "bn-004",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 14010
+ },
+ {
+  "pair_id": "lt-017:b_first",
+  "query_id": "lt-017",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12321
+ },
+ {
+  "pair_id": "bn-012:a_first",
+  "query_id": "bn-012",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11064
+ },
+ {
+  "pair_id": "bn-013:a_first",
+  "query_id": "bn-013",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10065
+ },
+ {
+  "pair_id": "gf-009:a_first",
+  "query_id": "gf-009",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11426
+ },
+ {
+  "pair_id": "ls-017:b_first",
+  "query_id": "ls-017",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13481
+ },
+ {
+  "pair_id": "gf-016:b_first",
+  "query_id": "gf-016",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10992
+ },
+ {
+  "pair_id": "lt-006:b_first",
+  "query_id": "lt-006",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11898
+ },
+ {
+  "pair_id": "ls-002:b_first",
+  "query_id": "ls-002",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 14048
+ },
+ {
+  "pair_id": "mh-016:a_first",
+  "query_id": "mh-016",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11498
+ },
+ {
+  "pair_id": "mh-016:b_first",
+  "query_id": "mh-016",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11496
+ },
+ {
+  "pair_id": "lt-017:a_first",
+  "query_id": "lt-017",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12340
+ },
+ {
+  "pair_id": "bn-001:b_first",
+  "query_id": "bn-001",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10123
+ },
+ {
+  "pair_id": "bn-012:b_first",
+  "query_id": "bn-012",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11072
+ },
+ {
+  "pair_id": "ct-015:b_first",
+  "query_id": "ct-015",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11646
+ },
+ {
+  "pair_id": "ct-021:b_first",
+  "query_id": "ct-021",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13388
+ },
+ {
+  "pair_id": "ls-003:a_first",
+  "query_id": "ls-003",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 15351
+ },
+ {
+  "pair_id": "gf-009:b_first",
+  "query_id": "gf-009",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11426
+ },
+ {
+  "pair_id": "lt-010:b_first",
+  "query_id": "lt-010",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11859
+ },
+ {
+  "pair_id": "ls-018:a_first",
+  "query_id": "ls-018",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 7824
+ },
+ {
+  "pair_id": "mh-015:a_first",
+  "query_id": "mh-015",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11152
+ },
+ {
+  "pair_id": "lt-016:b_first",
+  "query_id": "lt-016",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11790
+ },
+ {
+  "pair_id": "bn-022:a_first",
+  "query_id": "bn-022",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11006
+ },
+ {
+  "pair_id": "bn-025:a_first",
+  "query_id": "bn-025",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12344
+ },
+ {
+  "pair_id": "bn-003:b_first",
+  "query_id": "bn-003",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12085
+ },
+ {
+  "pair_id": "mh-015:b_first",
+  "query_id": "mh-015",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11150
+ },
+ {
+  "pair_id": "gf-004:a_first",
+  "query_id": "gf-004",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10852
+ },
+ {
+  "pair_id": "ls-018:b_first",
+  "query_id": "ls-018",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11143
+ },
+ {
+  "pair_id": "lt-012:b_first",
+  "query_id": "lt-012",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11383
+ },
+ {
+  "pair_id": "gf-015:a_first",
+  "query_id": "gf-015",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10307
+ },
+ {
+  "pair_id": "ls-003:b_first",
+  "query_id": "ls-003",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 15355
+ },
+ {
+  "pair_id": "mh-014:b_first",
+  "query_id": "mh-014",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10229
+ },
+ {
+  "pair_id": "mh-014:a_first",
+  "query_id": "mh-014",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10232
+ },
+ {
+  "pair_id": "lt-014:a_first",
+  "query_id": "lt-014",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11845
+ },
+ {
+  "pair_id": "ct-005:a_first",
+  "query_id": "ct-005",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12063
+ },
+ {
+  "pair_id": "bn-009:a_first",
+  "query_id": "bn-009",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11892
+ },
+ {
+  "pair_id": "gf-014:a_first",
+  "query_id": "gf-014",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10521
+ },
+ {
+  "pair_id": "gf-015:b_first",
+  "query_id": "gf-015",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10316
+ },
+ {
+  "pair_id": "ct-007:a_first",
+  "query_id": "ct-007",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 8013
+ },
+ {
+  "pair_id": "ls-004:a_first",
+  "query_id": "ls-004",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13345
+ },
+ {
+  "pair_id": "lt-008:b_first",
+  "query_id": "lt-008",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11045
+ },
+ {
+  "pair_id": "mh-013:a_first",
+  "query_id": "mh-013",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10214
+ },
+ {
+  "pair_id": "ls-019:a_first",
+  "query_id": "ls-019",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9163
+ },
+ {
+  "pair_id": "bn-010:a_first",
+  "query_id": "bn-010",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10652
+ },
+ {
+  "pair_id": "lt-012:a_first",
+  "query_id": "lt-012",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 7917
+ },
+ {
+  "pair_id": "ct-004:a_first",
+  "query_id": "ct-004",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11422
+ },
+ {
+  "pair_id": "ct-007:b_first",
+  "query_id": "ct-007",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11608
+ },
+ {
+  "pair_id": "ct-022:b_first",
+  "query_id": "ct-022",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12131
+ },
+ {
+  "pair_id": "gf-003:b_first",
+  "query_id": "gf-003",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9976
+ },
+ {
+  "pair_id": "lt-009:a_first",
+  "query_id": "lt-009",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11944
+ },
+ {
+  "pair_id": "ls-004:b_first",
+  "query_id": "ls-004",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13341
+ },
+ {
+  "pair_id": "mh-012:a_first",
+  "query_id": "mh-012",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10591
+ },
+ {
+  "pair_id": "ls-019:b_first",
+  "query_id": "ls-019",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9166
+ },
+ {
+  "pair_id": "ct-006:b_first",
+  "query_id": "ct-006",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11959
+ },
+ {
+  "pair_id": "lt-009:b_first",
+  "query_id": "lt-009",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11947
+ },
+ {
+  "pair_id": "mh-012:b_first",
+  "query_id": "mh-012",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10586
+ },
+ {
+  "pair_id": "ls-005:a_first",
+  "query_id": "ls-005",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11045
+ },
+ {
+  "pair_id": "ct-023:a_first",
+  "query_id": "ct-023",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11418
+ },
+ {
+  "pair_id": "gf-006:a_first",
+  "query_id": "gf-006",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11850
+ },
+ {
+  "pair_id": "lt-007:b_first",
+  "query_id": "lt-007",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11631
+ },
+ {
+  "pair_id": "ls-020:a_first",
+  "query_id": "ls-020",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12787
+ },
+ {
+  "pair_id": "lt-004:b_first",
+  "query_id": "lt-004",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12355
+ },
+ {
+  "pair_id": "mh-011:b_first",
+  "query_id": "mh-011",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10964
+ },
+ {
+  "pair_id": "bn-008:a_first",
+  "query_id": "bn-008",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11799
+ },
+ {
+  "pair_id": "mh-011:a_first",
+  "query_id": "mh-011",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10970
+ },
+ {
+  "pair_id": "ct-014:b_first",
+  "query_id": "ct-014",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12264
+ },
+ {
+  "pair_id": "gf-006:b_first",
+  "query_id": "gf-006",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11852
+ },
+ {
+  "pair_id": "ct-008:a_first",
+  "query_id": "ct-008",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10690
+ },
+ {
+  "pair_id": "ls-020:b_first",
+  "query_id": "ls-020",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12790
+ },
+ {
+  "pair_id": "ls-005:b_first",
+  "query_id": "ls-005",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11056
+ },
+ {
+  "pair_id": "lt-005:b_first",
+  "query_id": "lt-005",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12605
+ },
+ {
+  "pair_id": "lt-007:a_first",
+  "query_id": "lt-007",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11627
+ },
+ {
+  "pair_id": "mh-010:a_first",
+  "query_id": "mh-010",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10054
+ },
+ {
+  "pair_id": "mh-010:b_first",
+  "query_id": "mh-010",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10044
+ },
+ {
+  "pair_id": "ct-015:a_first",
+  "query_id": "ct-015",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11650
+ },
+ {
+  "pair_id": "bn-005:b_first",
+  "query_id": "bn-005",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11518
+ },
+ {
+  "pair_id": "ct-002:b_first",
+  "query_id": "ct-002",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12309
+ },
+ {
+  "pair_id": "ls-006:a_first",
+  "query_id": "ls-006",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13449
+ },
+ {
+  "pair_id": "gf-001:b_first",
+  "query_id": "gf-001",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "same",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10652
+ },
+ {
+  "pair_id": "ct-017:b_first",
+  "query_id": "ct-017",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11751
+ },
+ {
+  "pair_id": "ls-021:a_first",
+  "query_id": "ls-021",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12203
+ },
+ {
+  "pair_id": "mh-009:a_first",
+  "query_id": "mh-009",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9954
+ },
+ {
+  "pair_id": "mh-009:b_first",
+  "query_id": "mh-009",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9948
+ },
+ {
+  "pair_id": "lt-001:b_first",
+  "query_id": "lt-001",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11946
+ },
+ {
+  "pair_id": "ct-012:a_first",
+  "query_id": "ct-012",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10324
+ },
+ {
+  "pair_id": "lt-005:a_first",
+  "query_id": "lt-005",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 8753
+ },
+ {
+  "pair_id": "bn-006:a_first",
+  "query_id": "bn-006",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11116
+ },
+ {
+  "pair_id": "gf-013:a_first",
+  "query_id": "gf-013",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11157
+ },
+ {
+  "pair_id": "ct-008:b_first",
+  "query_id": "ct-008",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10689
+ },
+ {
+  "pair_id": "ls-021:b_first",
+  "query_id": "ls-021",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12210
+ },
+ {
+  "pair_id": "ls-006:b_first",
+  "query_id": "ls-006",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13457
+ },
+ {
+  "pair_id": "lt-003:b_first",
+  "query_id": "lt-003",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11847
+ },
+ {
+  "pair_id": "mh-008:a_first",
+  "query_id": "mh-008",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 9764
+ },
+ {
+  "pair_id": "mh-008:b_first",
+  "query_id": "mh-008",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9758
+ },
+ {
+  "pair_id": "lt-004:a_first",
+  "query_id": "lt-004",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12357
+ },
+ {
+  "pair_id": "ct-012:b_first",
+  "query_id": "ct-012",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10328
+ },
+ {
+  "pair_id": "bn-009:b_first",
+  "query_id": "bn-009",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11887
+ },
+ {
+  "pair_id": "ls-007:a_first",
+  "query_id": "ls-007",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13197
+ },
+ {
+  "pair_id": "ct-009:a_first",
+  "query_id": "ct-009",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12440
+ },
+ {
+  "pair_id": "ls-022:a_first",
+  "query_id": "ls-022",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13207
+ },
+ {
+  "pair_id": "lt-003:a_first",
+  "query_id": "lt-003",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11837
+ },
+ {
+  "pair_id": "gf-012:a_first",
+  "query_id": "gf-012",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11071
+ },
+ {
+  "pair_id": "mh-007:b_first",
+  "query_id": "mh-007",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10181
+ },
+ {
+  "pair_id": "bn-007:a_first",
+  "query_id": "bn-007",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11446
+ },
+ {
+  "pair_id": "lt-002:a_first",
+  "query_id": "lt-002",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11670
+ },
+ {
+  "pair_id": "mh-007:a_first",
+  "query_id": "mh-007",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10168
+ },
+ {
+  "pair_id": "ct-013:a_first",
+  "query_id": "ct-013",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11947
+ },
+ {
+  "pair_id": "gf-012:b_first",
+  "query_id": "gf-012",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11069
+ },
+ {
+  "pair_id": "gf-018:b_first",
+  "query_id": "gf-018",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11128
+ },
+ {
+  "pair_id": "ct-003:b_first",
+  "query_id": "ct-003",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12430
+ },
+ {
+  "pair_id": "ls-007:b_first",
+  "query_id": "ls-007",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13207
+ },
+ {
+  "pair_id": "ls-022:b_first",
+  "query_id": "ls-022",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 13209
+ },
+ {
+  "pair_id": "lt-002:b_first",
+  "query_id": "lt-002",
+  "category": "long_tail",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11670
+ },
+ {
+  "pair_id": "mh-006:a_first",
+  "query_id": "mh-006",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11796
+ },
+ {
+  "pair_id": "lt-001:a_first",
+  "query_id": "lt-001",
+  "category": "long_tail",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 8371
+ },
+ {
+  "pair_id": "bn-011:a_first",
+  "query_id": "bn-011",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10297
+ },
+ {
+  "pair_id": "mh-006:b_first",
+  "query_id": "mh-006",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11786
+ },
+ {
+  "pair_id": "bn-008:b_first",
+  "query_id": "bn-008",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11803
+ },
+ {
+  "pair_id": "bn-025:b_first",
+  "query_id": "bn-025",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12322
+ },
+ {
+  "pair_id": "bn-020:b_first",
+  "query_id": "bn-020",
+  "category": "breaking_news",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12890
+ },
+ {
+  "pair_id": "ls-008:a_first",
+  "query_id": "ls-008",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 12154
+ },
+ {
+  "pair_id": "gf-002:b_first",
+  "query_id": "gf-002",
+  "category": "general_facts",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 7750
+ },
+ {
+  "pair_id": "ls-025:a_first",
+  "query_id": "ls-025",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11834
+ },
+ {
+  "pair_id": "ls-023:a_first",
+  "query_id": "ls-023",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 13338
+ },
+ {
+  "pair_id": "mh-005:a_first",
+  "query_id": "mh-005",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10557
+ },
+ {
+  "pair_id": "ls-025:b_first",
+  "query_id": "ls-025",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11840
+ },
+ {
+  "pair_id": "mh-005:b_first",
+  "query_id": "mh-005",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10564
+ },
+ {
+  "pair_id": "bn-003:a_first",
+  "query_id": "bn-003",
+  "category": "breaking_news",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12067
+ },
+ {
+  "pair_id": "ct-004:b_first",
+  "query_id": "ct-004",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11428
+ },
+ {
+  "pair_id": "ct-010:b_first",
+  "query_id": "ct-010",
+  "category": "code_technical",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12324
+ },
+ {
+  "pair_id": "ct-020:a_first",
+  "query_id": "ct-020",
+  "category": "code_technical",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11929
+ },
+ {
+  "pair_id": "gf-002:a_first",
+  "query_id": "gf-002",
+  "category": "general_facts",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11117
+ },
+ {
+  "pair_id": "ls-008:b_first",
+  "query_id": "ls-008",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 12163
+ },
+ {
+  "pair_id": "ls-024:b_first",
+  "query_id": "ls-024",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 11530
+ },
+ {
+  "pair_id": "ls-024:a_first",
+  "query_id": "ls-024",
+  "category": "local_shopping",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 11528
+ },
+ {
+  "pair_id": "mh-004:a_first",
+  "query_id": "mh-004",
+  "category": "multi_hop",
+  "orientation": "a_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "B",
+    "error": null
+   }
+  ],
+  "tokens": 10479
+ },
+ {
+  "pair_id": "ls-023:b_first",
+  "query_id": "ls-023",
+  "category": "local_shopping",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": null,
+    "error": "HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: ht"
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 9302
+ },
+ {
+  "pair_id": "mh-004:b_first",
+  "query_id": "mh-004",
+  "category": "multi_hop",
+  "orientation": "b_first",
+  "votes": [
+   {
+    "family": "anthropic",
+    "choice": "A",
+    "error": null
+   },
+   {
+    "family": "openai",
+    "choice": "B",
+    "error": null
+   },
+   {
+    "family": "google",
+    "choice": "A",
+    "error": null
+   }
+  ],
+  "tokens": 10482
+ }
+]

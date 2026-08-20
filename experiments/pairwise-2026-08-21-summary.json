@@ -1,0 +1,155 @@
+{
+ "run_id": "50fbea16-fb03-4e26-bcd1-40c1d40bd871",
+ "set_id": "96afde9bfef3",
+ "today": "2026-07-31",
+ "judges": [
+  {
+   "family": "anthropic",
+   "model": "claude-haiku-4-5"
+  },
+  {
+   "family": "openai",
+   "model": "gpt-5.4-mini-2026-03-17"
+  },
+  {
+   "family": "google",
+   "model": "gemini-3.1-flash-lite"
+  }
+ ],
+ "pilot": null,
+ "A": {
+  "arm": "A \u2014 validation against the human labels",
+  "decisive": {
+   "n_scored": 149,
+   "agree": 129,
+   "concordance": 0.8658,
+   "ci95": [
+    0.8018,
+    0.9114
+   ],
+   "unresolved_by_ensemble": 1,
+   "human_absolute_baseline": 0.7905,
+   "human_absolute_ci95": [
+    0.718,
+    0.8483
+   ],
+   "beats_absolute": false
+  },
+  "position_bias": {
+   "n": 49,
+   "picked_same_side": 6,
+   "side_rate": 0.1224,
+   "ci95": [
+    0.0573,
+    0.2424
+   ],
+   "human_side_rate": 0.0
+  },
+  "self_agreement": {
+   "n": 30,
+   "agree": 30,
+   "rate": 1.0,
+   "ci95": [
+    0.8865,
+    1.0
+   ],
+   "human_rate": 1.0
+  },
+  "near_tie": {
+   "n": 50,
+   "separated": 48,
+   "separates_pct": 0.96,
+   "ci95": [
+    0.8654,
+    0.989
+   ],
+   "human_separates_pct": 0.96,
+   "note": "the absolute ensemble scored every one of these as a near-tie"
+  },
+  "per_family": {
+   "anthropic": {
+    "n": 147,
+    "agree": 120,
+    "concordance": 0.8163,
+    "ci95": [
+     0.746,
+     0.8706
+    ]
+   },
+   "openai": {
+    "n": 150,
+    "agree": 123,
+    "concordance": 0.82,
+    "ci95": [
+     0.7508,
+     0.8732
+    ]
+   },
+   "google": {
+    "n": 149,
+    "agree": 127,
+    "concordance": 0.8523,
+    "ci95": [
+     0.7866,
+     0.9004
+    ]
+   }
+  },
+  "judge_errors": 0
+ },
+ "B": {
+  "arm": "B \u2014 discrimination, exa vs perplexity",
+  "n_queries": 150,
+  "wins": {
+   "exa": 21,
+   "perplexity": 104
+  },
+  "tie": 0,
+  "order_dependent": 22,
+  "unresolved": 3,
+  "tie_rate_pct": 0.0,
+  "decided": 125,
+  "exa_share_of_decided": 0.168,
+  "ci95_on_share": [
+   0.1126,
+   0.2432
+  ],
+  "separated": true,
+  "absolute_baseline": {
+   "note": "2026-W34 published exa - perplexity = +0.014, se 0.086, CI [-0.156, +0.183]; tie rate 74.0%; not separated"
+  },
+  "per_category": {
+   "breaking_news": {
+    "exa": 13,
+    "perplexity": 5,
+    "tie": 0
+   },
+   "code_technical": {
+    "exa": 0,
+    "perplexity": 24,
+    "tie": 0
+   },
+   "general_facts": {
+    "exa": 2,
+    "perplexity": 19,
+    "tie": 0
+   },
+   "local_shopping": {
+    "exa": 1,
+    "perplexity": 21,
+    "tie": 0
+   },
+   "long_tail": {
+    "exa": 1,
+    "perplexity": 20,
+    "tie": 0
+   },
+   "multi_hop": {
+    "exa": 4,
+    "perplexity": 15,
+    "tie": 0
+   }
+  },
+  "judge_errors": 10
+ }
+}
