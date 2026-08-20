@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private eval: Vannaris</title>
+<meta name="description" content="Run the Vannaris harness on your production search queries. A ranking for your traffic, not the public set.">
+<link rel="canonical" href="https://vannaris.com/evals.html">
+<meta property="og:title" content="Private eval: Vannaris">
+<meta property="og:description" content="The same harness, on your queries. A ranking for your traffic.">
+<meta property="og:url" content="https://vannaris.com/evals.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://vannaris.com/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232f5bff'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="preload" href="assets/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="shell masthead__inner navbar">
+    <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+    <nav class="nav" id="site-nav" aria-label="Primary">
+      <a href="results.html">Leaderboard</a>
+      <a href="methodology.html">Method</a>
+      <a href="data.html">Data</a>
+      <a class="btn" href="evals.html">Private eval</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Menu">
+      <span></span>
+    </button>
+  </div>
+  <div class="progress" aria-hidden="true"></div>
+</header>
+
+<main>
+
+<section class="page-hero">
+  <div class="shell">
+    <h1>Same harness. Your queries.</h1>
+    <p class="lead">
+      The public board ranks search APIs on our query set.
+      A private eval ranks them on yours.
+    </p>
+    <p class="lead" style="margin-top:1rem">
+      You send a sample of production queries. We run every cleared vendor through the published method.
+      You get a ranking for your traffic.
+    </p>
+    <div class="cta-row" style="margin-top:1.6rem">
+      <a class="btn" href="mailto:feruz.karimov@rutgers.edu">Email to start</a>
+      <a class="btn btn--ghost" href="results.html">See the public board</a>
+    </div>
+    <p class="note" style="margin-top:1.4rem">
+      <a class="mail" href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell foot__row">
+    <div>
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+      <p class="foot__tagline">Independent. No vendor pays to be listed. Data is open, CC BY 4.0.</p>
+    </div>
+    <div>
+      <p class="foot__links">
+        <a href="results.html">Leaderboard</a>
+        <a href="methodology.html">Method</a>
+        <a href="data.html">Data</a>
+        <a href="evals.html">Private eval</a>
+        <a href="https://github.com/" data-repo>Source</a>
+      </p>
+      <p class="mono note">
+        generated <span data-val="generated_at" data-fmt="when"></span>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="data/bundle.js"></script>
+<script>
+window.SBPage = { init: function () {}, redraw: function () {} };
+</script>
+<script src="assets/charts.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

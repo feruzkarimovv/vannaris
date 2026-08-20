@@ -62,7 +62,7 @@ def load_bundle(bundle: Path) -> dict:
 
 
 PAGE = """<!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -70,14 +70,15 @@ PAGE = """<!doctype html>
 <meta name="description" content="How {label} scores against the other web-search APIs in the Vannaris benchmark: quality by query category, cost per query, measured latency, and the queries it wins.">
 <link rel="canonical" href="{site}/vendors/{id}.html">
 <meta property="og:title" content="{label}: Vannaris">
-<meta property="og:description" content="{label} scored against the other web-search APIs on the same query set, by three judges from three labs. Open methodology, open data.">
+<meta property="og:description" content="{label} scored against the other web-search APIs on the same query set.">
 <meta property="og:url" content="{site}/vendors/{id}.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="{site}/assets/og-{id}.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
-<link rel="preload" href="../assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232f5bff'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="preload" href="../assets/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
@@ -86,10 +87,10 @@ PAGE = """<!doctype html>
   <div class="shell masthead__inner navbar">
     <a class="brand" href="../index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
     <nav class="nav" id="site-nav" aria-label="Primary">
-      <a href="../results.html">Results</a>
-      <a href="../methodology.html">Methodology</a>
+      <a href="../results.html">Leaderboard</a>
+      <a href="../methodology.html">Method</a>
       <a href="../data.html">Data</a>
-      <a href="https://github.com/" data-repo>Source</a>
+      <a class="btn" href="../evals.html">Private eval</a>
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
@@ -114,7 +115,7 @@ PAGE = """<!doctype html>
     </p>
 
     <div class="cta-row" style="margin-top:1.5rem">
-      <a class="btn" href="../results.html">Open results <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="btn" href="../results.html">Open leaderboard <span class="arrow" aria-hidden="true">→</span></a>
       <a class="btn btn--ghost" href="{docs}" rel="nofollow noopener">{label} docs</a>
     </div>
 
@@ -154,7 +155,7 @@ PAGE = """<!doctype html>
 <section id="profile" class="band seam">
   <div class="shell">
     <div class="section-head">
-      <h2>Where {label} holds up, and where it does not</h2>
+      <h2>Where {label} holds</h2>
       <p>
         Each bar is how much of the category-leading score {label} reaches.
       </p>
@@ -173,10 +174,8 @@ PAGE = """<!doctype html>
       </div>
       <div>
         <p class="lead" style="max-width:44ch"><span data-val="d.v.strength"></span></p>
-        <p style="max-width:44ch;color:var(--text-2)"><span data-val="d.v.weakness"></span></p>
         <p style="max-width:44ch;color:var(--text-2)">
-          A vendor that trails overall can still be the right call for one kind of query. That is
-          why scores are reported per category.
+          Scores are reported per category.
           <a href="../results.html">See the full table</a>.
         </p>
       </div>
@@ -241,28 +240,6 @@ PAGE = """<!doctype html>
   </div>
 </section>
 
-<section id="caveats" class="seam">
-  <div class="shell">
-    <div class="section-head">
-      <h2>Known limits</h2>
-    </div>
-    <div class="callout" style="max-width:76ch">
-      <p>
-        <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> of data. Scores
-        carry roughly <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span>
-        points of judge-to-judge disagreement. The judges are unaudited against humans.
-        <a href="../methodology.html#gaps">Known limits</a>.
-      </p>
-    </div>
-    <p class="note" style="margin-top:1.4rem;max-width:76ch">
-      One configuration is measured. If it misrepresents {label} (wrong tier, depth or parameters),
-      corrections get a <a href="../methodology.html#changelog">changelog entry</a>, not a silent
-      edit. <a href="mailto:{contact}">Report it</a>, or
-      <a href="../data.html">recompute it from the export</a>.
-    </p>
-  </div>
-</section>
-
 </main>
 
 <footer class="foot">
@@ -270,19 +247,15 @@ PAGE = """<!doctype html>
     <div>
       <a class="brand" href="../index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
       <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
-        Public data CC BY 4.0. Not affiliated with any vendor listed.
-      </p>
-      <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:{contact}">feruz.karimov@rutgers.edu</a>
+        Independent. No vendor pays to be listed. Data is open, CC BY 4.0.
       </p>
     </div>
     <div>
       <p class="foot__links">
-        <a href="../results.html">Results</a>
-        <a href="../methodology.html">Methodology</a>
+        <a href="../results.html">Leaderboard</a>
+        <a href="../methodology.html">Method</a>
         <a href="../data.html">Data</a>
+        <a href="../evals.html">Private eval</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">

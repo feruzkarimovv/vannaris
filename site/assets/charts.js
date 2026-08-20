@@ -5,9 +5,9 @@
  * number cannot drift away from the run that produced it.
  *
  * Three rules the drawing code follows, from the project's dataviz guidance:
- * ice-to-heat sequential ramp; identity, where it is
+ * sequential cobalt ramp; identity, where it is
  *     needed, is carried by direct labels rather than a second colour scale;
- *   - the infrared signal colour is emphasis only, it marks the one series
+ *   - the cobalt signal colour is emphasis only, it marks the one series
  *     a chart is about, and never means "series 2";
  *   - every chart has a table equivalent behind a toggle, built from the same
  *     rows the SVG is built from, so the two cannot disagree.
@@ -48,9 +48,9 @@
    * otherwise hand back an empty string, and every mark would silently render
    * black. */
   var FALLBACK = {
-    "--d100": "#1a1420", "--d200": "#3a1526", "--d300": "#5c1a2e", "--d400": "#851f37",
-    "--d500": "#b32540", "--d600": "#e02f4c", "--d700": "#ff6b7e",
-    "--signal": "#ff2a4a", "--muted-mark": "#2a3140", "--surface": "#11141c"
+    "--d100": "#e8edff", "--d200": "#c9d4ff", "--d300": "#9bb0ff", "--d400": "#6d8aff",
+    "--d500": "#2f5bff", "--d600": "#1e3fd4", "--d700": "#152a8a",
+    "--signal": "#2f5bff", "--muted-mark": "#d4d2cc", "--surface": "#ffffff"
   };
   /* Tokens resolve against the element the chart is being drawn into, not the
    * document root. A chart inside the ink band therefore picks up that band's
@@ -84,13 +84,8 @@
     // Light unless the page is explicitly stamped dark: the OS preference does
     // not decide this site's theme.
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
-    // On the dark ramp the light steps are the high scores, so the polarity of
-    // the label colour inverts with it. The crossover moved up a step with the
-    // ramp itself — the old one put dark ink on #b32540 at 3.1:1, and nothing
-    // would have caught it: axe cannot read the contrast of an SVG fill, so
-    // these labels are outside the a11y gate and inside this comment instead.
-    if (dark) return step >= 5 ? "#07080c" : "#eef2f7";
-    return step >= 3 ? "#07080c" : "#eef2f7";
+    if (dark) return step >= 5 ? "#121214" : "#f4f2ee";
+    return step >= 4 ? "#f4f2ee" : "#121214";
   }
 
   /* ------------------------------------------------------------- tooltip */

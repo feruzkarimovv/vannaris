@@ -1,28 +1,26 @@
 {
   "index.html": {
-    "title": "Vannaris: search APIs, scored in public",
+    "title": "Vannaris: public benchmark of search APIs",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
       "main",
-      "section#standings",
+      "section#categories",
       "footer"
     ],
     "outline": [
-      "h1 Search APIs. Scored in public.",
-      "h2 This run"
+      "h1 Public benchmark of search APIs.",
+      "h2 By category",
+      "h2 Same harness. Your queries."
     ],
     "figures": [],
-    "tables": [],
+    "tables": [
+      "#standings-table \"Vendor ranking for this run\" [Rank | Vendor | Score | Cost / query | p50 latency]"
+    ],
     "controls": [
       "button[type=button] \"Menu\""
     ],
     "slots": [
-      "d.calibration_state",
-      "d.finding_note",
-      "d.n_judge_families",
-      "d.weeks",
-      "d.weeks_plural",
       "generated_at|when",
       "latest.n_judges",
       "latest.n_queries|int",
@@ -31,14 +29,14 @@
     ],
     "links": [
       "data.html",
+      "evals.html",
       "index.html",
       "methodology.html",
-      "methodology.html#calibration",
       "results.html"
     ]
   },
   "results.html": {
-    "title": "Results: Vannaris",
+    "title": "Leaderboard: Vannaris",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
@@ -47,37 +45,29 @@
       "section#quality",
       "section#cost",
       "section#latency",
-      "section#judging",
       "section#queries",
       "footer"
     ],
     "outline": [
-      "h1 One run. Every cell.",
+      "h1 Leaderboard",
       "h2 Quality by vendor and category",
       "h3 Score matrix",
-      "h3 Where each vendor's queries land",
       "h3 Vendor summary",
       "h2 Cost against quality",
       "h3 Cost per query vs score",
       "h3 Share of the best score, by category",
-      "h2 How long each API takes to answer",
+      "h2 Speed",
       "h3 Median response time",
-      "h2 How much the judges disagree",
-      "h3 How far apart the three judges were",
-      "h3 Mean score by judge family",
       "h2 Every query, every score"
     ],
     "figures": [
       "#fig-heatmap",
-      "#fig-distribution",
       "#fig-cost",
       "#fig-retained",
-      "#fig-latency",
-      "#fig-disagreement",
-      "#fig-judges"
+      "#fig-latency"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie, which is itself the most useful thing this table says.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
+      "#vendor-table \"Overall score is the mean of a vendor's category scores. Won outright is queries where one vendor alone took the highest median.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
       "#query-table []"
     ],
     "controls": [
@@ -87,180 +77,74 @@
       "input#q-search[type=search] \"filter query text\""
     ],
     "slots": [
-      "d.calibration_note",
-      "d.calibration_state",
       "d.n_categories",
-      "d.routing_caveat",
-      "d.routing_note",
       "d.weeks",
       "latest.completeness.complete_ensembles|int",
       "latest.completeness.pct|n1",
       "latest.completeness.responses|int",
-      "latest.judging.family_spread|n2",
-      "latest.judging.mean_disagreement|n2",
-      "latest.judging.n_compared|int",
-      "latest.judging.responses_over_3pts|int",
       "latest.n_judges",
       "latest.n_queries|int ×2",
       "latest.n_vendors",
-      "latest.robustness.n_families_that_invert_it|int",
-      "latest.robustness.n_families|int",
-      "latest.robustness.n_vendors|int",
-      "latest.robustness.stable_prefix_leave_one_out|int",
       "latest.run_id",
-      "latest.vendor_spend_usd|money",
-      "latest.wins.n_queries_compared|int ×2",
-      "latest.wins.n_tied|int ×2"
+      "latest.vendor_spend_usd|money"
     ],
     "links": [
       "data.html",
+      "evals.html",
       "index.html",
       "methodology.html",
-      "methodology.html#calibration",
       "results.html"
     ]
   },
   "methodology.html": {
-    "title": "Methodology: Vannaris",
+    "title": "Method: Vannaris",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
       "main",
       "section#queries",
       "section#vendors",
-      "section#normalisation",
       "section#judges",
-      "section#disagreement",
-      "section#calibration",
-      "section#heldout",
-      "section#aggregation",
-      "section#gaps",
-      "section#conflicts",
-      "section#reproduce",
+      "section#scoring",
       "section#changelog",
       "footer"
     ],
     "outline": [
-      "h1 How a score is made.",
-      "h2 Six categories that fail differently",
-      "h3 Where the queries come from",
-      "h3 Breaking-news queries carry no expected answer",
-      "h2 Scoped by contract, not by popularity",
-      "h3 Exactly how each vendor is called",
-      "h2 Making responses comparable",
+      "h1 How we score.",
+      "h2 Queries",
+      "h2 Vendors",
+      "h3 How each API is called",
+      "h2 Judges",
+      "h3 The rubric",
+      "h2 How a score is computed",
       "h3 Uniform depth",
-      "h3 Two shapes of answer",
-      "h3 Uniform snippet length",
-      "h3 Cost",
-      "h3 Latency",
-      "h3 Does a bigger response score better?",
-      "h2 Three models, three labs, one rubric",
-      "h3 Why three families",
-      "h3 Median, and only when complete",
-      "h3 Salvaging truncated replies",
-      "h3 The rubric, as the code sends it",
-      "h2 How often the judges disagree, and where",
-      "h3 It concentrates by category",
-      "h3 Which two families",
-      "h3 Spread by category",
-      "h2 How well the judges track a person",
-      "h3 What the number is",
-      "h3 What it is not",
-      "h3 How the labeller was blinded",
-      "h2 Questions nobody can tune against, committed before they run",
-      "h3 Withheld, not hidden",
-      "h3 What it measures",
-      "h3 What it cannot do",
-      "h3 The current commitment",
-      "h3 Public minus withheld",
-      "h2 From scores to a published table",
-      "h3 Response score",
-      "h3 Category cell",
-      "h3 Vendor score",
-      "h3 One run per cycle is published",
-      "h2 Open gaps",
-      "h2 Who pays for this, and what that could distort",
-      "h3 The conflict that exists",
-      "h3 The conflicts that do not",
-      "h3 How to dispute a number",
-      "h3 What should make you distrust this",
-      "h2 Run the whole thing yourself",
-      "h2 Methodology changelog"
+      "h3 Three judges, median",
+      "h3 Coverage floor",
+      "h3 One published run",
+      "h2 Changelog"
     ],
     "figures": [],
     "tables": [
       "#cat-table [Category | Queries | What it tests]",
       "#vendor-meta-table [Vendor | Returns | Notes]",
-      "#judge-table \"Model versions are pinned. Changing one is a methodology change and appears in the changelog below.\" [Family | Model | Mean score, this run | Coverage]",
-      "#disagreement-table [Category | Mean spread | Split > 2 pts | n]",
-      "#heldout-table [Vendor | Public | Withheld | Gap]"
+      "#judge-table \"Model versions are pinned. Changing one is a methodology change.\" [Family | Model | Mean score, this run | Coverage]"
     ],
     "controls": [
       "button[type=button] \"Menu\""
     ],
     "slots": [
-      "calibration.blinding",
-      "calibration.decisive.concordance|share1",
-      "calibration.decisive.n_scored",
-      "calibration.n_screens|int",
-      "calibration.position_bias.n",
-      "calibration.position_bias.side_rate|share0",
-      "calibration.self_agreement.n",
-      "calibration.self_agreement.rate|share0",
-      "calibration.set_id",
-      "config.min_cell_coverage|share0 ×2",
+      "config.min_cell_coverage|share0",
       "config.min_queries_per_category",
       "config.rubric",
       "config.top_k ×2",
-      "d.calibration_check",
-      "d.calibration_ci",
-      "d.calibration_dt",
-      "d.calibration_labellers",
-      "d.calibration_limits ×2",
-      "d.calibration_near_tie",
-      "d.calibration_note",
-      "d.calibration_state",
-      "d.calibration_when",
-      "d.disagreement_note",
-      "d.heldout_committed",
-      "d.heldout_n",
-      "d.heldout_reading",
-      "d.heldout_rotation",
-      "d.heldout_sha_short",
-      "d.heldout_state",
       "d.n_categories",
-      "d.record_note",
-      "d.resolution_note",
-      "d.unbuilt",
-      "d.weeks",
-      "d.weeks_plural",
-      "d.worst_pair",
-      "latest.cost_spread.as_billed_ratio|ratio",
-      "latest.cost_spread.like_for_like_ratio|ratio",
-      "latest.judging.disagreement_rates.median_spread|n1",
-      "latest.judging.disagreement_rates.over_2pt|share1",
-      "latest.judging.disagreement_rates.over_3pt|share1",
-      "latest.judging.disagreement_rates.p90_spread|n1",
-      "latest.judging.disagreement_rates.unanimous|share1",
-      "latest.judging.family_spread|n2",
-      "latest.judging.mean_disagreement|n2",
-      "latest.n_queries|int ×3",
-      "latest.payload_effect.snippet_chars_cap|int",
-      "latest.payload_effect.within_vendor_r_max|n2",
-      "latest.payload_effect.within_vendor_r_min|n2",
+      "latest.n_queries|int ×2",
       "latest.query_set_hash",
-      "latest.ran_at|when",
-      "latest.vendor_spend_usd|money",
-      "repo_url"
+      "latest.ran_at|when"
     ],
     "links": [
-      "#calibration",
-      "#changelog",
-      "#gaps",
-      "#heldout",
       "data.html",
-      "data.html#recompute",
-      "export/pricing.json",
+      "evals.html",
       "index.html",
       "methodology.html",
       "results.html"
@@ -280,15 +164,15 @@
       "footer"
     ],
     "outline": [
-      "h1 Take the data. Check the work.",
-      "h2 What is in the export",
-      "h2 What is deliberately not in here",
+      "h1 Open data.",
+      "h2 The export",
+      "h2 What is not published",
       "h2 Column dictionary",
       "h3 judge-scores.csv",
       "h3 responses.csv",
       "h3 weekly-scores.csv",
       "h2 Recompute the headline number",
-      "h2 Licence and citation",
+      "h2 Licence",
       "h3 Data",
       "h3 Code",
       "h3 Corrections",
@@ -314,10 +198,38 @@
       "#recompute",
       "data.html",
       "data/latest.json",
+      "evals.html",
       "export/manifest.json",
       "index.html",
       "methodology.html",
       "methodology.html#changelog",
+      "results.html"
+    ]
+  },
+  "evals.html": {
+    "title": "Private eval: Vannaris",
+    "landmarks": [
+      "header",
+      "nav#site-nav \"Primary\"",
+      "main",
+      "footer"
+    ],
+    "outline": [
+      "h1 Same harness. Your queries."
+    ],
+    "figures": [],
+    "tables": [],
+    "controls": [
+      "button[type=button] \"Menu\""
+    ],
+    "slots": [
+      "generated_at|when"
+    ],
+    "links": [
+      "data.html",
+      "evals.html",
+      "index.html",
+      "methodology.html",
       "results.html"
     ]
   }

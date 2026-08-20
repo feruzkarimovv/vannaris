@@ -305,11 +305,10 @@ fi
 # The calibration result is the one figure on this site that measures the
 # instrument rather than the vendors, and it latches in both directions.
 #
-# While no calibration clears chance: every page that discusses the judges must
-# say they are unaudited, and no surface may carry a judge-vs-human agreement
-# figure at all. That half was written first, against an agent publishing an
-# encouraging interim number — `docs/12`'s reason for existing and one of the
-# tells `docs/13` names.
+# While no calibration clears chance: every page that discusses the judges as
+# an instrument (Method) must say they are unaudited, and no surface may carry
+# a judge-vs-human agreement figure at all. The homepage and leaderboard no
+# longer discuss the judges, so they are not in this list.
 #
 # Once one clears: the "unaudited" copy must be gone. On 2026-08-16 a pairwise
 # pass cleared, and this gate could hold the old copy down but had no way to let
@@ -338,7 +337,7 @@ for f in pathlib.Path("labels").glob("*.json"):
         cleared = True
 
 UNAUDITED = r"judges are unaudited"
-pages = ["site/index.html", "site/results.html", "site/methodology.html"]
+pages = ["site/methodology.html"]
 # Composed copy lives in site.js now — both branches of every calibration
 # sentence are there, not in the markup — so it is scanned alongside the pages.
 # A gate that only reads HTML would be guarding the place the claim used to be.

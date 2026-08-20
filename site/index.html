@@ -1,20 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vannaris: search APIs, scored in public</title>
-<meta name="description" content="An independent public benchmark of the web-search APIs agents call. Open methodology, open data, three judges from three labs.">
+<title>Vannaris: public benchmark of search APIs</title>
+<meta name="description" content="Independent public ranking of the web-search APIs agents call. Quality, cost, and speed, scored on the same query set.">
 <link rel="canonical" href="https://vannaris.com/">
-<meta property="og:title" content="Vannaris: search APIs, scored in public">
-<meta property="og:description" content="An independent public benchmark of the web-search APIs agents call. Open methodology, open data.">
+<meta property="og:title" content="Vannaris: public benchmark of search APIs">
+<meta property="og:description" content="Independent public ranking of the web-search APIs agents call. Quality, cost, and speed.">
 <meta property="og:url" content="https://vannaris.com/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
-<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232f5bff'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="preload" href="assets/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -23,10 +24,10 @@
   <div class="shell masthead__inner navbar">
     <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
     <nav class="nav" id="site-nav" aria-label="Primary">
-      <a href="results.html">Results</a>
-      <a href="methodology.html">Methodology</a>
+      <a href="results.html">Leaderboard</a>
+      <a href="methodology.html">Method</a>
       <a href="data.html">Data</a>
-      <a href="https://github.com/" data-repo>Source</a>
+      <a class="btn" href="evals.html">Private eval</a>
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
@@ -40,77 +41,63 @@
 
 <section class="hero">
   <div class="shell">
-    <div class="hero__grid">
-      <div class="hero__pitch" data-reveal="rise">
-        <!-- The date links to the page that lists this run's export files by
-             name. The run is identified on the site by its date, not by the ISO
-             week that names those files (check-site.mjs fails on a week id in
-             visible copy), so without the link there is no path from the figure
-             to the file it came from. -->
-        <p class="run-line">
-          <a href="data.html" aria-label="This run's data and export files"><b data-val="latest.ran_at" data-fmt="when"></b></a>
-          <span class="run-line__sep" aria-hidden="true">/</span>
-          <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> published
-        </p>
-        <h1>Search APIs. <em>Scored</em> in public.</h1>
-        <p class="hero__sub">
-          <span data-val="latest.n_queries" data-fmt="int"></span> queries,
-          <span data-val="latest.n_vendors"></span> vendors,
-          <span data-val="latest.n_judges"></span> judges from
-          <span data-val="d.n_judge_families"></span> labs.
-        </p>
-        <div class="cta-row">
-          <a class="btn" href="results.html">Open results <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="btn btn--ghost" href="data.html">Take the data</a>
-        </div>
-      </div>
+    <p class="run-line">
+      <a href="data.html" aria-label="This run's data and export files"><b data-val="latest.ran_at" data-fmt="when"></b></a>
+      <span class="run-line__sep" aria-hidden="true">/</span>
+      latest run
+    </p>
+    <h1>Public benchmark of search APIs.</h1>
+    <p class="hero__sub">
+      <span data-val="latest.n_queries" data-fmt="int"></span> queries,
+      <span data-val="latest.n_vendors"></span> APIs,
+      <span data-val="latest.n_judges"></span> judges.
+      Ranked on quality, cost, and speed.
+    </p>
 
-      <!-- The legend states the range the colour spans and how far apart two
-           cells have to be before the colour means anything. Both are filled
-           from the data by site.js: the ramp is stretched across this run's own
-           spread, so without the range printed next to it a 0.5-point gap and a
-           5-point gap look identical, and on a saturating instrument that is
-           the more flattering of the two readings. -->
-      <div class="plate" id="score-plate">
-        <div class="plate__board" id="score-board"></div>
-        <p class="plate__hud">
-          <span class="plate__legend" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="plate__domain" id="score-domain"></span>
-          <span class="plate__read" id="score-read" aria-live="polite"></span>
-        </p>
+    <div class="rank-board" style="margin-top:1.4rem">
+      <div class="table-wrap">
+        <table class="rank-table" id="standings-table">
+          <caption class="sr">Vendor ranking for this run</caption>
+          <thead>
+            <tr>
+              <th scope="col">Rank</th>
+              <th scope="col">Vendor</th>
+              <th scope="col" class="num">Score</th>
+              <th scope="col" class="num">Cost / query</th>
+              <th scope="col" class="num">p50 latency</th>
+            </tr>
+          </thead>
+          <tbody id="standings-roster"></tbody>
+        </table>
       </div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn" href="results.html">Full results <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="btn btn--ghost" href="evals.html">Private eval</a>
     </div>
   </div>
 </section>
 
-<section class="signal-strip">
+<section class="band seam" id="categories">
   <div class="shell">
-    <p class="finding" data-val="d.finding_note"></p>
-    <!-- Not typed. For two published weeks this line was a hand-written
-         sentence saying the judges had never been checked against a person,
-         which was true until a pairwise pass cleared on 2026-08-16 and would
-         have gone on saying it afterwards. Both states are composed in site.js
-         from the export's calibration block. -->
-    <p class="audit-stamp">
-      <span data-val="d.calibration_state"></span>
-      <span class="run-line__sep" aria-hidden="true">/</span>
-      <a href="methodology.html#calibration">how that was measured</a>
-    </p>
+    <h2 class="section-head">By category</h2>
+    <div class="plate" id="score-plate">
+      <div class="plate__board" id="score-board"></div>
+      <p class="plate__hud">
+        <span class="plate__legend" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="plate__domain" id="score-domain"></span>
+        <span class="plate__read" id="score-read" aria-live="polite"></span>
+      </p>
+    </div>
   </div>
 </section>
 
-<!-- One list, not two. This section and an "Every API" section below it printed
-     the same five vendors, the same scores and the same costs, the second one
-     adding a six-point sparkline of the numbers already in the heatmap above.
-     Three renderings of one table read as more evidence than there is. -->
-<section id="standings" class="band seam">
+<section class="eval-strip">
   <div class="shell">
-    <h2 class="section-head">This run</h2>
-    <p class="section-lede">
-      Ensemble median, 0-10. Rank is the tier this run can resolve — vendors it cannot
-      separate share a number. One page per vendor, with every cell open.
-    </p>
-    <div class="roster" id="standings-roster" data-reveal="rows"></div>
+    <h2>Same harness. Your queries.</h2>
+    <p>We rank search APIs on your traffic.</p>
+    <a class="btn" href="evals.html">Private eval <span class="arrow" aria-hidden="true">→</span></a>
   </div>
 </section>
 
@@ -120,20 +107,14 @@
   <div class="shell foot__row">
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
-      <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
-        Public data CC BY 4.0. Not affiliated with any vendor listed.
-      </p>
-      <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
-      </p>
+      <p class="foot__tagline">Independent. No vendor pays to be listed. Data is open, CC BY 4.0.</p>
     </div>
     <div>
       <p class="foot__links">
-        <a href="results.html">Results</a>
-        <a href="methodology.html">Methodology</a>
+        <a href="results.html">Leaderboard</a>
+        <a href="methodology.html">Method</a>
         <a href="data.html">Data</a>
+        <a href="evals.html">Private eval</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">

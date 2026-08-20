@@ -37,22 +37,22 @@ def rel(p: Path) -> str:
 
 W, H = 1200, 630
 
-# The site's default (dark) tokens from site.css. Hard-coded rather than
+# The site's default (light) tokens from site.css. Hard-coded rather than
 # parsed: the card is one fixed image, and a CSS parser here would be more
 # moving parts than the thing it renders. Keep in step with site.css — a share
 # card in last season's palette is the first thing anyone sees.
-SURFACE, CARD = "#07080c", "#11141c"
-INK, INK2, INK3 = "#eef2f7", "#a8b0bd", "#6e7686"
-SIGNAL = "#ff2a4a"
-# Ice to heat on the dark surface. High steps are hot.
-RAMP = ["#161b28", "#1e2a4a", "#31407a", "#4c66c4", "#89a2ff", "#ffb0bb", "#ff2a4a"]
-# Where the label inside a cell flips from ice to chassis.
+SURFACE, CARD = "#f4f2ee", "#ffffff"
+INK, INK2, INK3 = "#121214", "#3d3f46", "#6b6e76"
+SIGNAL = "#2f5bff"
+# Sequential cobalt on the paper surface. High steps are deep.
+RAMP = ["#e8edff", "#c9d4ff", "#9bb0ff", "#6d8aff", "#2f5bff", "#1e3fd4", "#152a8a"]
+# Where the label inside a cell flips from ink to paper.
 RAMP_FLIP = 4
 
 # Same families as the site. A renderer without them falls back through the
 # stack rather than failing, and the card still reads correctly.
-SANS = "Geist, Helvetica Neue, Helvetica, Arial, sans-serif"
-MONO = "Geist Mono, SFMono-Regular, Menlo, Consolas, monospace"
+SANS = "IBM Plex Sans, Helvetica Neue, Helvetica, Arial, sans-serif"
+MONO = "IBM Plex Mono, SFMono-Regular, Menlo, Consolas, monospace"
 
 CATEGORY_SHORT = {
     "general_facts": "Facts", "breaking_news": "News", "local_shopping": "Local",
@@ -176,12 +176,12 @@ def build_vendor(latest: dict, vendor_id: str, site: Path) -> str | None:
         y = top + i * step
         pct = max(70.0, min(100.0, float(c["pct_of_best"])))
         w = max(5.0, (x1 - x0) * (pct - 70.0) / 30.0)
-        fill = SIGNAL if c["pct_of_best"] < 90 else "#8aa2c4"
+        fill = SIGNAL if c["pct_of_best"] < 90 else "#6d8aff"
         parts.append(
             f'<text x="{x0 - 20}" y="{y + 15}" font-family="{SANS}" font-size="19" '
             f'fill="{INK2}" text-anchor="end">'
             f'{esc(labels.get(c["category"], c["category"]))}</text>'
-            f'<rect x="{x0}" y="{y}" width="{x1 - x0}" height="20" fill="#1e2430"/>'
+            f'<rect x="{x0}" y="{y}" width="{x1 - x0}" height="20" fill="#eceae4"/>'
             f'<rect x="{x0}" y="{y}" width="{w:.0f}" height="20" fill="{fill}"/>'
             f'<text x="{x0 + w + 12:.0f}" y="{y + 15}" font-family="{MONO}" font-size="17" '
             f'fill="{INK2}">{c["pct_of_best"]:.0f}%</text>'
@@ -226,14 +226,14 @@ def build(latest: dict) -> str:
     # signal dot in it — set before the wordmark. Drawn rather than measured,
     # because the mark leads and nothing after it depends on text width.
     parts.append(
-        f'<rect x="64" y="66" width="36" height="36" fill="{SIGNAL}"/>'
+        f'<rect x="64" y="66" width="36" height="36" rx="8" fill="{SIGNAL}"/>'
         f'<text x="82" y="93" font-family="{SANS}" font-size="22" font-weight="700" '
         f'text-anchor="middle" fill="#ffffff">V</text>'
         f'<text x="114" y="96" font-family="{SANS}" font-size="32" font-weight="700" '
         f'letter-spacing="-1.1" fill="{INK}">Vannaris</text>'
     )
 
-    for i, line in enumerate(["Search APIs. Scored in public."]):
+    for i, line in enumerate(["Public benchmark of search APIs."]):
         parts.append(
             f'<text x="64" y="{170 + i * 58}" font-family="{SANS}" font-size="46" '
             f'font-weight="650" letter-spacing="-1.6" fill="{INK}">{esc(line)}</text>'
@@ -276,7 +276,7 @@ def build(latest: dict) -> str:
     stamp = run_stamp(latest)
     parts.append(
         f'<text x="{grid_x}" y="{foot + 30}" font-family="{SANS}" font-size="18" '
-        f'fill="{INK3}">Ensemble median, 0-10. Hotter is better.</text>'
+        f'fill="{INK3}">Ensemble median, 0-10. Higher is better.</text>'
         f'<text x="64" y="{foot + 66}" font-family="{MONO}" font-size="19" '
         f'fill="{INK3}">{esc(stamp)}</text>'
         f'<text x="64" y="{foot + 94}" font-family="{MONO}" font-size="19" '

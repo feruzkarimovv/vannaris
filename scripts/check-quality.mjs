@@ -35,7 +35,7 @@ const VENDOR_DIR = join(SITE, "vendors");
 const VENDOR_PAGES = existsSync(VENDOR_DIR)
   ? readdirSync(VENDOR_DIR).filter((f) => f.endsWith(".html")).sort().map((f) => join("vendors", f))
   : [];
-const PAGES = ["index.html", "results.html", "methodology.html", "data.html", ...VENDOR_PAGES];
+const PAGES = ["index.html", "results.html", "methodology.html", "data.html", "evals.html", ...VENDOR_PAGES];
 
 // Budgets in KB. Set from the measured size at the time of writing plus room to
 // grow, not from a round number: a budget nobody can hit is a budget nobody

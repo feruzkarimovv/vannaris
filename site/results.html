@@ -1,20 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Results: Vannaris</title>
-<meta name="description" content="Full results: quality by vendor and category, cost, latency, judge agreement, and every individual query score.">
+<title>Leaderboard: Vannaris</title>
+<meta name="description" content="Full ranking: quality by vendor and category, cost, latency, and every individual query score.">
 <link rel="canonical" href="https://vannaris.com/results.html">
-<meta property="og:title" content="Results: Vannaris">
-<meta property="og:description" content="Quality by vendor and category, cost, latency, judge agreement, and every individual query score.">
+<meta property="og:title" content="Leaderboard: Vannaris">
+<meta property="og:description" content="Quality by vendor and category, cost, latency, and every individual query score.">
 <meta property="og:url" content="https://vannaris.com/results.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
-<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232f5bff'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="preload" href="assets/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -23,10 +24,10 @@
   <div class="shell masthead__inner navbar">
     <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
     <nav class="nav" id="site-nav" aria-label="Primary">
-      <a href="results.html">Results</a>
-      <a href="methodology.html">Methodology</a>
+      <a href="results.html">Leaderboard</a>
+      <a href="methodology.html">Method</a>
       <a href="data.html">Data</a>
-      <a href="https://github.com/" data-repo>Source</a>
+      <a class="btn" href="evals.html">Private eval</a>
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
@@ -40,21 +41,14 @@
 
 <section class="page-hero">
   <div class="shell">
-    <h1>One run. Every cell.</h1>
+    <h1>Leaderboard</h1>
     <p class="lead">
       <span data-val="latest.n_queries" data-fmt="int"></span> queries against
       <span data-val="latest.n_vendors"></span> APIs, scored by
       <span data-val="latest.n_judges"></span> judges.
-      Every chart has a table view. Raw scores are on <a href="data.html">the data page</a>.
+      Ranked on quality, cost, and speed.
     </p>
-
-    <div class="stamp" data-stamp role="group" aria-label="Current run" style="margin-top:1.4rem"></div>
-    <p class="audit-stamp">
-      <span data-val="d.calibration_state"></span>
-      <span class="run-line__sep" aria-hidden="true">/</span>
-      <a href="methodology.html#calibration">how that was measured</a>
-    </p>
-
+    <div class="stamp" data-stamp role="group" aria-label="Current run"></div>
     <div class="metrics" data-reveal="rows">
       <div class="metric">
         <span class="eyebrow metric__label">queries</span>
@@ -87,29 +81,15 @@
   <div class="shell">
     <div class="section-head">
       <h2>Quality by vendor and category</h2>
-      <p>
-        Each cell is the mean of the three-judge median. Queries without a complete ensemble are dropped.
-      </p>
+      <p>Each cell is the mean of the three-judge median. Incomplete ensembles are dropped.</p>
     </div>
 
     <div class="panel" style="margin-bottom:1.2rem">
       <div class="panel__head">
         <h3>Score matrix</h3>
-        <span class="label">0&ndash;10</span>
+        <span class="label">0-10</span>
       </div>
       <div class="panel__body" id="fig-heatmap"></div>
-    </div>
-
-    <div class="panel" style="margin-bottom:1.2rem">
-      <div class="panel__head">
-        <h3>Where each vendor's queries land</h3>
-        <span class="label">share of scored queries</span>
-      </div>
-      <div class="panel__body" id="fig-distribution"></div>
-      <div class="panel__foot">
-        The score column below is a mean; this is the spread behind it. Almost everything lands in
-        the top three bands, which is why the query set is listed as a known limitation.
-      </div>
     </div>
 
     <div class="panel panel--flush">
@@ -121,12 +101,8 @@
         <div class="table-wrap">
           <table id="vendor-table">
             <caption>
-              Overall score is the mean of a vendor's category scores. "Won outright" counts queries
-              where one vendor alone took the highest ensemble median; "among best" counts queries
-              where it was level with the highest. Those differ a great deal here, because
-              <span data-val="latest.wins.n_tied" data-fmt="int"></span> of
-              <span data-val="latest.wins.n_queries_compared" data-fmt="int"></span> queries ended
-              in a tie, which is itself the most useful thing this table says.
+              Overall score is the mean of a vendor's category scores.
+              Won outright is queries where one vendor alone took the highest median.
             </caption>
             <thead>
               <tr>
@@ -146,20 +122,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Same finding as the landing page, stated where the per-category cells
-         actually are. Sentences composed in site.js derived(); figures are slots. -->
-    <div class="callout" style="margin-top:1.4rem;max-width:80ch">
-      <span class="eyebrow">Routing headroom</span>
-      <p>
-        <span data-val="d.routing_note"></span>
-        <span data-val="d.routing_caveat"></span>
-        Per query it is thinner still:
-        <span data-val="latest.wins.n_tied" data-fmt="int"></span> of
-        <span data-val="latest.wins.n_queries_compared" data-fmt="int"></span> queries end with two
-        or more vendors tied for the best median, so on most of them there is no pick to make.
-      </p>
-    </div>
   </div>
 </section>
 
@@ -175,10 +137,6 @@
         <span class="label">list price per query</span>
       </div>
       <div class="panel__body" id="fig-cost"></div>
-      <div class="panel__foot">
-        Cost is what the vendor reported for this run where the API returns it, and list price
-        otherwise. Volume discounts are not modelled.
-      </div>
     </div>
 
     <div class="panel">
@@ -192,9 +150,6 @@
         </div>
         <div id="fig-retained"></div>
       </div>
-      <div class="panel__foot">
-        How much of the category-leading score this vendor reaches. Bars start at 70%.
-      </div>
     </div>
   </div>
 </section>
@@ -202,7 +157,7 @@
 <section id="latency" class="band seam">
   <div class="shell">
     <div class="section-head">
-      <h2>How long each API takes to answer</h2>
+      <h2>Speed</h2>
       <p>Median wall-clock time from request to response, measured by the harness.</p>
     </div>
     <div class="panel">
@@ -211,77 +166,11 @@
         <span class="label">p50, measured</span>
       </div>
       <div class="panel__body" id="fig-latency"></div>
-      <div class="panel__foot">
-        Measured over a residential connection during a single run. Treat the ordering as the
-        signal and the absolute values as indicative.
-      </div>
     </div>
   </div>
 </section>
 
-<section id="judging" class="seam">
-  <div class="shell">
-    <div class="section-head">
-      <h2>How much the judges disagree</h2>
-      <p>A single judge family would produce different absolute scores for the same responses.</p>
-    </div>
-    <div class="panel" style="margin-bottom:1.2rem">
-      <div class="panel__head">
-        <h3>How far apart the three judges were</h3>
-        <span class="label">per response</span>
-      </div>
-      <div class="panel__body" id="fig-disagreement"></div>
-      <div class="panel__foot">
-        The mean disagreement quoted everywhere else on this site is a summary of this shape. The
-        tail past three points is where the ensemble is doing real work.
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="panel">
-        <div class="panel__head">
-          <h3>Mean score by judge family</h3>
-          <span class="label">same responses</span>
-        </div>
-        <div class="panel__body" id="fig-judges"></div>
-        <div class="panel__foot">
-          Same responses, same rubric, same prompt. The gap is the judge, not the vendor.
-        </div>
-      </div>
-      <div>
-        <div class="metrics" data-reveal="rows" style="margin-top:0;margin-bottom:1.4rem">
-          <div class="metric">
-            <span class="eyebrow metric__label">family spread</span>
-            <div class="metric__value" data-count data-val="latest.judging.family_spread" data-fmt="n2"></div>
-            <div class="metric__note">points, highest to lowest family mean</div>
-          </div>
-          <div class="metric">
-            <span class="eyebrow metric__label">mean disagreement</span>
-            <div class="metric__value" data-count data-val="latest.judging.mean_disagreement" data-fmt="n2"></div>
-            <div class="metric__note">points, max minus min per response</div>
-          </div>
-          <div class="metric">
-            <span class="eyebrow metric__label">differ by &gt; 3 points</span>
-            <div class="metric__value" data-val="latest.judging.responses_over_3pts" data-fmt="int"></div>
-            <div class="metric__note">of <span data-val="latest.judging.n_compared" data-fmt="int"></span> responses</div>
-          </div>
-        </div>
-        <p class="prose">
-          Drop any one judge family and the top
-          <span data-val="latest.robustness.stable_prefix_leave_one_out" data-fmt="int"></span> of
-          <span data-val="latest.robustness.n_vendors" data-fmt="int"></span> places hold.
-          Scored by a single family alone,
-          <span data-val="latest.robustness.n_families_that_invert_it" data-fmt="int"></span> of
-          <span data-val="latest.robustness.n_families" data-fmt="int"></span> rank the vendors differently.
-          <span data-val="d.calibration_note"></span>
-          <a href="methodology.html#calibration">How that was measured</a>.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="queries" class="band seam">
+<section id="queries" class="seam">
   <div class="shell">
     <div class="section-head">
       <h2>Every query, every score</h2>
@@ -307,11 +196,6 @@
       </div>
       <p class="empty" id="query-empty" hidden>No query matches that filter.</p>
     </div>
-    <p class="note" style="margin-top:1rem;max-width:78ch">
-      Blank cells are responses that did not receive all three judge scores, usually a rate limit.
-      They are excluded from every aggregate on this page.
-      Breaking-news queries carry no gold answer by design, and are graded on source recency.
-    </p>
   </div>
 </section>
 
@@ -321,20 +205,14 @@
   <div class="shell foot__row">
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
-      <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
-        Public data CC BY 4.0. Not affiliated with any vendor listed.
-      </p>
-      <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
-      </p>
+      <p class="foot__tagline">Independent. No vendor pays to be listed. Data is open, CC BY 4.0.</p>
     </div>
     <div>
       <p class="foot__links">
-        <a href="results.html">Results</a>
-        <a href="methodology.html">Methodology</a>
+        <a href="results.html">Leaderboard</a>
+        <a href="methodology.html">Method</a>
         <a href="data.html">Data</a>
+        <a href="evals.html">Private eval</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -356,8 +234,7 @@ window.SBPage = {
   },
 
   redraw: function () {
-    ["fig-heatmap", "fig-cost", "fig-latency", "fig-judges", "fig-retained",
-     "fig-disagreement", "fig-distribution"].forEach(function (id) {
+    ["fig-heatmap", "fig-cost", "fig-latency", "fig-retained"].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       el.innerHTML = "";
@@ -369,9 +246,6 @@ window.SBPage = {
     C.heatmap(document.getElementById("fig-heatmap").closest(".panel"));
     C.costQuality(document.getElementById("fig-cost").closest(".panel"));
     C.latency(document.getElementById("fig-latency").closest(".panel"));
-    C.judges(document.getElementById("fig-judges").closest(".panel"));
-    C.disagreement(document.getElementById("fig-disagreement").closest(".panel"));
-    C.distribution(document.getElementById("fig-distribution").closest(".panel"));
     C.retained(document.getElementById("fig-retained"),
       document.getElementById("retained-vendor").value);
   },
@@ -400,9 +274,6 @@ window.SBPage = {
     var modes = { ranked_results: "ranked results", both: "answer + ranked results",
                   synthesized_answer: "synthesized answer" };
     var body = document.querySelector("#vendor-table tbody");
-    // The bar under each score spans the range this run produced, not 0-10:
-    // over five vendors within two points, a 0-10 scale makes every bar look
-    // the same, which is decoration rather than information.
     var scores = D.latest.vendors.map(function (v) { return v.score; });
     var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
     function meterPct(v) { return 14 + 86 * (hi > lo ? (v - lo) / (hi - lo) : 1); }
@@ -414,8 +285,6 @@ window.SBPage = {
         e.textContent = text;
         return e;
       }
-      // Rank by tier, not by position — window.SBSite.rankBadge owns that rule
-      // for every table on the site that renders one.
       var name = document.createElement("td");
       name.innerHTML = window.SBSite.rankBadge(v.vendor, i);
       var link = document.createElement("a");
@@ -439,9 +308,6 @@ window.SBPage = {
     });
   },
 
-  /* Per-query evidence table. One row per query, one column per vendor, so the
-     shape of a disagreement is visible across the row rather than buried in a
-     750-row list. */
   explorer: function () {
     var D = window.SB_DATA, X = window.SB_DETAIL;
     if (!X) return;
@@ -501,9 +367,6 @@ window.SBPage = {
         cc.querySelector(".tag").textContent = h.catLabel[q.c] || q.c;
         tr.appendChild(cc);
 
-        // Highlight the winner only when there is one. On easy queries four
-        // vendors tie at 10.0, and marking them all leaves a row of emphasis
-        // that says nothing.
         var scores = vendors
           .map(function (v) { return (byQuery[q.id] || {})[v]; })
           .filter(function (r) { return r && r.m != null; })
@@ -541,7 +404,6 @@ window.SBPage = {
     search.addEventListener("input", render);
     render();
 
-    // Delegated tooltip: 750 cells do not each need their own listener.
     var tip = document.querySelector(".tooltip");
     function show(e, td) {
       var d = JSON.parse(td.dataset.tip);

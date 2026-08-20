@@ -19,8 +19,8 @@
   }
   window.SBMedia = media;
 
-  /* Dark is locked. A leftover sb-theme stamp from an older build is ignored. */
-  document.documentElement.setAttribute("data-theme", "dark");
+  /* Light is locked. A leftover sb-theme stamp from an older build is ignored. */
+  document.documentElement.setAttribute("data-theme", "light");
 
   /* --------------------------------------------------------------- values */
   var D = window.SB_DATA;
@@ -84,7 +84,7 @@
       tier: tier,
       shared: peers.length > 1,
       peers: peers.filter(function (o) { return o.vendor !== vendor; }),
-      text: String(tier).padStart(2, "0") + (peers.length > 1 ? "=" : "")
+      text: String(tier) + (peers.length > 1 ? "=" : "")
     };
   }
   function rankBadge(vendor, position) {
@@ -823,15 +823,11 @@
     catch (e) { /* jsdom */ }
     return v;
   }
-  /* One hue, lightness rising the whole way. The ramp used to run dark blue
-   * through light blue to pink and end on the accent red, which reads as a
-   * diverging scale — blue one side, red the other, a neutral middle — over a
-   * quantity that has no middle. On a run where every cell lands between 7.2
-   * and 9.9 that is the more flattering reading twice over: it invents a
-   * midpoint and then paints the two sides of it as opposites. */
+  /* Sequential cobalt, light to deep. Quality has no midpoint, so this is
+   * not a diverging scale. */
   function rampFill(t) {
     var steps = ["--d100", "--d200", "--d300", "--d400", "--d500", "--d600", "--d700"];
-    var hex = ["#1a1420", "#3a1526", "#5c1a2e", "#851f37", "#b32540", "#e02f4c", "#ff6b7e"];
+    var hex = ["#e8edff", "#c9d4ff", "#9bb0ff", "#6d8aff", "#2f5bff", "#1e3fd4", "#152a8a"];
     var i = Math.max(0, Math.min(steps.length - 1, Math.round(t * (steps.length - 1))));
     return cssVar(steps[i]) || hex[i];
   }
@@ -875,7 +871,7 @@
      * put dark ink on #b32540, at 3.1:1. */
     function inkFor(t) {
       var step = Math.round(Math.max(0, Math.min(1, t)) * 6);
-      return step >= 5 ? "#07080c" : "#eef2f7";
+      return step >= 4 ? "#f4f2ee" : "#121214";
     }
 
     var table = document.createElement("table");
@@ -963,9 +959,7 @@
      * is about half the entire ramp. */
     var domain = document.getElementById("score-domain");
     if (domain) {
-      var md = D.latest.judging && D.latest.judging.mean_disagreement;
-      domain.textContent = lo.toFixed(1) + " dark → " + hi.toFixed(1) + " hot" +
-        (md ? " · one answer splits the judges by " + Number(md).toFixed(2) + " on average" : "");
+      domain.textContent = lo.toFixed(1) + " to " + hi.toFixed(1) + " this run";
     }
 
     /* Below about 700px the board scrolls inside itself and the last categories
@@ -1003,21 +997,28 @@
     var h = window.SBCharts && window.SBCharts.helpers;
     D.latest.vendors.forEach(function (v, i) {
       var r = rank(v.vendor, i);
+      var tr = document.createElement("tr");
+      if (r.tier === 1) tr.className = "is-lead";
+      if (r.shared) tr.title = "tied: this run cannot separate them";
+      function td(html, cls) {
+        var e = document.createElement("td");
+        if (cls) e.className = cls;
+        e.innerHTML = html;
+        return e;
+      }
+      tr.appendChild(td(r.text, "rank-n num"));
+      var name = document.createElement("td");
       var a = document.createElement("a");
-      a.className = "roster__row";
+      a.className = "rank-name";
       a.href = "vendors/" + v.vendor + ".html";
-      a.style.setProperty("--i", String(i));
-      // The tie marker is the one thing on this row a reader cannot guess, so
-      // it carries the same explanation the results table's badge does rather
-      // than leaving "01=" to be worked out.
-      if (r.shared) a.title = "tied: this run cannot separate them";
-      a.innerHTML =
-        '<span class="roster__n">' + r.text + "</span>" +
-        '<span class="roster__name">' + v.label + "</span>" +
-        '<span class="roster__score">' + (h ? h.fmt(v.score) : Number(v.score).toFixed(2)) + "</span>" +
-        '<span class="roster__meta">$' + Number(v.cost_per_query_usd).toFixed(4) + " / query</span>" +
-        '<span class="roster__go" aria-hidden="true">→</span>';
-      host.appendChild(a);
+      a.textContent = v.label;
+      name.appendChild(a);
+      tr.appendChild(name);
+      tr.appendChild(td(h ? h.fmt(v.score) : Number(v.score).toFixed(2), "num rank-score"));
+      var cost = Number(v.cost_per_query_usd);
+      tr.appendChild(td("$" + cost.toFixed(cost >= 0.01 ? 2 : 5), "num rank-meta"));
+      tr.appendChild(td(Number(v.p50_latency_ms).toLocaleString() + " ms", "num rank-meta"));
+      host.appendChild(tr);
     });
   }
 

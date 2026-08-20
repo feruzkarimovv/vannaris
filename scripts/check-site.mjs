@@ -27,7 +27,7 @@ const VENDOR_DIR = join(SITE, "vendors");
 const VENDOR_PAGES = existsSync(VENDOR_DIR)
   ? readdirSync(VENDOR_DIR).filter((f) => f.endsWith(".html")).sort().map((f) => join("vendors", f))
   : [];
-const PAGES = ["index.html", "results.html", "methodology.html", "data.html", ...VENDOR_PAGES];
+const PAGES = ["index.html", "results.html", "methodology.html", "data.html", "evals.html", ...VENDOR_PAGES];
 
 const STRICT = process.env.CHECK_STRICT === "1" || process.argv.includes("--strict");
 

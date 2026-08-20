@@ -1,20 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Data: Vannaris</title>
-<meta name="description" content="Download every judge score, response timing and aggregate cell as CSV or JSON, under CC BY 4.0, with the column dictionary and a worked recomputation.">
+<meta name="description" content="Download every judge score, response timing and aggregate cell as CSV or JSON, under CC BY 4.0.">
 <link rel="canonical" href="https://vannaris.com/data.html">
 <meta property="og:title" content="Data: Vannaris">
-<meta property="og:description" content="Every judge score, response timing and aggregate cell, CC BY 4.0, with the column dictionary and a worked recomputation.">
+<meta property="og:description" content="Every judge score, latency and cost, CC BY 4.0.">
 <meta property="og:url" content="https://vannaris.com/data.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
-<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232f5bff'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg>">
+<link rel="preload" href="assets/fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -23,10 +24,10 @@
   <div class="shell masthead__inner navbar">
     <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
     <nav class="nav" id="site-nav" aria-label="Primary">
-      <a href="results.html">Results</a>
-      <a href="methodology.html">Methodology</a>
+      <a href="results.html">Leaderboard</a>
+      <a href="methodology.html">Method</a>
       <a href="data.html">Data</a>
-      <a href="https://github.com/" data-repo>Source</a>
+      <a class="btn" href="evals.html">Private eval</a>
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
@@ -40,28 +41,27 @@
 
 <section class="page-hero">
   <div class="shell">
-    <h1>Take the data. Check the work.</h1>
+    <h1>Open data.</h1>
     <p class="lead">
       Every judge score, latency and cost, licensed CC BY 4.0.
     </p>
-    <div class="cta-row" style="margin-top:1.5rem">
+    <div class="cta-row" style="margin-top:1.4rem">
       <a class="btn" href="data/latest.json" download>Download JSON <span class="arrow" aria-hidden="true">↓</span></a>
-      <a class="link-arrow" href="#recompute">See it recomputed <span class="arrow" aria-hidden="true">→</span></a>
+      <a class="link-arrow" href="#recompute">Recompute it <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
 
 <section id="files" class="band seam">
   <div class="shell">
-    <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Files</span>
-      <h2>What is in the export</h2>
+    <div class="section-head">
+      <h2>The export</h2>
       <p>
         This run, generated
         <span data-val="generated_at" data-fmt="when"></span>, licensed CC BY 4.0.
       </p>
     </div>
-    <div class="panel panel--flush">
+    <div class="panel panel--flush" style="margin-bottom:1.4rem">
       <div class="table-wrap">
         <table id="file-table">
           <thead>
@@ -75,28 +75,30 @@
         </table>
       </div>
     </div>
-
-    <div class="channels" data-reveal="rows" style="margin-top:1.5rem">
-      <a class="channel" href="data/latest.json" download>
-        <span class="channel__n">JSON</span>
-        <span class="channel__name">This run</span>
-        <span class="channel__dots" aria-hidden="true"></span>
-        <span class="channel__score">latest.json</span>
-        <span class="channel__cost">cells, roll-ups, judge stats</span>
+    <div class="file-list">
+      <a class="file-row" href="data/latest.json" download>
+        <span class="file-row__kind">JSON</span>
+        <span>
+          <span class="file-row__name">This run</span>
+          <span class="file-row__meta"> cells, roll-ups, judge stats</span>
+        </span>
+        <span class="file-row__file">latest.json</span>
       </a>
-      <a class="channel" id="week-json" href="#" download>
-        <span class="channel__n">JSON</span>
-        <span class="channel__name">Frozen copy</span>
-        <span class="channel__dots" aria-hidden="true"></span>
-        <span class="channel__score">run.json</span>
-        <span class="channel__cost">frozen after the pointer moves</span>
+      <a class="file-row" id="week-json" href="#" download>
+        <span class="file-row__kind">JSON</span>
+        <span>
+          <span class="file-row__name">Frozen copy</span>
+          <span class="file-row__meta"> frozen after the pointer moves</span>
+        </span>
+        <span class="file-row__file" data-week-file>run.json</span>
       </a>
-      <a class="channel" href="export/manifest.json" download>
-        <span class="channel__n">MAN</span>
-        <span class="channel__name">Manifest</span>
-        <span class="channel__dots" aria-hidden="true"></span>
-        <span class="channel__score">manifest.json</span>
-        <span class="channel__cost">run id, hash, policy</span>
+      <a class="file-row" href="export/manifest.json" download>
+        <span class="file-row__kind">MAN</span>
+        <span>
+          <span class="file-row__name">Manifest</span>
+          <span class="file-row__meta"> run id, hash, policy</span>
+        </span>
+        <span class="file-row__file">manifest.json</span>
       </a>
     </div>
   </div>
@@ -104,10 +106,9 @@
 
 <section id="excluded" class="seam">
   <div class="shell">
-    <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Publication policy</span>
-      <h2>What is deliberately not in here</h2>
-      <p>The harness stores raw vendor responses for reproducibility. They are never published.</p>
+    <div class="section-head">
+      <h2>What is not published</h2>
+      <p>Derived scores, timings and costs. Never the pages a search API returned.</p>
     </div>
     <div class="grid-2">
       <div class="card card--pad">
@@ -115,15 +116,8 @@
       </div>
       <div class="prose">
         <p>
-          Publishing derived scores rather than republishing retrieved content reduces two exposures
-          at once: the copyright in the pages a search API points at, and the storage and
-          redistribution restrictions in several vendors' terms of service.
-        </p>
-        <p>
-          The cost is real: you cannot audit an individual judgement against the exact result list
-          the judge saw. What you can do is recompute every published aggregate from the scores, see
-          how many results each response contained, and see how far the three judges were apart on
-          it. The export code fails the build if a field carrying vendor content ever reaches it.
+          You can recompute every published aggregate from the scores.
+          The export code fails the build if a field carrying vendor content ever reaches it.
         </p>
       </div>
     </div>
@@ -132,10 +126,9 @@
 
 <section id="columns" class="band seam">
   <div class="shell">
-    <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Reference</span>
+    <div class="section-head">
       <h2>Column dictionary</h2>
-      <p>Three tables, and what every column in them means.</p>
+      <p>Three tables, and what every column means.</p>
     </div>
 
     <div class="panel panel--flush" style="margin-bottom:1.2rem">
@@ -149,13 +142,13 @@
             <tr><td class="mono">category</td><td>One of the six taxonomy buckets.</td></tr>
             <tr><td class="mono">vendor</td><td>The search API that produced the response being scored.</td></tr>
             <tr><td class="mono">judge_family</td><td>anthropic, openai or google.</td></tr>
-            <tr><td class="mono">judge_model</td><td>Exact pinned model string. A change here is a methodology change.</td></tr>
-            <tr><td class="mono">relevance</td><td>0–10. Do the results address the query?</td></tr>
-            <tr><td class="mono">freshness</td><td>0–10. Current enough for this specific query?</td></tr>
-            <tr><td class="mono">citation_quality</td><td>0–10. Authoritative sources, or content farms?</td></tr>
-            <tr><td class="mono">overall</td><td>0–10. The holistic score. This is the one that aggregates.</td></tr>
-            <tr><td class="mono">scored_chars</td><td>Size of the vendor payload the judge saw. Published so verbosity outliers are visible.</td></tr>
-            <tr><td class="mono">prompt_tokens</td><td>Judge input tokens, for cost auditing.</td></tr>
+            <tr><td class="mono">judge_model</td><td>Exact pinned model string.</td></tr>
+            <tr><td class="mono">relevance</td><td>0-10. Do the results address the query?</td></tr>
+            <tr><td class="mono">freshness</td><td>0-10. Current enough for this query?</td></tr>
+            <tr><td class="mono">citation_quality</td><td>0-10. Authoritative sources?</td></tr>
+            <tr><td class="mono">overall</td><td>0-10. The score that aggregates.</td></tr>
+            <tr><td class="mono">scored_chars</td><td>Size of the vendor payload the judge saw.</td></tr>
+            <tr><td class="mono">prompt_tokens</td><td>Judge input tokens.</td></tr>
             <tr><td class="mono">output_tokens</td><td>Judge output tokens.</td></tr>
           </tbody>
         </table>
@@ -168,13 +161,13 @@
         <table>
           <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
           <tbody>
-            <tr><td class="mono">response_mode</td><td><code>ranked_results</code>, <code>synthesized_answer</code> or <code>both</code>. Recorded per response, not per vendor.</td></tr>
-            <tr><td class="mono">n_results</td><td>How many results the response carried after top-10 normalisation.</td></tr>
-            <tr><td class="mono">latency_ms</td><td>Wall-clock request-to-response time measured by the harness.</td></tr>
+            <tr><td class="mono">response_mode</td><td><code>ranked_results</code>, <code>synthesized_answer</code> or <code>both</code>.</td></tr>
+            <tr><td class="mono">n_results</td><td>Results after top-10 normalisation.</td></tr>
+            <tr><td class="mono">latency_ms</td><td>Wall-clock request-to-response time.</td></tr>
             <tr><td class="mono">cost_usd</td><td>Vendor-reported where available, list price otherwise.</td></tr>
-            <tr><td class="mono">complete_ensemble</td><td>1 if all three judges scored this response. Only these contribute to aggregates.</td></tr>
+            <tr><td class="mono">complete_ensemble</td><td>1 if all three judges scored this response.</td></tr>
             <tr><td class="mono">median_overall</td><td>Median of the three <code>overall</code> scores, or blank.</td></tr>
-            <tr><td class="mono">error</td><td>Non-empty if the vendor call itself failed.</td></tr>
+            <tr><td class="mono">error</td><td>Non-empty if the vendor call failed.</td></tr>
           </tbody>
         </table>
       </div>
@@ -186,12 +179,12 @@
         <table>
           <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
           <tbody>
-            <tr><td class="mono">score</td><td>Mean of the response medians in this cell. Blank if coverage fell below the floor.</td></tr>
+            <tr><td class="mono">score</td><td>Mean of the response medians in this cell.</td></tr>
             <tr><td class="mono">n_queries</td><td>Queries attempted in this cell.</td></tr>
-            <tr><td class="mono">n_scored</td><td>Queries with a complete three-judge ensemble. The real sample size.</td></tr>
+            <tr><td class="mono">n_scored</td><td>Queries with a complete three-judge ensemble.</td></tr>
             <tr><td class="mono">coverage</td><td><code>n_scored / n_queries</code>. Publish threshold is <span data-val="config.min_cell_coverage" data-fmt="share0"></span>.</td></tr>
             <tr><td class="mono">delta_from_best</td><td>Points behind the best vendor in the same category.</td></tr>
-            <tr><td class="mono">pct_of_best</td><td>Share of the category-leading score. This is the routing-relevant number.</td></tr>
+            <tr><td class="mono">pct_of_best</td><td>Share of the category-leading score.</td></tr>
           </tbody>
         </table>
       </div>
@@ -201,26 +194,20 @@
 
 <section id="recompute" class="seam">
   <div class="shell">
-    <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Verify it</span>
+    <div class="section-head">
       <h2>Recompute the headline number</h2>
-      <p>
-        Two of the CSVs and a few lines of Python reproduce the cost-versus-quality finding on the
-        front page, with no API keys and no trust required.
-      </p>
+      <p>Two CSVs and a few lines of Python. No API keys.</p>
     </div>
     <pre class="code">import csv, statistics
 from collections import defaultdict
 
-# One row per (query, vendor, judge). Keep only responses all three judges scored,
-# because a partial panel is not comparable with a complete one.
 panels = defaultdict(list)
 for r in csv.DictReader(open("judge-scores.csv")):
     panels[(r["query_id"], r["vendor"], r["category"])].append(float(r["overall"]))
 
 cells = defaultdict(list)
 for (qid, vendor, category), scores in panels.items():
-    if len(scores) == 3:                       # complete ensemble only
+    if len(scores) == 3:
         cells[(vendor, category)].append(statistics.median(scores))
 
 means = {k: statistics.mean(v) for k, v in cells.items()}
@@ -229,50 +216,38 @@ best  = {c: max(s for (v, c2), s in means.items() if c2 == c) for _, c in means}
 for (vendor, category), score in sorted(means.items()):
     print(f"{vendor:&lt;11}{category:&lt;16}{score:5.2f}  {100 * score / best[category]:5.1f}% of best")</pre>
     <p class="note" style="margin-top:1rem;max-width:78ch">
-      The output matches <code>weekly-scores.csv</code> to
-      three decimal places. Download the files from the table above (the names
-      on disk still include the run). Any discrepancy is a bug —
-      <a href="mailto:feruz.karimov@rutgers.edu">report it</a>.
+      The output matches <code>weekly-scores.csv</code> to three decimal places.
+      <a href="mailto:feruz.karimov@rutgers.edu">Report a discrepancy</a>.
     </p>
   </div>
 </section>
 
 <section id="licence" class="band seam">
   <div class="shell">
-    <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Licence</span>
-      <h2>Licence and citation</h2>
+    <div class="section-head">
+      <h2>Licence</h2>
       <p>Free to use commercially. Attribution is the only requirement.</p>
     </div>
     <div class="grid-2">
       <div class="prose">
         <h3>Data</h3>
-        <p>
-          Creative Commons Attribution 4.0. Use it commercially, republish it, build on it. The
-          only requirement is attribution, and a link back so a reader can check the methodology
-          and the caveats that come with these numbers.
-        </p>
+        <p>Creative Commons Attribution 4.0. Use it, republish it, build on it. Credit Vannaris and link back.</p>
         <h3>Code</h3>
-        <p>
-          MIT. The harness, the judge pipeline and this site are all in the repository.
-        </p>
+        <p>MIT. The harness, the judge pipeline and this site are in the repository.</p>
         <h3>Corrections</h3>
         <p>
-          A methodology error that changes a published number gets a changelog entry, not a silent
-          edit. <a href="methodology.html#changelog">The changelog</a> already contains one.
+          A method error that changes a published number gets a
+          <a href="methodology.html#changelog">changelog entry</a>, not a silent edit.
         </p>
       </div>
       <div>
         <div class="panel">
           <div class="panel__head">
             <h3>Cite this</h3>
-            <span class="label">this run, not just the project</span>
+            <span class="label">this run</span>
           </div>
           <div class="panel__body" style="padding:0">
-            <pre class="code" id="citation" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
-          </div>
-          <div class="panel__foot">
-            Cite the run date, not just the project: these numbers are a snapshot and will move.
+            <pre class="code" id="citation" style="border:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
         </div>
       </div>
@@ -286,20 +261,14 @@ for (vendor, category), score in sorted(means.items()):
   <div class="shell foot__row">
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
-      <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
-        Public data CC BY 4.0. Not affiliated with any vendor listed.
-      </p>
-      <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
-      </p>
+      <p class="foot__tagline">Independent. No vendor pays to be listed. Data is open, CC BY 4.0.</p>
     </div>
     <div>
       <p class="foot__links">
-        <a href="results.html">Results</a>
-        <a href="methodology.html">Methodology</a>
+        <a href="results.html">Leaderboard</a>
+        <a href="methodology.html">Method</a>
         <a href="data.html">Data</a>
+        <a href="evals.html">Private eval</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -345,9 +314,6 @@ window.SBPage = {
       : function (v) { return String(v).slice(0, 10); };
     var wk = document.getElementById("week-json");
     wk.href = "data/" + D.latest.week + ".json";
-    var score = wk.querySelector(".channel__score");
-    if (score) score.textContent = "run.json";
-    else wk.textContent = "run.json";
 
     document.getElementById("citation").textContent =
       "Vannaris (" + when(D.latest.ran_at) + "). Benchmark of web-search APIs,\n" +

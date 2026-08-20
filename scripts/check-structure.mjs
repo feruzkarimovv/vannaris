@@ -31,7 +31,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const SITE = args[0] ? resolve(args[0]) : join(ROOT, "site");
 const SNAPSHOT = join(ROOT, "tests", "snapshots", "site-structure.json");
-const PAGES = ["index.html", "results.html", "methodology.html", "data.html"];
+const PAGES = ["index.html", "results.html", "methodology.html", "data.html", "evals.html"];
 
 const UPDATE = process.argv.includes("--update");
 const STRICT = process.env.CHECK_STRICT === "1" || process.argv.includes("--strict");
