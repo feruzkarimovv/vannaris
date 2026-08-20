@@ -268,6 +268,22 @@ def cmd_install(args) -> int:
         raise SystemExit("no held-out set is registered — nothing to install")
     blob = os.environ.get(args.env, "")
     if not blob.strip():
+        # Degrading to the public set is right for a fork, which has no secret
+        # and should not have its CI broken by ours. It was wrong for the
+        # scheduled run, and cost two weeks: 2026-W33 and W34 both published
+        # `n_heldout_queries: 0` because this branch printed a line nobody read
+        # and returned 0, so every downstream step succeeded and the week
+        # looked healthy. (2026-W31 also carries 0, for a different reason —
+        # it ran before ho-2026-08 was registered on 2026-08-04.) The secret
+        # went in on 2026-08-17; --require is what makes its absence loud, at
+        # the cheap step, before the run spends ~$3.40 of vendor money on a
+        # week that cannot prove anything.
+        if getattr(args, "require", False):
+            raise SystemExit(
+                f"{args.env} is empty or unset, and --require was given — "
+                f"refusing to run the public set alone. Either the secret is "
+                f"missing from this environment or it did not reach the step."
+            )
         print(f"{args.env} is empty — the public set will run alone")
         return 0
 
@@ -336,6 +352,9 @@ def main() -> int:
     i = sub.add_parser("install", help="write the active set's questions from the environment")
     i.add_argument("--env", default="SB_HELDOUT_JSON",
                    help="environment variable holding the set's JSON")
+    i.add_argument("--require", action="store_true",
+                   help="fail if the set is absent instead of degrading to the "
+                        "public set alone (use in the scheduled run, not in forks)")
 
     r = sub.add_parser("retire", help="publish a set in full and rotate it out")
     r.add_argument("--id", required=True)

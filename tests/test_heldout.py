@@ -13,7 +13,9 @@ suite driving only clean data never touches.
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -249,6 +251,72 @@ class TestDisagreementRates(unittest.TestCase):
         d = export.build_judge_stats([])["disagreement_rates"]
         self.assertIsNone(d["over_2pt"])
         self.assertIsNone(d["unanimous"])
+
+
+class TestInstallRequire(unittest.TestCase):
+    """The install step's exit code has to mean something.
+
+    2026-W33 and W34 both published `n_heldout_queries: 0` because `install`
+    printed a line and returned 0 when the secret was unset. Every later step
+    then succeeded and the week looked healthy, which is why nobody caught it.
+    These tests pin both halves: a fork with no secret still degrades, and the
+    scheduled run asking for `--require` stops.
+    """
+
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp())
+        # Patch at load_manifest, not at active(): cmd_install also calls
+        # verify(), which reads the manifest independently, and a test set that
+        # is active but unregistered would fail for the wrong reason.
+        real = heldout.load_manifest
+        heldout.load_manifest = lambda path=None: manifest()
+        self.addCleanup(setattr, heldout, "load_manifest", real)
+        self.env = "SB_HELDOUT_JSON_TEST"
+        os.environ.pop(self.env, None)
+        self.addCleanup(os.environ.pop, self.env, None)
+        os.environ["SB_HELDOUT_FILE"] = str(self.dir / "set.json")
+        self.addCleanup(os.environ.pop, "SB_HELDOUT_FILE", None)
+
+    def args(self, require: bool):
+        return argparse.Namespace(env=self.env, require=require)
+
+    def test_absent_secret_without_require_still_degrades(self):
+        # A fork has no secret and must not have its CI broken by ours.
+        self.assertEqual(heldout.cmd_install(self.args(require=False)), 0)
+
+    def test_absent_secret_with_require_stops(self):
+        with self.assertRaises(SystemExit) as e:
+            heldout.cmd_install(self.args(require=True))
+        self.assertIn(self.env, str(e.exception))
+
+    def test_whitespace_only_secret_with_require_stops(self):
+        # An empty Actions secret arrives as "", but a mangled one can arrive
+        # as a newline. Both are "the set did not get here".
+        os.environ[self.env] = "\n  \n"
+        with self.assertRaises(SystemExit):
+            heldout.cmd_install(self.args(require=True))
+
+    def test_a_present_secret_installs_under_require(self):
+        os.environ[self.env] = json.dumps({"queries": QUERIES})
+        self.assertEqual(heldout.cmd_install(self.args(require=True)), 0)
+        written = json.loads((self.dir / "set.json").read_text())["queries"]
+        self.assertEqual(heldout.digest(written), heldout.digest(QUERIES))
+
+    def test_require_does_not_weaken_the_hash_check(self):
+        # --require must not become a reason to accept whatever showed up.
+        os.environ[self.env] = json.dumps(
+            {"queries": [dict(QUERIES[0], text="an easier question"), QUERIES[1]]})
+        with self.assertRaises(SystemExit) as e:
+            heldout.cmd_install(self.args(require=True))
+        self.assertIn("committed hash", str(e.exception))
+
+
+class TestWeeklyWorkflowRequires(unittest.TestCase):
+    """The flag is worthless if the scheduled run does not pass it."""
+
+    def test_the_scheduled_run_passes_require(self):
+        wf = (ROOT / ".github" / "workflows" / "weekly.yml").read_text()
+        self.assertIn("heldout install --require", wf)
 
 
 if __name__ == "__main__":
