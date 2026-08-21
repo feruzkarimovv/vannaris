@@ -18,8 +18,9 @@ Both arms ran against run `50fbea16` (`2026-W31`) — the only week whose raw ve
 
 - **Arm A — validation.** The exact 280 screens of calibration set `96afde9bfef3`, in the same left/right orientation the human saw, judged comparatively by all three families. Compared against that human's choices. The set's own `swapped` (50) and `repeat` (30) strata measure this judge's position bias and self-consistency under the same design used on the human.
 - **Arm B — discrimination.** Exa vs Perplexity on all 150 queries, **both orders**, three families. A preference counts only where both orders agree — `docs/04`'s mandated mitigation. Order-dependent verdicts are discarded, not resolved.
+- **Arm C — the format control.** Arm B repeated with every synthesized answer blanked, so both sides are results-only. Identical in every other respect, including the seed and the pinned models. The blanking happens *after* the payload renderer is asserted against production, so the assertion tests the real renderer rather than the counterfactual.
 
-1,740 judge calls. **Arm A: 0 errors, full three-family panel on all 280 screens. Arm B: 10 errors of 900 (1.1%).** No vendor calls and no vendor spend; ~$3.41 of judge tokens.
+2,640 judge calls. **Arm A: 0 errors, full three-family panel on all 280 screens. Arm B: 10 of 900 (1.1%). Arm C: 1 of 900.** No vendor calls and no vendor spend; ~$5.21 of judge tokens.
 
 Reproduce with `experiments/pairwise_experiment.py`.
 
@@ -81,12 +82,41 @@ Two things cut against the pure-format reading and are recorded because they are
 
 Crucially, the discrimination result does **not** rest on the confound. Restricted to the 160 pairs where both sides return an answer or neither does, the judge still separates 160/160, and still agrees with the human 81.2% [74.5, 86.5] — consistent with its overall rate.
 
+### Arm C — stripping the answer collapses the effect, and reveals the categories underneath
+
+Arm B was re-run with every synthesized answer blanked, so both sides are results-only. Perplexity's results list is real and survives the strip: 10 results on all 150 responses, snippets on 1,363 of 1,500. 900 calls, 1 error, ~$1.80.
+
+| | Exa | Perplexity | Exa share of decided | separated? |
+|---|---|---|---|---|
+| With the answer | 21 | 104 | 16.8% [11.3, 24.3] | **yes, Perplexity** |
+| **Results only** | **50** | **59** | **45.9% [36.8, 55.2]** | **no** |
+
+The two intervals are disjoint. **The 104–21 was the format.** Removing the prose moves Perplexity from 83.2% of decided queries to 54.1%, and the pair stops separating at all. Order-dependent verdicts rise from 22 to 33 of 150, which is the same story told another way: with the answer block gone the judge is genuinely less sure, because the answer block was doing much of the deciding.
+
+What is left underneath is the more interesting result. With format controlled, the two vendors separate **in opposite directions by category**:
+
+| category | Exa | Perplexity | n | Exa share | verdict |
+|---|---|---|---|---|---|
+| breaking_news | **16** | 2 | 18 | 0.89 [0.67, 0.97] | **separated — Exa** |
+| multi_hop | 11 | 6 | 17 | 0.65 [0.41, 0.83] | ns |
+| long_tail | 9 | 13 | 22 | 0.41 [0.23, 0.61] | ns |
+| code_technical | 6 | 12 | 18 | 0.33 [0.16, 0.56] | ns |
+| local_shopping | 5 | **15** | 20 | 0.25 [0.11, 0.47] | **separated — Perplexity** |
+| general_facts | 3 | **11** | 14 | 0.21 [0.08, 0.48] | **separated — Perplexity** |
+
+Three of six categories separate, two of them for Perplexity and one for Exa. `build_routing_gain` measured the value of per-category routing at **0.000, 0.017 and 0.080 points** across three weeks and `CLAUDE.md` records the routing thesis as contradicted by the project's own data. That measurement was taken on an instrument that ties 74% of queries. This one, on the same responses, shows the top two vendors leading different categories with intervals that exclude a coin flip.
+
+That does not resurrect the routing thesis, and it must not be reported as if it does. It says the thesis was **buried on an instrument that could not see the differences**, which is a different claim and a testable one.
+
+Two framings, and they answer different questions. The stripped arm isolates **retrieval quality** and is the scientifically clean comparison. The unstripped arm measures **what the vendor actually hands the caller**, prose included — and for a routing product, that is the one that describes what a user receives. Neither is the right answer on its own.
+
 ## What this changes
 
 1. **The saturation is fixable, and the fix is the protocol.** Neither a harder rubric nor harder queries was the answer. This is the first intervention of the three that produced separation.
 2. **`docs/04`'s pointwise choice should be revisited on discrimination, not only on cost.** It was decided before there was any evidence about what pointwise scoring could resolve, and the cost multiplier it cites is real — Arm B alone was 900 calls for one vendor pair.
-3. **Nothing here licenses a published comparative ranking yet.** Position bias requires both orders; the format confound is unresolved; and the accuracy gain over pointwise is not demonstrated. Any comparative table must carry all three.
-4. **The format confound is a methodology question for the founder, not an agent.** Whether a benchmark of *search retrieval* should reward a synthesized answer at all — and if so, whether vendors that return prose belong in the same column as vendors that return links — is a scoping decision `docs/04` never faced, because pointwise scoring hid it.
+3. **The routing thesis was buried on an instrument that could not see the differences.** `CLAUDE.md` records it as contradicted by a measured gain of 0.000–0.080 points. Arm C shows the top two vendors separating in opposite directions across three of six categories once format is controlled. That is not a revival — the per-category n is 14–22 — but it means the kill was premature and the question is open again.
+4. **Nothing here licenses a published comparative ranking yet.** Position bias requires both orders; the format confound is unresolved; and the accuracy gain over pointwise is not demonstrated. Any comparative table must carry all three.
+5. **The format confound is a methodology question for the founder, not an agent.** Whether a benchmark of *search retrieval* should reward a synthesized answer at all — and if so, whether vendors that return prose belong in the same column as vendors that return links — is a scoping decision `docs/04` never faced, because pointwise scoring hid it.
 
 ## What was not checked
 

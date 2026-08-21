@@ -463,6 +463,9 @@ async def main() -> int:
                     help="run only N screens per arm, to validate parsing cheaply")
     ap.add_argument("--arm", choices=["a", "b", "both"], default="both")
     ap.add_argument("--estimate", action="store_true", help="cost only, no calls")
+    ap.add_argument("--strip-answer", action="store_true",
+                    help="blank every synthesized answer before judging, so both "
+                         "sides are results-only (isolates the format confound)")
     args = ap.parse_args()
 
     load_dotenv(ROOT / ".env")
@@ -470,8 +473,26 @@ async def main() -> int:
     conn.row_factory = sqlite3.Row
 
     responses = load_by_id(conn, RUN_ID)
+    # Always against the unmodified responses: this asserts the renderer matches
+    # production, and it has to run before anything is blanked or it would be
+    # asserting the counterfactual instead.
     check_payload_matches_production(responses)
     queries = {r["id"]: dict(r) for r in conn.execute("SELECT * FROM queries")}
+
+    # The format confound, isolated. Perplexity returns a synthesized answer on
+    # 150/150 responses and every other cleared vendor on 0/150, so no subset of
+    # the real data holds format constant for this pair — the only way to ask
+    # the question is to remove the answer and judge the results list that sits
+    # underneath it. That list is real: 10 results on every Perplexity response,
+    # snippets on 1,363 of 1,500. This is a counterfactual about what Perplexity
+    # RETRIEVED, not a measurement of what it returns, and the write-up says so.
+    if args.strip_answer:
+        blanked = 0
+        for r in responses.values():
+            if r.answer:
+                r.answer = None
+                blanked += 1
+        print(f"stripped {blanked} synthesized answers — both sides are results-only\n")
 
     # ---- Arm A jobs: the human's screens, in the human's orientation.
     pairs = list(conn.execute(
@@ -568,11 +589,11 @@ async def main() -> int:
             report["A"] = analyse_a(rows_a, human, strata)
         if jobs_b:
             rows_b = await judge_all(client, keys, sems, jobs_b, "arm B")
-            (OUT / "pairwise-2026-08-21-arm-b-raw.json").write_text(json.dumps(rows_b, indent=1))
+            (OUT / (f"pairwise-2026-08-21-arm-b{'-stripped' if args.strip_answer else ''}-raw.json")).write_text(json.dumps(rows_b, indent=1))
             report["B"] = analyse_b(rows_b)
 
     print(json.dumps(report, indent=1))
-    (OUT / "pairwise-2026-08-21-summary.json").write_text(json.dumps(report, indent=1))
+    (OUT / (f"pairwise-2026-08-21{'-stripped' if args.strip_answer else ''}-summary.json")).write_text(json.dumps(report, indent=1))
     return 0
 
 
