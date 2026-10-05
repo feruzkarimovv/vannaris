@@ -22,7 +22,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 export CHECK_STRICT=1
-PY=".venv/bin/python"
+PY="${VANNARIS_PYTHON:-.venv/bin/python}"
 [ -x "$PY" ] || PY="python3"
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
@@ -208,6 +208,8 @@ fi
 run "site: structure"     node scripts/check-structure.mjs
 run "site: data resolves" node scripts/check-site.mjs
 run "site: quality"       node scripts/check-quality.mjs
+run "site: security headers" $PY scripts/update_site_headers.py --check
+run "published analysis matches released inputs" $PY scripts/recompute_publication.py --check
 # Same shape as the export gate. The real calibration/ directory is gitignored
 # because the task shows the labeller the vendors' actual retrieved content, so
 # the fixture stands in for it and the real one is left untouched.

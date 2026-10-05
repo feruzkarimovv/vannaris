@@ -29,9 +29,12 @@ no spend.
 
 from __future__ import annotations
 
+import asyncio
 import sys
 import unittest
 from pathlib import Path
+
+import httpx
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -333,7 +336,7 @@ class TestSearchWrapper(unittest.IsolatedAsyncioTestCase):
             None, "q", "q1")
         self.assertFalse(response.ok)
         self.assertIn("RuntimeError", response.error)
-        self.assertIn("connection reset", response.error)
+        self.assertNotIn("connection reset", response.error)
 
     async def test_a_failed_call_still_reports_how_long_it_took(self):
         # A timeout that took 30 seconds and one that failed instantly are
@@ -345,6 +348,116 @@ class TestSearchWrapper(unittest.IsolatedAsyncioTestCase):
         response = await self.Stub(raises=RuntimeError("x")).search(None, "q", "q1")
         self.assertEqual(response.results, [])
         self.assertIsNone(response.raw)
+
+
+class TestMalformedHTTPResponses(unittest.IsolatedAsyncioTestCase):
+    """A successful HTTP status is not evidence of a usable search response."""
+
+    async def search(self, cls, payload):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, json=payload)
+        )) as client:
+            return await cls(api_key=KEY).search(client, "private query", "q1")
+
+    async def test_null_result_lists_are_recorded_with_the_raw_reply(self):
+        for vendor, (cls, wrap, _) in CASES.items():
+            with self.subTest(vendor=vendor):
+                payload = wrap(None)
+                response = await self.search(cls, payload)
+                self.assertFalse(response.ok)
+                self.assertEqual(response.results, [])
+                self.assertEqual(response.raw, payload)
+                self.assertEqual(response.vendor, vendor)
+                self.assertEqual(response.query_id, "q1")
+                self.assertIsNotNone(response.latency_ms)
+                self.assertIn("invalid response", response.error)
+
+    async def test_non_object_replies_remain_available_as_raw_evidence(self):
+        for payload in (None, [], "bad reply", 42):
+            with self.subTest(payload=payload):
+                response = await self.search(SerperAdapter, payload)
+                self.assertFalse(response.ok)
+                self.assertEqual(response.raw, payload)
+
+    async def test_an_error_body_with_http_success_is_not_an_empty_success(self):
+        payload = {"error": {"message": "private failure"}}
+        response = await self.search(SerperAdapter, payload)
+        self.assertFalse(response.ok)
+        self.assertEqual(response.raw, payload)
+        self.assertNotIn("private", response.error)
+
+    async def test_invalid_result_fields_never_reach_prompt_rendering(self):
+        for item in (None, "bad result", {"link": []},
+                     {"link": "https://example.invalid", "snippet": ["secret"]},
+                     {"link": "https://example.invalid", "title": {"private": "text"}}):
+            with self.subTest(item=item):
+                payload = {"organic": [item]}
+                response = await self.search(SerperAdapter, payload)
+                self.assertFalse(response.ok)
+                self.assertEqual(response.raw, payload)
+                self.assertNotIn("secret", response.error)
+                self.assertNotIn("private", response.error)
+
+    async def test_non_text_answers_and_citations_are_failures(self):
+        for payload in (
+            {"choices": [{"message": {"content": ["answer"]}}]},
+            {"citations": [{"url": "https://example.invalid"}]},
+        ):
+            with self.subTest(payload=payload):
+                response = await self.search(PerplexityAdapter, payload)
+                self.assertFalse(response.ok)
+                self.assertEqual(response.raw, payload)
+
+    async def test_nonfinite_and_negative_billed_costs_are_failures(self):
+        # Strings are what these providers can legitimately use for costs;
+        # converting a string to float must not accept nonfinite accounting.
+        for cost in ("NaN", "Infinity", "-0.1"):
+            with self.subTest(cost=cost):
+                payload = {"results": [], "costDollars": {"total": cost}}
+                response = await self.search(ExaAdapter, payload)
+                self.assertFalse(response.ok)
+                self.assertEqual(response.raw, payload)
+
+    async def test_a_malformed_vendor_does_not_cancel_a_concurrent_success(self):
+        def reply(request):
+            if request.url.host == "google.serper.dev":
+                return httpx.Response(200, json={"organic": None})
+            return httpx.Response(200, json={"results": [{"url": "https://example.invalid/a"}]})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(reply)) as client:
+            bad, good = await asyncio.gather(
+                SerperAdapter(KEY).search(client, "q", "q1"),
+                ExaAdapter(KEY).search(client, "q", "q1"),
+            )
+        self.assertFalse(bad.ok)
+        self.assertTrue(good.ok)
+        self.assertEqual(good.result_urls(), ["https://example.invalid/a"])
+
+    async def test_http_errors_keep_status_without_echoing_sensitive_content(self):
+        payload = {"error": "private query and " + KEY}
+        async with httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(401, json=payload)
+        )) as client:
+            response = await YouComAdapter(KEY).search(client, "private query", "q1")
+        self.assertIn("HTTP 401", response.error)
+        self.assertNotIn("private", response.error)
+        self.assertNotIn(KEY, response.error)
+        self.assertEqual(response.raw, payload)
+
+    async def test_invalid_json_is_a_failure_not_an_exception(self):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, text="not JSON: private query")
+        )) as client:
+            response = await SerperAdapter(KEY).search(client, "q", "q1")
+        self.assertFalse(response.ok)
+        self.assertIn("JSONDecodeError", response.error)
+        self.assertNotIn("private", response.error)
+
+    async def test_a_genuine_empty_result_still_counts_as_a_success(self):
+        response = await self.search(SerperAdapter, {"organic": []})
+        self.assertTrue(response.ok)
+        self.assertEqual(response.results, [])
+        self.assertEqual(response.cost_usd, SerperAdapter.cost_per_query_usd)
 
 
 if __name__ == "__main__":

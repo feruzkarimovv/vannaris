@@ -44,7 +44,7 @@ const BUDGET = {
   html: 60,        // per page
   css: 120,        // total stylesheet weight
   js: 200,         // total script weight, excluding the data bundle
-  data: 1200,      // the published week bundle — grows with every week
+  data: 1200,      // worst-case browser data: bundle + latest + selected detail
   pageTotal: 1600, // everything one page pulls in
 };
 
@@ -86,14 +86,18 @@ const jsBytes = readdirSync(join(SITE, "assets"))
 const dataBytes = existsSync(join(SITE, "data"))
   ? readdirSync(join(SITE, "data")).reduce((n, f) => n + sizeOf(join(SITE, "data", f)), 0)
   : 0;
+const archivedDetailBytes = existsSync(join(SITE, "data"))
+  ? Math.max(0, ...readdirSync(join(SITE, "data")).filter(f => /^detail-.*\.js$/.test(f)).map(f => sizeOf(join(SITE, "data", f))))
+  : 0;
+// Weekly JSON audit downloads are not fetched when a page opens. Archived
+// results do load latest detail.js before the selected detail; budget both.
+const browserDataBytes = sizeOf(join(SITE, "data/bundle.js"))
+  + sizeOf(join(SITE, "data/detail.js")) + archivedDetailBytes;
 
 if (kb(cssBytes) > BUDGET.css) fail("assets", `css ${kb(cssBytes)}KB over budget ${BUDGET.css}KB`);
 if (kb(jsBytes) > BUDGET.js) fail("assets", `js ${kb(jsBytes)}KB over budget ${BUDGET.js}KB`);
-if (kb(dataBytes) > BUDGET.data) {
-  // Deliberately a warning: the data growing is the project working. It still
-  // has to be noticed, because the growth is linear in published weeks and the
-  // page loads all of it.
-  warn("data", `published data ${kb(dataBytes)}KB over ${BUDGET.data}KB — time to split by week`);
+if (kb(browserDataBytes) > BUDGET.data) {
+  warn("data", `browser data ${kb(browserDataBytes)}KB over ${BUDGET.data}KB — split additional history out of the initial bundle`);
 }
 
 // ------------------------------------------------------------------- pages
@@ -320,7 +324,7 @@ if (existsSync(join(SITE, "robots.txt"))) {
 
 // ------------------------------------------------------------------ report
 
-console.log(`  css ${kb(cssBytes)}KB · js ${kb(jsBytes)}KB · data ${kb(dataBytes)}KB`);
+console.log(`  css ${kb(cssBytes)}KB · js ${kb(jsBytes)}KB · browser data ≤ ${kb(browserDataBytes)}KB · audit archive ${kb(dataBytes)}KB`);
 if (warns.length) {
   console.log("\nwarnings:");
   warns.forEach((w) => console.log("  ! " + w));

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,12 +12,13 @@
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f7f4'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23285548' stroke-width='3.2'/></svg>">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="masthead">
   <div class="shell masthead__inner navbar">
@@ -30,24 +31,39 @@
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
-      <span></span>
+      Menu
     </button>
   </div>
   <div class="progress" aria-hidden="true"></div>
 </header>
 
-<main>
+<main id="main">
+<noscript><div class="shell load-warning">JavaScript is needed for interactive evidence views. Download the frozen data from <a href="data/latest.json">the public JSON export</a>, or enable JavaScript to inspect results.</div></noscript>
 
 <section class="page-hero">
   <div class="shell">
-    <h1>Take the data. Check the work.</h1>
+    <h1>Data and downloads</h1>
     <p class="lead">
-      Every judge score, latency and cost, licensed CC BY 4.0.
+      Download judge scores, response metadata, and aggregate results for each published snapshot. Public data is licensed CC BY 4.0.
     </p>
-    <div class="cta-row" style="margin-top:1.5rem">
-      <a class="btn" href="data/latest.json" download>Download JSON <span class="arrow" aria-hidden="true">↓</span></a>
-      <a class="link-arrow" href="#recompute">See it recomputed <span class="arrow" aria-hidden="true">→</span></a>
+    <div class="run-tools" data-run-tools>
+      <div class="run-picker"><label for="run-select">Snapshot</label><select id="run-select" aria-describedby="run-description"><option value="">Latest snapshot</option></select></div>
+      <details class="snapshot-notes">
+        <summary>Coverage and publication notes</summary>
+        <p id="run-description" class="note"></p>
+        <div class="data-health" role="status" aria-live="polite" data-health></div>
+      </details>
     </div>
+    <div class="cta-row" style="margin-top:1.5rem">
+      <a class="btn" href="data/latest.json" data-selected-json download>Download JSON <span class="arrow" aria-hidden="true">↓</span></a>
+      <a class="link-arrow" href="#recompute">Recompute results <span class="arrow" aria-hidden="true">→</span></a>
+    </div>
+    <nav class="section-nav" aria-label="Data sections">
+      <a href="#files">Files</a>
+      <a href="#columns">Column reference</a>
+      <a href="#excluded">Publication policy</a>
+      <a href="#licence">Licence and citation</a>
+    </nav>
   </div>
 </section>
 
@@ -55,10 +71,10 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Files</span>
-      <h2>What is in the export</h2>
+      <h2>Download files</h2>
       <p>
-        This run, generated
-        <span data-val="generated_at" data-fmt="when"></span>, licensed CC BY 4.0.
+        Export generated <span data-val="generated_at" data-fmt="when"></span>.
+        Original retrieval dates remain attached to each snapshot.
       </p>
     </div>
     <div class="panel panel--flush">
@@ -77,23 +93,23 @@
     </div>
 
     <div class="channels" data-reveal="rows" style="margin-top:1.5rem">
-      <a class="channel" href="data/latest.json" download>
+      <a class="channel" href="data/latest.json" data-selected-json download>
         <span class="channel__n">JSON</span>
-        <span class="channel__name">This run</span>
+        <span class="channel__name">Selected snapshot</span>
         <span class="channel__dots" aria-hidden="true"></span>
-        <span class="channel__score">latest.json</span>
-        <span class="channel__cost">cells, roll-ups, judge stats</span>
+        <span class="channel__score">run.json</span>
+        <span class="channel__cost">scores, coverage, judge statistics</span>
       </a>
       <a class="channel" id="week-json" href="#" download>
         <span class="channel__n">JSON</span>
-        <span class="channel__name">Frozen copy</span>
+        <span class="channel__name">Versioned JSON</span>
         <span class="channel__dots" aria-hidden="true"></span>
         <span class="channel__score">run.json</span>
-        <span class="channel__cost">frozen after the pointer moves</span>
+        <span class="channel__cost">date-specific archive file</span>
       </a>
       <a class="channel" href="export/manifest.json" download>
         <span class="channel__n">MAN</span>
-        <span class="channel__name">Manifest</span>
+        <span class="channel__name">Latest publication manifest</span>
         <span class="channel__dots" aria-hidden="true"></span>
         <span class="channel__score">manifest.json</span>
         <span class="channel__cost">run id, hash, policy</span>
@@ -106,8 +122,8 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Publication policy</span>
-      <h2>What is deliberately not in here</h2>
-      <p>The harness stores raw vendor responses for reproducibility. They are never published.</p>
+      <h2>Publication policy</h2>
+      <p>Exports contain derived evidence. Raw retrieved content is retained locally and excluded from publication.</p>
     </div>
     <div class="grid-2">
       <div class="card card--pad">
@@ -115,15 +131,13 @@
       </div>
       <div class="prose">
         <p>
-          Publishing derived scores rather than republishing retrieved content reduces two exposures
-          at once: the copyright in the pages a search API points at, and the storage and
-          redistribution restrictions in several vendors' terms of service.
+          Publishing derived scores avoids redistributing retrieved page content and helps respect
+          the storage and redistribution restrictions in vendor terms.
         </p>
         <p>
-          The cost is real: you cannot audit an individual judgement against the exact result list
-          the judge saw. What you can do is recompute every published aggregate from the scores, see
-          how many results each response contained, and see how far the three judges were apart on
-          it. The export code fails the build if a field carrying vendor content ever reaches it.
+          These exports support aggregate recomputation, response counts, and judge-disagreement
+          analysis. They cannot replay an individual judgement against the result list the judge
+          saw. Export guards reject fields containing vendor content.
         </p>
       </div>
     </div>
@@ -134,8 +148,8 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Reference</span>
-      <h2>Column dictionary</h2>
-      <p>Three tables, and what every column in them means.</p>
+      <h2>Column reference</h2>
+      <p>Key fields in the judge, response, and aggregate CSV exports.</p>
     </div>
 
     <div class="panel panel--flush" style="margin-bottom:1.2rem">
@@ -171,7 +185,8 @@
             <tr><td class="mono">response_mode</td><td><code>ranked_results</code>, <code>synthesized_answer</code> or <code>both</code>. Recorded per response, not per vendor.</td></tr>
             <tr><td class="mono">n_results</td><td>How many results the response carried after top-10 normalisation.</td></tr>
             <tr><td class="mono">latency_ms</td><td>Wall-clock request-to-response time measured by the harness.</td></tr>
-            <tr><td class="mono">cost_usd</td><td>Vendor-reported where available, list price otherwise.</td></tr>
+            <tr><td class="mono">cost_usd</td><td>Vendor-reported where available; otherwise estimated from the recorded pricing tier.</td></tr>
+            <tr><td class="mono">cost_source</td><td><code>reported</code> or <code>estimated</code>. Identifies the basis of the recorded cost.</td></tr>
             <tr><td class="mono">complete_ensemble</td><td>1 if all three judges scored this response. Only these contribute to aggregates.</td></tr>
             <tr><td class="mono">median_overall</td><td>Median of the three <code>overall</code> scores, or blank.</td></tr>
             <tr><td class="mono">error</td><td>Non-empty if the vendor call itself failed.</td></tr>
@@ -202,38 +217,19 @@
 <section id="recompute" class="seam">
   <div class="shell">
     <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Verify it</span>
-      <h2>Recompute the headline number</h2>
+      <span class="eyebrow eyebrow--accent">Verification</span>
+      <h2>Recompute the results</h2>
       <p>
-        Two of the CSVs and a few lines of Python reproduce the cost-versus-quality finding on the
-        front page, with no API keys and no trust required.
+        The maintained recomputation command validates the published analytics from committed CSVs without API keys.
       </p>
     </div>
-    <pre class="code">import csv, statistics
-from collections import defaultdict
+    <pre class="code" role="region" tabindex="0" aria-label="Commands to verify published analytics"># From a clone of the repository; uses committed versioned CSV exports.
+.venv/bin/python scripts/recompute_publication.py --check
 
-# One row per (query, vendor, judge). Keep only responses all three judges scored,
-# because a partial panel is not comparable with a complete one.
-panels = defaultdict(list)
-for r in csv.DictReader(open("judge-scores.csv")):
-    panels[(r["query_id"], r["vendor"], r["category"])].append(float(r["overall"]))
+# Write a separate recomputed publication for inspection.
+.venv/bin/python scripts/recompute_publication.py --out /tmp/vannaris-recomputed</pre>
+    <p class="note" style="margin-top:1rem;max-width:78ch">The check verifies derived scores and uncertainty against the committed publication. It applies full-ensemble and category coverage floors, excludes active held-out questions from public aggregates, and uses the versioned files for each run. It needs no API keys and makes no vendor calls. Public exports support recomputing aggregates; they cannot replay the original grading because retrieved vendor content is excluded.</p>
 
-cells = defaultdict(list)
-for (qid, vendor, category), scores in panels.items():
-    if len(scores) == 3:                       # complete ensemble only
-        cells[(vendor, category)].append(statistics.median(scores))
-
-means = {k: statistics.mean(v) for k, v in cells.items()}
-best  = {c: max(s for (v, c2), s in means.items() if c2 == c) for _, c in means}
-
-for (vendor, category), score in sorted(means.items()):
-    print(f"{vendor:&lt;11}{category:&lt;16}{score:5.2f}  {100 * score / best[category]:5.1f}% of best")</pre>
-    <p class="note" style="margin-top:1rem;max-width:78ch">
-      The output matches <code>weekly-scores.csv</code> to
-      three decimal places. Download the files from the table above (the names
-      on disk still include the run). Any discrepancy is a bug —
-      <a href="mailto:feruz.karimov@rutgers.edu">report it</a>.
-    </p>
   </div>
 </section>
 
@@ -242,7 +238,7 @@ for (vendor, category), score in sorted(means.items()):
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Licence</span>
       <h2>Licence and citation</h2>
-      <p>Free to use commercially. Attribution is the only requirement.</p>
+      <p>Data is available under CC BY 4.0; the code is MIT licensed.</p>
     </div>
     <div class="grid-2">
       <div class="prose">
@@ -265,14 +261,14 @@ for (vendor, category), score in sorted(means.items()):
       <div>
         <div class="panel">
           <div class="panel__head">
-            <h3>Cite this</h3>
-            <span class="label">this run, not just the project</span>
+            <h3>Cite the selected snapshot</h3>
+            <span class="label">include the run date</span>
           </div>
           <div class="panel__body" style="padding:0">
-            <pre class="code" id="citation" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
+            <pre class="code" id="citation" role="region" tabindex="0" aria-label="Citation for the selected run" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
           <div class="panel__foot">
-            Cite the run date, not just the project: these numbers are a snapshot and will move.
+            Include the retrieval date and run identity so readers can locate the same evidence.
           </div>
         </div>
       </div>
@@ -287,12 +283,11 @@ for (vendor, category), score in sorted(means.items()):
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
       <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
+        An independent study of the search APIs agents call.<br>
         Public data CC BY 4.0. Not affiliated with any vendor listed.
       </p>
       <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+        Contact: <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
@@ -300,6 +295,7 @@ for (vendor, category), score in sorted(means.items()):
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
+      <a href="demo.html">Demo</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -310,10 +306,12 @@ for (vendor, category), score in sorted(means.items()):
 </footer>
 
 <script src="data/bundle.js"></script>
+<script src="assets/run-context.js"></script>
 <script>
 window.SBPage = {
   init: function () {
     var D = window.SB_DATA;
+    document.querySelectorAll("[data-selected-json]").forEach(function (a) { a.href = "data/" + D.latest.week + ".json"; });
     var tbody = document.querySelector("#file-table tbody");
     D.export.files.forEach(function (f) {
       var tr = document.createElement("tr");
@@ -326,7 +324,7 @@ window.SBPage = {
       name.appendChild(a);
       var rows = document.createElement("td");
       rows.className = "num";
-      rows.textContent = f.rows.toLocaleString();
+      rows.textContent = f.rows == null ? "unknown for archive" : f.rows.toLocaleString();
       var what = document.createElement("td");
       what.textContent = f.what;
       tr.appendChild(name); tr.appendChild(rows); tr.appendChild(what);

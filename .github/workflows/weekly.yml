@@ -50,12 +50,6 @@ on:
         description: "Cap the query count (smoke test). Empty runs the full set."
         required: false
         default: ""
-      trigger:
-        description: "Recorded on the run. 'scheduled' is what the cadence claim counts."
-        required: false
-        default: manual
-        type: choice
-        options: [manual, scheduled]
 
 # Needed to push the export back to the default branch.
 permissions:
@@ -87,6 +81,9 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      # Public X.509 recipient certificate only. The decrypting private key
+      # stays outside Actions; without a certificate, no raw evidence uploads.
+      RECOVERY_CERT: ${{ secrets.VANNARIS_RECOVERY_CERT }}
 
     steps:
       - uses: actions/checkout@v4
@@ -96,8 +93,13 @@ jobs:
           python-version: "3.13"
           cache: pip
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install --require-hashes -r requirements.txt
 
       # The withheld question set (src/heldout.py). Its hash is committed to
       # this repository; its text is not, and arrives here as a secret. The
@@ -129,12 +131,12 @@ jobs:
         id: run
         env:
           SB_LIMIT: ${{ inputs.limit }}
-          SB_TRIGGER: ${{ inputs.trigger || 'scheduled' }}
+          SB_TRIGGER: ${{ github.event_name == 'schedule' && 'scheduled' || 'manual' }}
         run: |
           set -euo pipefail
           # tee, not a pipe to head/tail: a previous session destroyed a run's
           # own report by piping it through tail and had to reconstruct the
-          # findings from the database. The full log is an artifact below.
+          # findings from the database. Logs stay on the ephemeral runner.
           python -m src.runner \
             --queries src/queries/full-v1.json \
             --trigger "$SB_TRIGGER" \
@@ -156,7 +158,9 @@ jobs:
       # No renderer needed here — the share cards are a separate, manual step,
       # because adding a vendor is a deliberate act and so is its card.
       - name: Rebuild the per-vendor pages
-        run: python scripts/make_vendor_pages.py
+        run: |
+          python scripts/make_vendor_pages.py
+          python scripts/update_site_headers.py
 
       # docs/03 cleared five vendors for the public benchmark and named two whose
       # contract terms forbid exactly this. That is a statement about what gets
@@ -183,13 +187,15 @@ jobs:
           npm ci
           node scripts/check-site.mjs
           node scripts/check-quality.mjs
+          python scripts/update_site_headers.py --check
 
       - name: Commit the week
+        id: publish
         run: |
           set -euo pipefail
           git config user.name "vannaris-runner"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data site/export
+          git add site/data site/export site/vendors site/sitemap.xml vercel.json
           if git diff --cached --quiet; then
             echo "export unchanged — nothing to commit"
             exit 0
@@ -205,16 +211,33 @@ jobs:
           echo "could not push after three attempts" >&2
           exit 1
 
-      # Always: a failed run is the one whose log and database are most worth
-      # having. The database is an artifact and never a commit — it holds raw
-      # vendor payloads (see the header of this file).
-      - name: Upload the run log and database
+      # Logs can carry provider payload excerpts and the database contains
+      # private questions. The only unconditional artifact is a sanitized
+      # summary. Recovery evidence is uploaded only as an encrypted envelope.
+      - name: Prepare sanitized operational status
+        if: always()
+        env:
+          PUBLICATION_OUTCOME: ${{ steps.publish.outcome }}
+        run: python scripts/run_status.py --out run-status.json --publication-outcome "$PUBLICATION_OUTCOME"
+
+      - name: Encrypt optional recovery evidence
+        if: always() && env.RECOVERY_CERT != ''
+        run: |
+          set -euo pipefail
+          if [ ! -f data/vannaris.db ]; then exit 0; fi
+          CERT_FILE=$(mktemp)
+          trap 'rm -f "$CERT_FILE"' EXIT
+          printf '%s' "$RECOVERY_CERT" > "$CERT_FILE"
+          python scripts/encrypt_recovery.py --db data/vannaris.db \
+            --certificate "$CERT_FILE" --out data/vannaris.db.p7m
+
+      - name: Upload sanitized status and optional encrypted recovery
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: run-${{ github.run_number }}
           path: |
-            run.log
-            data/vannaris.db
+            run-status.json
+            data/vannaris.db.p7m
           retention-days: 90
           if-no-files-found: warn

@@ -5,9 +5,9 @@
  * number cannot drift away from the run that produced it.
  *
  * Three rules the drawing code follows, from the project's dataviz guidance:
- * ice-to-heat sequential ramp; identity, where it is
+ *   - a pale-to-deep sequential ramp; identity, where it is
  *     needed, is carried by direct labels rather than a second colour scale;
- *   - the infrared signal colour is emphasis only, it marks the one series
+ *   - the signal colour is emphasis only, it marks the one series
  *     a chart is about, and never means "series 2";
  *   - every chart has a table equivalent behind a toggle, built from the same
  *     rows the SVG is built from, so the two cannot disagree.
@@ -48,13 +48,13 @@
    * otherwise hand back an empty string, and every mark would silently render
    * black. */
   var FALLBACK = {
-    "--d100": "#1a1420", "--d200": "#3a1526", "--d300": "#5c1a2e", "--d400": "#851f37",
-    "--d500": "#b32540", "--d600": "#e02f4c", "--d700": "#ff6b7e",
-    "--signal": "#ff2a4a", "--muted-mark": "#2a3140", "--surface": "#11141c"
+    "--d100": "#edf3ee", "--d200": "#d6e6db", "--d300": "#b5d1bf", "--d400": "#8cb59b",
+    "--d500": "#5b9275", "--d600": "#38684f", "--d700": "#254d3b",
+    "--signal": "#285548", "--muted-mark": "#b5c0b8", "--surface": "#ffffff",
+    "--surface-2": "#f1f4ef", "--text": "#202522", "--line": "#dce1db",
+    "--chart-contrast-dark": "#000000", "--chart-contrast-light": "#ffffff"
   };
-  /* Tokens resolve against the element the chart is being drawn into, not the
-   * document root. A chart inside the ink band therefore picks up that band's
-   * dark-surface steps without knowing it is in a dark band at all. */
+  /* Resolve tokens against the chart's own surface. */
   var CTX = null;
   function css(name) {
     var v = "";
@@ -71,34 +71,44 @@
     return v < 0.01 ? "$" + v.toFixed(4) : "$" + v.toFixed(2);
   }
 
-  /* Sequential ramp, light→dark. Steps come from the CSS custom properties so
-   * light and dark mode each use their own validated column. */
+  /* Sequential ramp, pale→deep. CSS tokens define the published palette. */
   function ramp(t) {
     var steps = ["--d100", "--d200", "--d300", "--d400", "--d500", "--d600", "--d700"];
     var i = Math.max(0, Math.min(steps.length - 1, Math.round(t * (steps.length - 1))));
     return { hex: css(steps[i]), step: i };
   }
-  /* Ink or paper on top of a ramp fill, picked by how dark the step is so a
-   * label inside a cell always clears contrast. */
-  function onRamp(step) {
-    // Light unless the page is explicitly stamped dark: the OS preference does
-    // not decide this site's theme.
-    var dark = document.documentElement.getAttribute("data-theme") === "dark";
-    // On the dark ramp the light steps are the high scores, so the polarity of
-    // the label colour inverts with it. The crossover moved up a step with the
-    // ramp itself — the old one put dark ink on #b32540 at 3.1:1, and nothing
-    // would have caught it: axe cannot read the contrast of an SVG fill, so
-    // these labels are outside the a11y gate and inside this comment instead.
-    if (dark) return step >= 5 ? "#07080c" : "#eef2f7";
-    return step >= 3 ? "#07080c" : "#eef2f7";
+  function luminance(color) {
+    var hex = String(color).trim().replace(/^#/, "");
+    var rgb;
+    if (/^[0-9a-f]{3}$/i.test(hex)) hex = hex.split("").map(function (c) { return c + c; }).join("");
+    if (/^[0-9a-f]{6}$/i.test(hex)) rgb = [0, 2, 4].map(function (i) { return parseInt(hex.slice(i, i + 2), 16); });
+    else {
+      var match = String(color).match(/^rgba?\(\s*(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)/i);
+      if (!match) return 0;
+      rgb = match.slice(1, 4).map(Number);
+    }
+    var linear = rgb.map(function (v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  }
+  /* Choose ink from the actual fill, rather than a theme-dependent step
+   * threshold. Neutral fallbacks keep mid-ramp labels above 4.5:1. */
+  function contrastInk(fill) {
+    var background = luminance(fill);
+    function ratio(ink) { var foreground = luminance(ink); return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05); }
+    var inks = [css("--text"), css("--surface")];
+    inks.sort(function (a, b) { return ratio(b) - ratio(a); });
+    if (ratio(inks[0]) >= 4.5) return inks[0];
+    var neutral = [css("--chart-contrast-dark"), css("--chart-contrast-light")];
+    return ratio(neutral[0]) >= ratio(neutral[1]) ? neutral[0] : neutral[1];
   }
 
   /* ------------------------------------------------------------- tooltip */
-  var tip = h("div", { class: "tooltip", role: "status", "aria-live": "polite" });
+  var tip = h("div", { class: "tooltip", id: "chart-tooltip", role: "tooltip", "aria-label": "Chart evidence", hidden: "" });
   document.body.appendChild(tip);
   var tipTimer;
 
   function showTip(evt, html) {
+    tip.hidden = false;
     tip.innerHTML = html;
     tip.setAttribute("data-show", "");
     moveTip(evt);
@@ -109,23 +119,30 @@
     var x = (evt.clientX != null ? evt.clientX : 0) + pad;
     var y = (evt.clientY != null ? evt.clientY : 0) + pad;
     var r = tip.getBoundingClientRect();
-    if (x + r.width > window.innerWidth - 8) x = window.innerWidth - r.width - 8;
-    if (y + r.height > window.innerHeight - 8) y = evt.clientY - r.height - pad;
+    var vw = window.visualViewport ? window.visualViewport.width : document.documentElement.clientWidth;
+    var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    if (x + r.width > vw - 8) x = vw - r.width - 8;
+    if (y + r.height > vh - 8) y = evt.clientY - r.height - pad;
     tip.style.left = Math.max(8, x) + "px";
     tip.style.top = Math.max(8, y) + "px";
   }
-  function hideTip() { tip.removeAttribute("data-show"); }
+  function hideTip() { tip.removeAttribute("data-show"); tip.hidden = true; }
+  function deferHide() { clearTimeout(tipTimer); tipTimer = setTimeout(hideTip, 180); }
+  tip.addEventListener("mouseenter", function () { clearTimeout(tipTimer); });
+  tip.addEventListener("mouseleave", deferHide);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { clearTimeout(tipTimer); hideTip(); } });
 
   /* A hit target sits over every mark: marks are thin by design, and a 4px
    * bar is not a usable pointer or focus target. */
   function hit(g, box, label, html) {
     var r = n("rect", {
       x: box.x, y: box.y, width: Math.max(box.w, 1), height: Math.max(box.h, 1),
-      class: "hit", tabindex: "0", role: "img", "aria-label": label
+      class: "hit", tabindex: "0", role: "img", "aria-label": label, "aria-describedby": "chart-tooltip"
     });
     r.addEventListener("mouseenter", function (e) { showTip(e, html); });
     r.addEventListener("mousemove", moveTip);
-    r.addEventListener("mouseleave", hideTip);
+    r.addEventListener("mouseleave", deferHide);
+    r.addEventListener("click", function () { var b = r.getBoundingClientRect(); showTip({clientX:b.left, clientY:b.top}, html); });
     r.addEventListener("focus", function () {
       var b = r.getBoundingClientRect();
       showTip({ clientX: b.left + b.width / 2, clientY: b.top }, html);
@@ -196,8 +213,8 @@
     cells.forEach(function (c) { byKey[c.vendor + "|" + c.category] = c; });
 
     var scores = cells.map(function (c) { return c.score; }).filter(function (s) { return s != null; });
-    var lo = Math.floor(Math.min.apply(null, scores) * 2) / 2;
-    var hi = Math.ceil(Math.max.apply(null, scores) * 2) / 2;
+    var lo = scores.length ? Math.floor(Math.min.apply(null, scores) * 2) / 2 : 0;
+    var hi = scores.length ? Math.ceil(Math.max.apply(null, scores) * 2) / 2 : 10;
 
     // Header labels wrap to at most two lines, and the block is bottom-aligned
     // to a fixed baseline above the grid so a two-line label can never grow
@@ -239,15 +256,19 @@
         if (!cell || cell.score == null) {
           svg.appendChild(n("rect", { x: x, y: y, width: cellW - gap, height: cellH - gap,
             fill: "var(--surface-2)", stroke: "var(--line)", "stroke-dasharray": "2 2" }));
+          svg.appendChild(n("text", {x:x+(cellW-gap)/2,y:y+cellH/2+4,class:"mark-label","text-anchor":"middle"}, "withheld"));
+          var reason = cell ? cell.n_scored + "/" + cell.n_queries + " fully judged; below the publication floor" : "No public category record";
+          hit(svg, {x:x,y:y,w:cellW-gap,h:cellH-gap}, (vendorLabel[v] || v) + ", " + c.label + ": " + reason,
+            tipRows((vendorLabel[v] || v) + " · " + c.label, [["status",reason],["vendor failures",cell ? cell.n_errors : "unknown"]]));
           return;
         }
-        var t = (cell.score - lo) / (hi - lo);
+        var t = hi === lo ? 0.5 : (cell.score - lo) / (hi - lo);
         var fill = ramp(t);
         svg.appendChild(n("rect", { x: x, y: y, width: cellW - gap, height: cellH - gap,
           fill: fill.hex, rx: 0, class: "cell-in", style: "--i:" + (r * CATS.length + i) }));
         svg.appendChild(n("text", {
           x: x + (cellW - gap) / 2, y: y + cellH / 2 + 4, class: "cell-label",
-          "text-anchor": "middle", fill: onRamp(fill.step)
+          "text-anchor": "middle", fill: contrastInk(fill.hex)
         }, fmt(cell.score)));
 
         hit(svg, { x: x, y: y, w: cellW - gap, h: cellH - gap },
@@ -256,7 +277,9 @@
             ["score", fmt(cell.score) + " / 10"],
             ["gap to best", cell.delta_from_best ? "−" + fmt(cell.delta_from_best) : "best"],
             ["p50 latency", cell.p50_latency_ms + " ms"],
-            ["queries scored", cell.n_scored + " / " + cell.n_queries]
+            ["queries scored", cell.n_scored + " / " + cell.n_queries],
+            ["95% interval", cell.ci95 ? cell.ci95.map(function (x) { return fmt(x); }).join("–") : "not available"],
+            ["vendor failures", cell.n_errors]
           ]));
       });
     });
@@ -268,7 +291,7 @@
         h("span", { class: "legend__ramp" }, lgSteps.map(function (c) {
           return h("i", { style: "background:" + c });
         })),
-        h("span", { text: fmt(hi, 1) + " · ensemble median, 0–10" })
+        h("span", { text: fmt(hi, 1) + " · mean of response medians, 0–10" })
       ])
     ]);
 
@@ -277,14 +300,16 @@
       CATS.forEach(function (c) {
         var cell = byKey[v + "|" + c.id];
         if (cell) rows.push([vendorLabel[v] || v, c.label, fmt(cell.score),
+          cell.ci95 ? cell.ci95.map(function (x) { return fmt(x); }).join("–") : "not available",
+          cell.score == null ? "Withheld: insufficient judging coverage" : "Published",
           cell.n_scored + "/" + cell.n_queries, cell.p50_latency_ms]);
       });
     });
 
     figure(host, {
       svg: svg, legend: opts.legend === false ? null : legend,
-      table: { head: ["Vendor", "Category", "Score", "Scored", "p50 ms"],
-               numeric: [false, false, true, true, true], rows: rows }
+      table: { head: ["Vendor", "Category", "Score", "95% interval", "Status", "Scored", "p50 ms"],
+               numeric: [false, false, true, true, false, true, true], rows: rows }
     });
   }
 
@@ -294,6 +319,11 @@
   function costQuality(host) {
     CTX = host;
     var vs = D.latest.vendors.filter(function (v) { return v.score != null && v.cost_per_query_usd; });
+    if (!vs.length) {
+      var empty = n("svg", {viewBox:"0 0 720 90", role:"img", "aria-label":"Overall comparisons unavailable: incomplete category coverage"});
+      empty.appendChild(n("text", {x:20,y:45,class:"mark-name"}, "Overall scores withheld: incomplete category coverage."));
+      return figure(host, {svg:empty, animate:false, table:{head:["Status"],numeric:[false],rows:[["No complete overall vendor score"]]}});
+    }
     var W = 720, H = 380, padL = 52, padR = 24, padT = 24, padB = 54;
 
     var costs = vs.map(function (v) { return v.cost_per_query_usd; });
@@ -474,11 +504,11 @@
     var legend = h("div", { class: "legend" }, [
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--signal") }),
-        h("span", { text: "below 90% of the best score: escalate here" })
+        h("span", { text: "Below the reference band: inspect the task tradeoff" })
       ]),
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--muted-mark") }),
-        h("span", { text: "90% or above: the cheap vendor is good enough" })
+        h("span", { text: "At or above the reference band" })
       ])
     ]);
 
@@ -540,6 +570,25 @@
   }
 
   /* ====================================================== score distribution */
+  function selectedDetail(host) {
+    var X = window.SB_DETAIL;
+    var ready = X && X.week === D.latest.week;
+    var state = window.SB_DETAIL_STATUS;
+    var unavailable = !ready && state && state.week === D.latest.week && state.state === "unavailable";
+    host.setAttribute("data-detail-run", D.latest.week);
+    host.setAttribute("data-detail-state", ready ? "ready" : unavailable ? "unavailable" : "loading");
+    if (ready) return X;
+    var body = host.querySelector(".panel__body") || host;
+    body.appendChild(h("p", { class: "note", role: "status", text: unavailable
+      ? "Query-level evidence could not load for this snapshot. The aggregate results remain available above."
+      : "Loading this snapshot's query-level evidence…" }));
+    if (unavailable) body.appendChild(h("p", { class: "note" }, [
+      h("a", { href: location.href, text: "Retry loading" }),
+      document.createTextNode(" · "),
+      h("a", { href: "data.html?run=" + encodeURIComponent(D.latest.week), text: "Download this snapshot's data" })
+    ]));
+    return null;
+  }
   /* Where each vendor's queries actually land, as an ordered share.
    *
    * A jittered dot strip was the first attempt and was wrong: the ensemble
@@ -550,7 +599,7 @@
    * three bands — visible at a glance instead of merely asserted. */
   function distribution(host) {
     CTX = host;
-    var X = window.SB_DETAIL;
+    var X = selectedDetail(host);
     if (!X) return;
 
     var BANDS = [
@@ -641,21 +690,19 @@
   }
 
   /* ================================================== judge disagreement */
-  /* How far apart the three judges were on the same response, bucketed. The
-   * headline "mean disagreement 1.77" is a summary of this shape, and the
-   * shape is the more honest object: the tail past 3 points is where the
-   * ensemble is doing real work. */
+  /* Spread within complete three-judge panels. Use the same eligible response
+   * denominator as the selected publication's disagreement summary. */
   function disagreement(host) {
     CTX = host;
-    var X = window.SB_DETAIL;
+    var X = selectedDetail(host);
     if (!X) return;
 
     var BUCKETS = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 10]];
     var counts = BUCKETS.map(function () { return 0; });
     var total = 0;
     X.rows.forEach(function (r) {
-      var vals = r.s.filter(function (v) { return v != null; });
-      if (vals.length < 2) return;
+      var vals = (r.s || []).filter(function (v) { return v != null; });
+      if (r.m == null || vals.length !== X.judges.length) return;
       var spread = Math.max.apply(null, vals) - Math.min.apply(null, vals);
       total++;
       for (var i = 0; i < BUCKETS.length; i++) {
@@ -700,7 +747,7 @@
         LABELS[i] + " points apart: " + c + " responses",
         tipRows(LABELS[i] + " points apart", [
           ["responses", c.toLocaleString()],
-          ["share", (100 * c / total).toFixed(1) + "%"]
+          ["share", (total ? 100 * c / total : 0).toFixed(1) + "%"]
         ]));
     });
 
@@ -712,7 +759,7 @@
     var legend = h("div", { class: "legend" }, [
       h("span", { class: "legend__item" }, [
         h("span", { class: "legend__swatch", style: "background:" + css("--signal") }),
-        h("span", { text: "more than 3 points apart on the same response" })
+        h("span", { text: "3 or more points apart on the same response" })
       ])
     ]);
 
@@ -722,7 +769,7 @@
         head: ["Judges apart by", "Responses", "Share"],
         numeric: [false, true, true],
         rows: counts.map(function (c, i) {
-          return [LABELS[i] + " points", c.toLocaleString(), (100 * c / total).toFixed(1) + "%"];
+          return [LABELS[i] + " points", c.toLocaleString(), (total ? 100 * c / total : 0).toFixed(1) + "%"];
         })
       }
     });
@@ -732,6 +779,6 @@
     heatmap: heatmap, costQuality: costQuality, latency: latency,
     retained: retained, judges: judges,
     distribution: distribution, disagreement: disagreement,
-    helpers: { fmt: fmt, money: money, catLabel: catLabel, vendorLabel: vendorLabel, h: h }
+    helpers: { fmt: fmt, money: money, catLabel: catLabel, vendorLabel: vendorLabel, h: h, contrastInk: contrastInk }
   };
 })();

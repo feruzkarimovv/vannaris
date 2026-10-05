@@ -1,12 +1,70 @@
-# CLAUDE.md — Vannaris build guide
+# CLAUDE.md — current development guide
+
+Read [CURRENT-STATE.md](CURRENT-STATE.md) first for the implemented product and measured evidence, then [README.md](README.md), [AUTONOMY.md](AUTONOMY.md), and the [engineering case study](docs/18-engineering-case-study.md). [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) distinguishes this engineering release from deferred human studies and commercial plans.
+
+## What to build and protect
+
+Vannaris is a Python/SQLite evaluation pipeline with five search adapters, three judge families, versioned derived analysis, and a static evidence explorer. Its portfolio focus is backend and AI evaluation engineering. A paid router, hosted classifier/feed, customer portal, and proxy are not shipped products or the current release goal.
+
+The committed measurement archive contains four published weeks, two scheduler-delivered weeks, one limited human pairwise calibration, and a W35 heldout run. The latest retrieval is August 24, 2026. Neither a configured cron nor updated code proves current weekly operation. This release changes code and derived analysis; it creates no new measured live data or human labels.
+
+## Development workflow
+
+The cloud task already has an isolated checkout. Use it; do not create a Git worktree unless explicitly requested.
+
+```bash
+make setup
+make check
+make demo
+```
+
+The demo serves http://127.0.0.1:8000/demo.html and writes only synthetic artifacts under `.demo/`. `make serve` serves the measured archive on the same port in a separate session. For full local browser validation, install the supported browser with `make setup-browser`, then run `make verify`.
+
+Python 3.13 and Node 22 are the supported runtimes. Use the committed dependency locks and canonical Make targets. Do not use ad hoc installs or relax validation because a tool is missing. Read the current Makefile before depending on a command.
+
+## Implementation invariants
+
+- Run identity includes recorded inputs, week, trigger, retrieval time, prices, and vendor participation. New runs snapshot their queries; explicitly identified legacy fallbacks must not masquerade as immutable historical snapshots.
+- Persist each retrieval before judging and checkpoint each accepted judge result. `--rejudge RUN_ID` reuses stored responses and retries missing families/models. `--resume RUN_ID` can retrieve missing query/vendor pairs only on the original UTC retrieval date; it must not backfill past days or weeks.
+- Recovery preserves original run identity and metadata. Accepted scores remain append-only; failures remain recorded as attempts. Do not overwrite evidence to make a recovery appear successful.
+- The exporter is the publication boundary. Incomplete category coverage cannot quietly change the category weights of an overall result.
+- Public quality is conditional on API success. Availability, judge missingness, full-panel disagreement, and inference eligibility remain separate evidence.
+- Derived statistics have their own revision and input hashes. Correcting analysis does not change retrieval dates, run triggers, query identity, or the original released observations.
+- Bootstrap intervals, paired tests, and corrected comparisons have assumptions. Unresolved tiers are not equivalence, and a heldout gap is not proof of overfitting.
+- The selected archived run controls its evidence and downloads. Never substitute latest detail for an old run; show an unavailable state instead.
+- All published figures are generated. Synthetic demo data stay separate and clearly labelled. No invented measurements, human labels, usage, or savings.
+
+## External operations and sensitive data
+
+No paid vendor/judge calls, dispatching the weekly workflow, deployment, posting, or messages to others without explicit authorization. Ordinary setup and checks use mock transports or fixtures, not real keys.
+
+Read `docs/03-legal-and-vendor-terms.md` and later verification notes before any vendor participation change. API-key availability is not benchmarking permission. Preserve the full-panel ensemble, bias mitigations, completeness floors, and registered withheld commitment; methodology changes need a documented revision and review.
+
+Never read, print, stage, or publish credential values. Raw databases, calibration tasks containing retrieved content, and active withheld question text stay outside Git and public downloads. Workflow artifacts use sanitized status; optional encrypted recovery requires the owner's public X.509 recipient certificate. No private recovery key belongs in Actions. This release does not audit or remove historical remote artifacts.
+
+Existing dated `docs/`, `applications/`, audits, plans, and handoffs remain research records. Correct them with a dated addition or a new document, not an in-place rewrite. The old guide below is preserved for historical context; its state descriptions and intended products are superseded by the current entry points above.
+
+## Validation and landing
+
+`make check` runs the strict offline gate. `make verify` adds real-browser checks and the mock demo. Verify behavior through relevant invariants, not a test count alone. Name what passed and what was not checked. If a gate appears wrong, investigate rather than weakening it to make the diff pass.
+
+One coherent PR against `main`; no direct push or deployment unless authorized. Human-labelled research, vendor permission, withheld registration, live budgets, and publishing remain owner decisions. A study plan is not a completed study.
+
+---
+
+## Archived build guide — state recorded through August 14, 2026
+
+The following text is preserved history. It is not current setup or product-status guidance. Its dated assumptions about cadence, labelling, heldout operation, commercial scope, and available local data are superseded by [CURRENT-STATE.md](CURRENT-STATE.md).
+
+### Original August build guide
 
 This file is written for whichever instance of Claude Code picks up this project. Read this file first, always — it's the entry point and the thing that tells you which other file to open for what. The `docs/` folder is the full research record this project is built on; treat it as authoritative unless the founder tells you otherwise, and treat anything marked UNVERIFIED inside it as still open, not resolved.
 
-## What this project is, in one paragraph
+#### What this project is, in one paragraph
 
 Vannaris is a free, public, continuously-updated benchmark of web-search/retrieval APIs used by AI agents (Tavily, Exa, Brave, Serper, You.com, Perplexity, Linkup, and others — see `docs/03-legal-and-vendor-terms.md` for exactly which ones are cleared to start with), scored weekly across a query taxonomy by an LLM-judge ensemble, published as a public dashboard with an open data export. The benchmark is the trust engine. **The business was restructured on 2026-08-04 and the old one-line summary — "the router is the business" — is no longer accurate.** What is sold is (1) private evaluations: the same harness run against a customer's own production queries, producing a custom routing table nobody can copy out of the free data; (2) a live score feed and hosted query classifier, sold alongside a routing client that is free and open source, because free OSS routers already exist and the client is not the defensible part; (3) BYOK routing whose recurring value is reliability — failover, latency-aware selection, caching, spend caps, query logs — with score-based routing as the differentiator on top rather than the whole product. Pricing is metered on volume with a savings-share option, not flat tiers. Full detail in `docs/01-product-spec.md`, `docs/05-architecture.md` and `docs/06-business-model.md`.
 
-## Read this before doing anything else
+#### Read this before doing anything else
 
 `docs/01-product-spec.md` — what to build and why, v1 scope, the naming caveat.
 `docs/02-competitive-landscape.md` — who else exists in this space and what's actually differentiated.
@@ -21,14 +79,14 @@ Vannaris is a free, public, continuously-updated benchmark of web-search/retriev
 
 `AUDIT-2026-08-13.md` — the current honest statement of where the project stands, commissioned brutally and sourced throughout. It supersedes the more optimistic readings in `docs/01`, `docs/02` and `docs/06` wherever they disagree, and its §4 is the one to read before believing anything about how well the instrument discriminates. `PLAN-2026-08-13.md` is the ordered response to it, with owners and gates.
 
-## Working unattended
+#### Working unattended
 
 `AUTONOMY.md` is the contract for long sessions with no human in the loop: the
 single gate that defines "did that work" (`scripts/check-all.sh`), the eight
 things an agent may never do alone, and how work lands. Read it before starting
 any autonomous run. The constraints below are the reasoning behind it.
 
-## Non-negotiable constraints (do not silently violate these)
+#### Non-negotiable constraints (do not silently violate these)
 
 **BYOK only, always.** Every vendor's terms of service prohibits reselling or sublicensing access. The router must never hold, proxy-resell, or take a markup on vendor API keys or vendor query costs — it orchestrates using the end user's own credentials. If you find yourself designing a feature where Vannaris sits between the user and the vendor as a resold/proxied service, stop and re-read `docs/03-legal-and-vendor-terms.md` — that design is not viable under the vendor terms as currently understood.
 
@@ -46,7 +104,7 @@ any autonomous run. The constraints below are the reasoning behind it.
 
 **No figure on the public site is typed by hand.** Every number, including the ones inside sentences, is filled at load from the generated export via `data-val` attributes, and `scripts/check-site.mjs` fails the build on any that doesn't resolve. If you find yourself typing a number into HTML, that's the signal it needs to come out of `src/export.py` instead — otherwise the front page and the table it summarises will eventually disagree, which is exactly the failure this project cannot afford.
 
-## Current phase and priority order
+#### Current phase and priority order
 
 Per `docs/07-build-plan.md`, the build order is: (1) benchmark runner + judge pipeline against the cleared v1 vendor set, running weekly, even before the dashboard exists — get real data accumulating in public as early as possible; (2) public dashboard, once there are a few real weeks of data to show; (3) router SDK, BYOK, schema-compatible with LiteLLM's `/v1/search` endpoint per `docs/05-architecture.md`. Don't reorder this without a clear reason — the elapsed public track record is the core credibility claim and front-loading dashboard polish over runner correctness works against that.
 
@@ -66,7 +124,7 @@ The highest-value thing *an assistant* can do next is still the human-labelled c
 
 Before anything in `site/` goes public, read `PUBLISH-CHECKLIST.md`. It gates on the unresolved name, on an attorney reading the methodology, and on not overclaiming the cadence — all founder decisions, none of them safe to resolve by shipping.
 
-## Coding conventions and stack
+#### Coding conventions and stack
 
 This section used to open "no code exists yet" and recommend a stack. The code exists, and what it settled on is not what was recommended, so what follows is the convention rather than the suggestion.
 
@@ -74,10 +132,10 @@ Python 3.13 for the runner, judge ensemble, export and calibration (`src/`), sta
 
 Two conventions worth matching rather than inferring. **Comments say why, not what** — most non-obvious code here carries the incident that produced it, with the measurement attached, and that history is the reason the next person does not undo it. **A change that cannot be validated by an existing gate needs a new gate first** (`AUTONOMY.md`); tests assert the refusals — the cases where the right answer is to decline — because nothing in this pipeline crashes when it is wrong, it publishes.
 
-## Things to flag back to the founder rather than deciding unilaterally
+#### Things to flag back to the founder rather than deciding unilaterally
 
 Whether to include a borderline vendor (Brave, Tavily — broad-but-not-explicit clauses) in the public benchmark before or after attempting a written-consent conversation. Any change to the final public product name. Whether to proceed with a dataset whose license is unresolved (FreshQA — see `docs/04-benchmark-methodology.md`) versus waiting for confirmation. Any point where actual implementation reveals the cost model in `docs/06-business-model.md` or `docs/04-benchmark-methodology.md` is meaningfully wrong — correct the estimate and flag it rather than quietly absorbing the difference. Whether the actual YC W27 deadline (unpublished as of this writing) has been confirmed yet if the build timeline is running close to it.
 
-## Definition of done for the MVP
+#### Definition of done for the MVP
 
 A live, public, weekly-refreshing benchmark dashboard covering the cleared v1 vendor set (recommended starting point: Tavily, Exa, Brave, Serper, Perplexity), with a documented methodology page, a raw data export, and at least one full weekly refresh cycle completed and visible — meaning the mechanism has actually run in public, not just that the code is capable of running. This is deliberately a lower bar than a finished company; `docs/07-build-plan.md` explains why shipping this early and applying to Founders Inc immediately once it's live is the right sequencing.

@@ -109,6 +109,49 @@ class TestConnect(unittest.TestCase):
         conn.close()
         self.assertEqual(len(cols), len(set(cols)))
 
+    def test_foreign_keys_reject_new_orphan_evidence(self):
+        conn = storage.connect(self.dir / "integrity.db")
+        self.assertEqual(conn.execute("PRAGMA foreign_keys").fetchone()[0], 1)
+        with self.assertRaises(sqlite3.IntegrityError):
+            conn.execute(
+                "INSERT INTO judge_scores (id,response_id,judge_model,judge_family,overall,created_at) "
+                "VALUES ('orphan','missing-response','fixture','fixture',7,'2099-01-01')")
+        conn.close()
+
+    def test_legacy_queries_remain_explicit_fallback_without_invented_snapshots(self):
+        path = self.dir / "legacy.db"
+        conn = sqlite3.connect(path)
+        # The previous schema, before lifecycle tables and immutable snapshots.
+        conn.executescript(
+            "CREATE TABLE runs (id TEXT PRIMARY KEY,started_at TEXT NOT NULL,finished_at TEXT,"
+            "week TEXT NOT NULL,query_set_hash TEXT NOT NULL,trigger TEXT,heldout_set TEXT,notes TEXT);"
+            "CREATE TABLE queries (id TEXT PRIMARY KEY,category TEXT NOT NULL,text TEXT NOT NULL,"
+            "source TEXT,gold_answer TEXT,gold_urls TEXT,rotates INTEGER DEFAULT 0,held_out INTEGER DEFAULT 0);"
+            "CREATE TABLE raw_responses (id TEXT PRIMARY KEY,run_id TEXT REFERENCES runs(id),"
+            "query_id TEXT REFERENCES queries(id),vendor TEXT,response_mode TEXT,answer TEXT,"
+            "citations TEXT,results TEXT,latency_ms INTEGER,cost_usd REAL,cost_source TEXT,"
+            "error TEXT,raw_payload TEXT,created_at TEXT,UNIQUE(run_id,query_id,vendor));"
+            "CREATE TABLE judge_scores (id TEXT PRIMARY KEY,response_id TEXT REFERENCES raw_responses(id),"
+            "judge_model TEXT,judge_family TEXT,relevance REAL,freshness REAL,citation_quality REAL,"
+            "overall REAL,rationale TEXT,scored_chars INTEGER,prompt_tokens INTEGER,output_tokens INTEGER,"
+            "judge_model_returned TEXT,created_at TEXT,UNIQUE(response_id,judge_model));"
+        )
+        conn.execute("INSERT INTO runs (id,started_at,week,query_set_hash) "
+                     "VALUES ('legacy','2099-01-01','2099-W01','old-hash')")
+        conn.execute("INSERT INTO queries (id,category,text,gold_answer) "
+                     "VALUES ('q1','general_facts','legacy question','legacy answer')")
+        conn.execute("INSERT INTO raw_responses (id,run_id,query_id,vendor,response_mode,created_at) "
+                     "VALUES ('r1','legacy','q1','fixture','ranked_results','2099-01-01')")
+        conn.commit()
+        conn.close()
+        conn = storage.connect(path, create=False)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM run_queries").fetchone()[0], 0)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM judging_attempts").fetchone()[0], 0)
+        self.assertEqual(conn.execute("SELECT text,snapshot_source FROM response_queries").fetchone(),
+                         ("legacy question", "legacy_fallback"))
+        self.assertIsNone(conn.execute("SELECT retrieval_finished_at FROM runs").fetchone()[0])
+        conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

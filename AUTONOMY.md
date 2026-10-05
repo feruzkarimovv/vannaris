@@ -1,7 +1,6 @@
 # Autonomy contract
 
-Read this before any long unattended session. `CLAUDE.md` says what the project
-is; this says what an agent working on it alone may and may not do.
+Read this before any long unattended session. [`CURRENT-STATE.md`](CURRENT-STATE.md) says what exists; `CLAUDE.md` explains current development; this says what an agent working on it alone may and may not do.
 
 The premise: this project's only asset is that its numbers are believable. An
 agent optimising "make it better" will, given enough rope, make the site look
@@ -23,9 +22,11 @@ A change that cannot be validated by an existing gate needs a new gate first.
 
 These are not preferences. Each one is a claim the project makes in public.
 
-1. **Never weaken the judge's bias mitigations** — the cross-family ensemble,
-   position-swap checks, length normalisation, `require_full=True`, the
-   completeness floors. `CLAUDE.md` names these as the product's credibility,
+1. **Never weaken the implemented judge mitigations** — the cross-family
+   ensemble, length-normalisation instructions, `require_full=True`, and
+   completeness floors. Preserve the position-swap and repeat controls in
+   pairwise human calibration; do not claim the pointwise judge pipeline
+   performs position swaps. `CLAUDE.md` names these as the product's credibility,
    not nice-to-haves. Making the pipeline faster or cheaper by relaxing one is
    the single most damaging change available in this repo.
 2. **Never add a vendor** to `REGISTRY` in `src/vendors/adapters.py`. Adding a
@@ -35,9 +36,9 @@ These are not preferences. Each one is a claim the project makes in public.
    change, no Pages deploy, no domain, no post. Building it is fine; shipping it
    is a person's decision.
 4. **Never spend vendor or judge API money.** No full runs, no smoke runs, no
-   "just to check the adapter". A full run is ~$3.40 and the keys are live.
-   Every benchmark question can be answered from the database already in
-   `data/`, which holds two complete runs.
+   "just to check the adapter". A live run uses paid vendor and judge accounts.
+   Use the committed derived exports for measurements and synthetic fixtures
+   for offline behavior checks. A fresh checkout need not have any raw database.
 5. **Never claim a cadence the data does not support.** The site derives its
    cadence copy from `track_record.schedule_started`; keep it derived. Hand-typed
    claims about weekly or continuous running are forbidden until the scheduled
@@ -65,14 +66,14 @@ These are not preferences. Each one is a claim the project makes in public.
   `check-quality.mjs` stays green — including its accessibility, weight, and
   no-external-requests invariants. Every figure must stay generated from the
   export; no hand-typed numbers, ever.
-- Test coverage, gates, and tooling. More gates is always allowed.
+- Test coverage, gates, and tooling. Add checks that establish meaningful behavior; do not mirror implementation
+  or count skipped checks as evidence.
 - Refactoring with behaviour held constant, where a test proves it constant.
 - Documentation of what exists — as opposed to claims about what it achieves.
-- The routing client, which has no published surface yet. Note its shape
-  changed on 2026-08-04: reliability layer first, score-based routing last, and
-  the client itself open source (`docs/05`).
-- Query set additions, provided the taxonomy balance holds and no query
-  smuggles in a gold answer that decays (`src/queries/full-v1.json` explains).
+- The offline demo and pipeline internals within the current release scope.
+  Historical routing-client plans are not a current instruction to build a router.
+- Query set additions, as separate candidates with explicit query-set identity; do not silently
+  alter a historical run or smuggle in a gold answer that decays (`src/queries/full-v1.json` explains).
 
 ## How work lands
 
@@ -88,11 +89,25 @@ reviewable work, not deployed work.
 - A gate fails in a way that suggests the gate is wrong. Weakening a check to
   make a change pass is the exact failure this document exists to prevent — and
   it has a tell: the diff makes an assertion looser rather than the code better.
-- The change would need one of the eight prohibitions above.
+- The change would need one of the prohibitions above.
 - Two reasonable approaches differ in what gets published or claimed.
 - Something in `docs/` looks wrong. Flag it; do not quietly correct research.
 
-## Known state to work from
+## Current state and local workflow
+
+[CURRENT-STATE.md](CURRENT-STATE.md) is authoritative for current implementation and committed evidence. It records four published weeks, two scheduled successes, a completed one-person pairwise calibration on W31, and a W35 heldout run. The latest live retrieval remains August 24, 2026; this release does not add measured live data.
+
+Use the isolated checkout already provided by the cloud task. Do not create a worktree unless explicitly requested. `make setup`, `make check`, and `make demo` are the credential-free entry points. Use `make setup-browser` before `make verify` when the supported browser is not installed. The mock demo writes `.demo/` and is never a public measurement.
+
+New runs preserve query snapshots and checkpoint retrieval/judge work. Recovery must keep original identity and retry missing work. Analysis revisions record provenance separately from observation dates. Legacy runs without immutable snapshots must remain explicitly identified; do not invent their missing evidence.
+
+Workflow artifacts carry sanitized run status. Optional encrypted recovery uses an owner-provided public X.509 certificate; no private recovery key is sent to Actions. Do not upload plaintext databases/logs to public artifacts. Historical remote artifact review/deletion has not been performed by this task.
+
+Dated studies, business plans, applications, and handoffs remain preserved records. The section below is historical, not a current instruction to retrieve, publish, or label anything.
+
+---
+
+## Archived known state — August 14, 2026
 
 *Updated 2026-08-14. Anything here that can be checked, check — this paragraph
 has been wrong before, and a stale statement of state is how an agent starts

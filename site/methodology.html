@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,12 +12,13 @@
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f7f4'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23285548' stroke-width='3.2'/></svg>">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="masthead">
   <div class="shell masthead__inner navbar">
@@ -30,28 +31,37 @@
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
-      <span></span>
+      Menu
     </button>
   </div>
   <div class="progress" aria-hidden="true"></div>
 </header>
 
-<main>
+<main id="main">
+<noscript><div class="shell load-warning">JavaScript is needed for interactive evidence views. Download the frozen data from <a href="data/latest.json">the public JSON export</a>, or enable JavaScript to inspect results.</div></noscript>
 
 <section class="page-hero">
   <div class="shell">
-    <h1>How a score is made.</h1>
+    <h1>Methodology</h1>
     <p class="lead">
-      What is measured, how, and where the measurement is weak.
-      <span data-val="d.calibration_state"></span> — <a href="#calibration">the calibration</a>.
-      Raw scores are on <a href="data.html">the data page</a>.
+      The workload, API configurations, judge ensemble, and coverage rules behind the published scores.
     </p>
-    <div class="callout" style="margin-top:1.6rem;max-width:68ch">
-      <p>
-        <span data-val="d.unbuilt"></span>
-        Tracked in <a href="#gaps">open gaps</a>.
-      </p>
+    <div class="run-tools" data-run-tools>
+      <div class="run-picker"><label for="run-select">Snapshot</label><select id="run-select" aria-describedby="run-description"><option value="">Latest snapshot</option></select></div>
+      <details class="snapshot-notes">
+        <summary>Coverage and publication notes</summary>
+        <p id="run-description" class="note"></p>
+        <div class="data-health" role="status" aria-live="polite" data-health></div>
+      </details>
     </div>
+    <nav class="section-nav" aria-label="Methodology sections">
+      <a href="#queries">Workload</a>
+      <a href="#judges">Judges</a>
+      <a href="#aggregation">Aggregation</a>
+      <a href="#calibration">Calibration</a>
+      <a href="#gaps">Limitations</a>
+      <a href="#changelog">Changelog</a>
+    </nav>
   </div>
 </section>
 
@@ -59,11 +69,10 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">The query set</span>
-      <h2>Six categories that fail differently</h2>
+      <h2>Query workload</h2>
       <p>
-        <span data-val="latest.n_queries" data-fmt="int"></span> queries in
-        <span data-val="d.n_categories"></span> categories, chosen so that the categories fail
-        differently rather than all measuring the same thing.
+        <span data-val="latest.n_queries" data-fmt="int"></span> authored public queries across
+        <span data-val="d.n_categories"></span> categories, each covering a different kind of search task.
       </p>
     </div>
 
@@ -86,18 +95,15 @@
       <div class="prose">
         <h3>Where the queries come from</h3>
         <p>
-          Every query is authored for this benchmark rather than lifted from an existing dataset.
-          That is a deliberate trade: an academic set would carry more external validity, but the
-          licences on the obvious candidates are either restrictive, unresolved, or built around a
-          fixed pre-indexed corpus rather than the live web. Authoring the set means it ships with
-          the export under an open licence from day one, and it means nobody has to take on trust
-          that the questions were not chosen to favour a result.
+          Every query is authored for this benchmark. Existing datasets considered for reuse had
+          restrictive or unresolved licences, or targeted a fixed corpus rather than the live web.
+          The authored public workload ships with the export under an open licence so its selection
+          can be inspected.
         </p>
         <p>
           The general-facts and multi-hop sets are written in the style of SimpleQA and HotpotQA
-          respectively, without reusing either corpus. The trade-off worth naming: an authored set
-          is easier to accuse of being unrepresentative, and the honest answer is that the whole set
-          is published, so that accusation is checkable rather than rhetorical.
+          respectively, without reusing either corpus. Publishing the full workload makes its scope
+          inspectable; it does not establish that these questions represent production traffic.
         </p>
       </div>
       <div class="prose">
@@ -112,17 +118,13 @@
         <p>
           <strong>The published set does not rotate.</strong> An earlier version of this page said
           those queries were flagged to rotate every cycle so vendors could not overfit to them.
-          The flag exists in the data and nothing reads it — no code in this repository rotates
-          anything, and every run so far has used the same query-set hash. The sentence described
-          an intention as though it were a mechanism, which is the failure this project exists to
-          be an alternative to, so it is gone rather than softened.
+          The flag exists in the data, but no code uses it to rotate queries. Every published run
+          has used the same query-set hash. Query rotation remains an unimplemented proposal.
         </p>
         <p>
-          Overfitting to the published list is instead what the
-          <a href="#heldout">withheld set</a> is for, and it is the honest place to look: the
-          published questions are all visible in the export, so a vendor that wanted to tune
-          against them could. The withheld set has not run yet, so it currently detects nothing —
-          that is stated there too.
+          The <a href="#heldout">withheld set</a> provides a diagnostic for differences between
+          public and withheld questions. Its observed run coverage is recorded below; registration
+          alone is not evidence that it ran, and a score gap does not prove overfitting.
         </p>
       </div>
     </div>
@@ -133,10 +135,9 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">The vendor set</span>
-      <h2>Scoped by contract, not by popularity</h2>
+      <h2>API scope</h2>
       <p>
-        Several search APIs have terms of service that restrict third-party benchmarking, and this
-        project's position is that the rule applies to it too.
+        Included APIs, request configurations, and the terms governing evaluation and publication.
       </p>
     </div>
 
@@ -192,11 +193,10 @@
     </dl>
 
     <div class="prose" style="margin-top:2.5rem;max-width:74ch">
-      <h3>Exactly how each vendor is called</h3>
+      <h3>Request configuration</h3>
       <p>
-        A wrong endpoint, tier or parameter is the most likely reason a published score is unfair,
-        and the cheapest kind of dispute to settle — so the configuration is stated here rather
-        than left in the source for a vendor to find.
+        Endpoints, product tiers, and response limits affect both quality and cost. These are the
+        configurations used in the study.
       </p>
       <ul>
         <li><strong>Exa</strong> — <code>/search</code>, default search type, with
@@ -233,10 +233,10 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Normalisation</span>
-      <h2>Making responses comparable</h2>
+      <h2>Response normalisation</h2>
       <p>
-        Vendors answer in different shapes and different lengths. Four rules make the comparison
-        fair before a judge ever sees a response.
+        Common result-depth and snippet limits reduce format differences. Output shape, cost basis,
+        and latency confounds remain part of the comparison.
       </p>
     </div>
     <div class="grid-2">
@@ -293,7 +293,7 @@
     </div>
 
     <div class="prose" style="margin-top:2.5rem;max-width:74ch">
-      <h3>Does a bigger response score better?</h3>
+      <h3>Payload size and scoring</h3>
       <p>
         The rubric tells the judges not to reward length, and saying so does not make it true. The
         judge-visible payload differs by roughly a factor of two between the largest and smallest
@@ -305,8 +305,7 @@
         <span class="mono" data-val="latest.payload_effect.within_vendor_r_min" data-fmt="n2"></span>
         to
         <span class="mono" data-val="latest.payload_effect.within_vendor_r_max" data-fmt="n2"></span>.
-        That is nothing. The clearest single illustration is in the table itself: the second-largest
-        payload in the set belongs to the lowest-scoring vendor. Per-vendor figures are in the
+        That correlation alone does not rule out length bias or establish causation. Read it alongside the scoring design and sample limitations. Per-vendor figures are in the
         export, so this can be recomputed rather than believed.
       </p>
     </div>
@@ -317,10 +316,10 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">The judges</span>
-      <h2>Three models, three labs, one rubric</h2>
+      <h2>Judge ensemble</h2>
       <p>
-        Three models from three different vendors score every response independently against one
-        rubric. The published score is the median.
+        Three pinned models score responses independently using the same rubric. Complete panels
+        contribute their median to aggregate quality scores.
       </p>
     </div>
 
@@ -360,8 +359,8 @@
 
         <h3>Median, and only when complete</h3>
         <p>
-          The score for a response is the median of the three judges, not the mean, so one outlier
-          cannot move a published figure. Responses missing any judge are dropped entirely rather
+          The score for a response is the median of the three judges, so an extreme score has
+          limited influence; the ensemble remains sensitive to judge choice. Responses missing any judge are dropped entirely rather
           than averaged over the survivors: rate-limit failures cluster in time rather than falling
           randomly, so mixing three-way medians and two-way means in one column would introduce
           bias, not just thin the sample.
@@ -379,11 +378,11 @@
       <div>
         <div class="panel">
           <div class="panel__head">
-            <h3>The rubric, as the code sends it</h3>
+            <h3>Scoring rubric</h3>
             <span class="label">read from the export</span>
           </div>
           <div class="panel__body" style="padding:0">
-            <pre class="code" data-val="config.rubric" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
+            <pre class="code" data-val="config.rubric" role="region" tabindex="0" aria-label="Published scoring rubric" style="border:0;border-radius:0;background:transparent;white-space:pre-wrap"></pre>
           </div>
           <div class="panel__foot">
             Placeholders in braces are filled per response. The length-normalisation and
@@ -402,13 +401,12 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Disagreement</span>
-      <h2>How often the judges disagree, and where</h2>
+      <h2>Judge disagreement</h2>
       <p>
-        A mean spread of
+        The mean score spread is
         <span class="mono" data-val="latest.judging.mean_disagreement" data-fmt="n2"></span>
-        points reads as broad agreement. It is equally consistent with every response splitting
-        the judges slightly and with most agreeing exactly while a tenth split by five. Those are
-        different benchmarks, so the distribution is published rather than the average.
+        points. The distribution below distinguishes typical variation from larger disagreements
+        on individual responses.
       </p>
     </div>
 
@@ -437,7 +435,7 @@
 
     <div class="grid-2" style="margin-top:2rem">
       <div class="prose">
-        <h3>It concentrates by category</h3>
+        <h3>Variation by category</h3>
         <p data-val="d.disagreement_note"></p>
         <p>
           Where the ensemble is split, the ordering within that category is carrying less
@@ -445,7 +443,7 @@
           discount that category — not to discount the whole run, and not to hide the figure.
         </p>
         <p data-val="d.resolution_note"></p>
-        <h3>Which two families</h3>
+        <h3>Pairwise family differences</h3>
         <p>
           The widest pair on this run is <span data-val="d.worst_pair"></span> of mean absolute
           difference. Three judges from three labs is the bias mitigation; it is not a claim that
@@ -493,12 +491,12 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Calibration</span>
-      <h2>How well the judges track a person</h2>
+      <h2>Human calibration</h2>
       <p>
-        Judge disagreement is agreement between models, which is a weaker and different quantity:
-        three models can agree with each other and be wrong together. This is the other
-        measurement — one human, labelling blind, against the ensemble's own choice.
+        One blinded human labeller compared response pairs. This measures agreement with that
+        person on that sample; agreement between models alone does not establish correctness.
       </p>
+      <p class="note"><span data-val="d.calibration_state"></span>. Sample details and limits follow below.</p>
     </div>
 
     <div class="metrics" data-reveal="rows">
@@ -537,10 +535,10 @@
 
     <div class="grid-2" style="margin-top:2rem">
       <div class="prose">
-        <h3>What the number is</h3>
+        <h3>Measured agreement</h3>
         <p data-val="d.calibration_note"></p>
         <p data-val="d.calibration_check"></p>
-        <h3>What it is not</h3>
+        <h3>Limits of the result</h3>
         <p data-val="d.calibration_limits"></p>
         <p data-val="d.calibration_near_tie"></p>
       </div>
@@ -571,17 +569,16 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Withheld set</span>
-      <h2>Questions nobody can tune against, committed before they run</h2>
+      <h2>Withheld workload</h2>
       <p>
-        The published query set is public, which is right, and it means a vendor could in principle
-        tune against those exact questions. Alongside every run goes a second set that is not
-        published — and a hash of it that is, dated, before it is ever used.
+        A separately registered workload provides a public-versus-withheld diagnostic. Question
+        texts are withheld while active; its commitment, scores, and observed coverage are published.
       </p>
     </div>
 
     <div class="grid-2">
       <div class="prose">
-        <h3>Withheld, not hidden</h3>
+        <h3>Commitment and retirement</h3>
         <p>
           A secret question set with a secret score would deserve exactly as much trust as a
           vendor's own benchmark. Three things make this one checkable instead. Its SHA-256 is
@@ -598,8 +595,8 @@
           so its absolute scores are too noisy to rank anyone by. What it measures is the gap
           <em>within</em> one vendor: the same API, in the same run, on the same day, through the
           same judges, scored on published questions against questions that were never published.
-          A vendor that has tuned for the public list scores better on it. Both sides are averaged
-          per category first, so a harder bucket cannot masquerade as a vendor-specific gap.
+          Both sides are averaged per category first. A gap can reflect differences in question
+          difficulty or optimisation against the public workload; it does not establish overfitting.
         </p>
 
         <h3>What it cannot do</h3>
@@ -676,8 +673,8 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Aggregation</span>
-      <h2>From scores to a published table</h2>
-      <p>Four stages, each of which can drop a number rather than publish a weak one.</p>
+      <h2>Aggregation and eligibility</h2>
+      <p>Response medians become category means, then equally weighted vendor scores. Coverage rules can leave a score unpublished.</p>
     </div>
     <ol class="steps" data-reveal="rows">
       <li>
@@ -695,8 +692,7 @@
       <li>
         <h3>Vendor score</h3>
         <p>
-          Mean of that vendor's category cells, so every category weighs the same regardless of
-          how many of its queries scored cleanly.
+          Equal-weight mean of every required category cell. If any category is withheld, the overall score is withheld too; partial category averages are not ranked. Fully judged sample sizes and uncertainty remain visible beside publishable scores.
         </p>
       </li>
       <li>
@@ -715,12 +711,13 @@
 <section id="gaps" class="seam">
   <div class="shell">
     <div class="section-head section-head--wide">
-      <span class="eyebrow eyebrow--accent">Open gaps</span>
-      <h2>Open gaps</h2>
+      <span class="eyebrow eyebrow--accent">Limitations</span>
+      <h2>Known limitations</h2>
       <p>
-        Known distance between the design and what currently runs. If one of these blocks your use
-        of the data, <a href="mailto:feruz.karimov@rutgers.edu">say so</a>.
+        Sampling, calibration, and measurement limits to consider when using these results.
+        <a href="mailto:feruz.karimov@rutgers.edu">Report an issue</a>.
       </p>
+      <p class="note" data-val="d.unbuilt"></p>
     </div>
     <dl class="deflist" data-reveal="rows">
       <div>
@@ -779,17 +776,15 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Conflicts of interest</span>
-      <h2>Who pays for this, and what that could distort</h2>
+      <h2>Funding and disclosures</h2>
       <p>
-        This benchmark is free and intends to fund itself from products built on top of it. That
-        creates real incentives, and the useful time to write them down is before anyone has a
-        reason to ask.
+        Vendor relationships, proposed commercial incentives, and the correction policy.
       </p>
     </div>
 
     <div class="grid-2">
       <div class="prose">
-        <h3>The conflict that exists</h3>
+        <h3>Proposed commercial incentives</h3>
         <p>
           The plan is to sell three things: a live score feed, private evaluations run against a
           customer's own queries, and a routing client. One proposed pricing tier charges a share of
@@ -800,16 +795,16 @@
           and the conflict will be stated on the pricing page itself.
         </p>
 
-        <h3>The conflicts that do not</h3>
+        <h3>Vendor relationships</h3>
         <p>
           No vendor pays anything, for any reason — no sponsorship, no placement, no listing fee, no
           advertising. No equity, employment, advisory role or consulting with any benchmarked
           vendor or its parent. No vendor sees a score before it is published: no embargo, no
           preview, no advance right of reply. No vendor influences the query set, the rubric or the
-          judge models. Every vendor account is paid for at list price.
+          judge models. Recorded pricing tiers are published in <a href="export/pricing.json">pricing.json</a>.
         </p>
 
-        <h3>How to dispute a number</h3>
+        <h3>Corrections and disputes</h3>
         <p>
           Publicly, and specifically. Every individual judge score is already in the export, so a
           dispute can name a query and a judge rather than object to a total. Configuration
@@ -823,7 +818,7 @@
       <div>
         <div class="panel">
           <div class="panel__head">
-            <h3>What should make you distrust this</h3>
+            <h3>Signals to scrutinise</h3>
             <span class="label">each one externally checkable</span>
           </div>
           <div class="panel__body">
@@ -850,23 +845,23 @@
   <div class="shell">
     <div class="section-head section-head--wide">
       <span class="eyebrow eyebrow--accent">Reproduce it</span>
-      <h2>Run the whole thing yourself</h2>
+      <h2>Reproduce the study</h2>
       <p>
-        You need your own API keys for the vendors and the judge models. A full run of
-        <span data-val="latest.n_queries" data-fmt="int"></span> queries cost
+        Live collection requires your own API keys. The public workload contains
+        <span data-val="latest.n_queries" data-fmt="int"></span> queries. The selected run records
         <span class="mono" data-val="latest.vendor_spend_usd" data-fmt="money"></span> in vendor
-        calls.
+        costs, including any withheld queries; costs may be reported or estimated. Judge costs are separate.
       </p>
     </div>
-    <pre class="code">git clone <span data-val="repo_url"></span> &amp;&amp; cd vannaris
-python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
+    <pre class="code" role="region" tabindex="0" aria-label="Commands to run the benchmark">git clone <span data-val="repo_url"></span> &amp;&amp; cd vannaris
+make setup
 cp .env.example .env          # add your keys
 .venv/bin/python scripts/check_keys.py       # verify all eight, one cheap call each
 .venv/bin/python -m src.runner --queries src/queries/full-v1.json
 .venv/bin/python -m src.export               # rebuild site/data and site/export</pre>
     <p class="note" style="margin-top:1rem;max-width:78ch">
-      Or skip the run entirely: every number on this site can be recomputed from the published CSVs
-      with no API keys at all. <a href="data.html#recompute">Worked example</a>.
+      Published aggregates can also be recomputed from the committed CSVs without API keys.
+      <a href="data.html#recompute">Recomputation commands</a>.
     </p>
   </div>
 </section>
@@ -877,11 +872,14 @@ cp .env.example .env          # add your keys
       <span class="eyebrow eyebrow--accent">Changelog</span>
       <h2>Methodology changelog</h2>
       <p>
-        A judge model swap or a rubric edit changes scores without anything changing about the
-        vendors. Those changes belong in a log, not in a silent commit.
+        Protocol changes and reporting corrections, with original measurement dates preserved.
       </p>
     </div>
     <dl class="deflist" data-reveal="rows">
+      <div>
+        <dt><span class="mono">2026-10-04</span> · publication analytics correction</dt>
+        <dd>Derived analytics are recomputed from preserved public observations. An overall score now requires every category to clear its publication floor; incomplete vendors remain inspectable but are not ranked. Uncertainty uses category-stratified paired query bootstrap intervals. Separation uses paired sign-flip tests with Holm correction across vendor comparisons and requires an interval excluding zero. These tests assume exchangeable paired score signs under the null; unresolved differences do not establish equivalence. Disagreement statistics now use complete judge ensembles, with partial panels reported separately. Original retrieval dates, run identities and source observations are preserved: this is a reporting correction, not a new API evaluation. Historical provenance remains explicitly partial where the original execution metadata is unavailable.</dd>
+      </div>
       <div>
         <dt><span class="mono">2026-08-04</span> · methodology v2 — scores from here are not
           comparable with the 31 Jul 2026 run</dt>
@@ -994,12 +992,11 @@ cp .env.example .env          # add your keys
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
       <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
+        An independent study of the search APIs agents call.<br>
         Public data CC BY 4.0. Not affiliated with any vendor listed.
       </p>
       <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+        Contact: <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
@@ -1007,6 +1004,7 @@ cp .env.example .env          # add your keys
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
+      <a href="demo.html">Demo</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -1017,6 +1015,7 @@ cp .env.example .env          # add your keys
 </footer>
 
 <script src="data/bundle.js"></script>
+<script src="assets/run-context.js"></script>
 <script>
 window.SBPage = {
   init: function () {

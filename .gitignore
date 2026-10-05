@@ -34,3 +34,10 @@ node_modules/
 calibration/
 .vercel
 .env*
+
+# Offline demos and local verification artifacts are never measurements.
+.demo/
+.cache/
+.artifacts/
+run-status.json
+*.p7m

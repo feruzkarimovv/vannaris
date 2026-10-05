@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,12 +12,13 @@
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og-exa.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f7f4'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23285548' stroke-width='3.2'/></svg>">
 <link rel="preload" href="../assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="masthead">
   <div class="shell masthead__inner navbar">
@@ -30,20 +31,31 @@
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
-      <span></span>
+      Menu
     </button>
   </div>
   <div class="progress" aria-hidden="true"></div>
 </header>
 
-<main>
+<main id="main">
+<noscript><div class="shell load-warning">JavaScript is needed for interactive evidence views. Download the frozen data from <a href="../data/latest.json">the public JSON export</a>, or enable JavaScript to inspect results.</div></noscript>
 
 <section class="page-hero">
   <div class="shell">
     <h1>Exa</h1>
+    <p class="lead">Quality, cost and latency for Exa, measured against the other search APIs.</p>
 
-    <p class="lead" style="margin-top:1rem">
-      Ranked <strong data-val="d.v.standing"></strong> on the overall table for the
+    <div class="run-tools" data-run-tools>
+      <div class="run-picker"><label for="run-select">Snapshot</label><select id="run-select" aria-describedby="run-description"><option value="">Latest snapshot</option></select></div>
+      <details class="snapshot-notes">
+        <summary>Coverage and publication notes</summary>
+        <p id="run-description" class="note"></p>
+        <div class="data-health" role="status" aria-live="polite" data-health></div>
+      </details>
+    </div>
+
+    <p class="note">
+      Standing: <strong data-val="d.v.standing"></strong> on the overall table for the
       <span data-val="latest.ran_at" data-fmt="when"></span> run, at
       <span class="mono" data-val="d.v.cost_per_query_usd" data-fmt="money"></span> per query.
       It returns <span data-val="d.v.returns"></span>.
@@ -55,11 +67,12 @@
       <a class="btn btn--ghost" href="https://exa.ai" rel="nofollow noopener">Exa docs</a>
     </div>
 
+    <p class="note" data-vendor-evidence></p>
     <div class="metrics" data-reveal="rows">
       <div class="metric">
         <span class="eyebrow metric__label">Overall score</span>
         <div class="metric__value" data-count data-val="d.v.score" data-fmt="n2"></div>
-        <div class="metric__note">ensemble median, 0-10</div>
+        <div class="metric__note">equal-weight category mean, 0–10</div>
       </div>
       <div class="metric">
         <span class="eyebrow metric__label">Cost / query</span>
@@ -207,12 +220,11 @@
     <div>
       <a class="brand" href="../index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
       <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
+        An independent study of the search APIs agents call.<br>
         Public data CC BY 4.0. Not affiliated with any vendor listed.
       </p>
       <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+        Contact: <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
@@ -220,6 +232,7 @@
         <a href="../results.html">Results</a>
         <a href="../methodology.html">Methodology</a>
         <a href="../data.html">Data</a>
+      <a href="../demo.html">Demo</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -231,6 +244,7 @@
 
 <script>window.SB_VENDOR = "exa";</script>
 <script src="../data/bundle.js"></script>
+<script src="../assets/run-context.js"></script>
 <script>
 /* Per-vendor page wiring. The vendor is named once, above; everything below
    reads it from there, so this file is identical for every vendor. */
@@ -274,6 +288,7 @@ window.SBPage = {
         var gap = td("not published", "");
         gap.colSpan = 5;
         gap.className = "note";
+        gap.textContent = c ? "Withheld: " + c.n_scored + "/" + c.n_queries + " fully judged; below the publication floor. " + c.n_errors + " vendor failures." : "No comparable category record.";
         tr.appendChild(gap);
         body.appendChild(tr);
         return;
@@ -295,7 +310,7 @@ window.SBPage = {
     var modes = { ranked_results: "ranked results", both: "answer + ranked results",
                   synthesized_answer: "synthesized answer" };
     var body = document.querySelector("#context-table tbody");
-    var scores = D.latest.vendors.map(function (v) { return v.score; });
+    var scores = D.latest.vendors.filter(function (v) { return v.score != null; }).map(function (v) { return v.score; });
     var lo = Math.min.apply(null, scores), hi = Math.max.apply(null, scores);
     var span = function (v) { return 14 + 86 * (hi > lo ? (v - lo) / (hi - lo) : 1); };
     D.latest.vendors.forEach(function (v, i) {
@@ -331,7 +346,8 @@ window.SBPage = {
       }
       tr.appendChild(name);
       var sc = td(h.fmt(v.score), me ? "num meter best" : "num meter");
-      sc.style.setProperty("--pct", span(v.score).toFixed(1));
+      if (v.score != null) sc.style.setProperty("--pct", span(v.score).toFixed(1));
+      var evidence = document.createElement("span"); evidence.className = "score-note"; evidence.textContent = window.SBSite.evidence(v); sc.appendChild(evidence);
       tr.appendChild(sc);
       tr.appendChild(td("$" + v.cost_per_query_usd.toFixed(5), "num"));
       tr.appendChild(td(v.p50_latency_ms.toLocaleString() + " ms", "num"));

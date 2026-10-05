@@ -19,9 +19,14 @@ here makes a network call or spends anything.
 from __future__ import annotations
 
 import sys
+import asyncio
+import contextlib
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -35,7 +40,17 @@ from src.runner import (  # noqa: E402
     persist_run,
     persist_scores,
     validity,
+    begin_judging_attempt,
+    finish_judging_attempt,
+    fetch_all,
+    judge_all,
+    load_run_queries,
+    mark_retrieval_complete,
+    persist_response,
 )
+from src import runner
+from src.storage import lifecycle
+from src.judge.ensemble import FamilyLimiter
 from src.vendors.base import ResponseMode, SearchResponse, SearchResult  # noqa: E402
 
 FAMILIES = [f for f, _ in JUDGES]
@@ -180,6 +195,12 @@ class TestAggregateDowngradeGuard(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.conn = storage.connect(Path(self._tmp.name) / "t.db")
         self.qmap = {f"q{i}": {"category": "general_facts"} for i in range(200)}
+        self.conn.executemany(
+            "INSERT INTO runs (id,started_at,week,query_set_hash) VALUES (?,?,?,?)",
+            [(name, "2099-01-01", "2099-W01", "fixture")
+             for name in ("run-full", "run-smoke", "run-a", "run-b")],
+        )
+        self.conn.commit()
 
     def tearDown(self):
         self.conn.close()
@@ -373,12 +394,10 @@ class TestPersistenceSurvivesJudging(unittest.TestCase):
                          ["https://example.invalid/a"])
         self.assertEqual(one.latency_ms, 100)
 
-    def test_re_judging_a_recovered_run_costs_no_vendor_money(self):
-        # The claim printed on the console at the point of failure. Counting the
-        # spend twice would overstate what the benchmark costs to operate.
+    def test_recovery_preserves_price_separately_from_incremental_judge_spend(self):
         self.store()
         recovered = load_responses(self.conn, "run-a")
-        self.assertEqual([r.cost_usd for r in recovered], [0.0] * 4)
+        self.assertEqual([r.cost_usd for r in recovered], [0.001] * 4)
 
     def test_every_response_gets_an_id_the_scores_can_use(self):
         responses, ids = self.store()
@@ -401,6 +420,8 @@ class TestPersistenceSurvivesJudging(unittest.TestCase):
         scored = {"q0::fixture_alpha": [failed]}
         persist_scores(self.conn, "run-a", ids, scored)
         self.assertEqual(self.count("judge_scores"), 0)
+        call = self.conn.execute("SELECT status,error FROM judge_call_attempts").fetchone()
+        self.assertEqual(call, ("failed", "quota exhausted, not rate-limited"))
 
     def test_a_score_for_an_unstored_response_is_dropped_not_raised(self):
         # `response_id` is NOT NULL, so writing an orphan would abort the whole
@@ -412,13 +433,350 @@ class TestPersistenceSurvivesJudging(unittest.TestCase):
         self.assertEqual(self.count("judge_scores"), len(FAMILIES))
 
     def test_a_second_run_does_not_disturb_the_first(self):
-        # `--rejudge` stores the recovered responses under a new run id, so both
-        # have to coexist: the original stays exactly as it was.
+        # Independent retrieval runs coexist; rejudging no longer creates a copy.
         self.store("run-a")
         self.store("run-b")
         self.assertEqual(len(load_responses(self.conn, "run-a")), 4)
         self.assertEqual(len(load_responses(self.conn, "run-b")), 4)
         self.assertEqual(self.count("raw_responses"), 8)
+
+
+class TestImmutableRunQueries(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.conn = storage.connect(Path(self.tmp.name) / "snapshot.db")
+
+    def tearDown(self):
+        self.conn.close()
+        self.tmp.cleanup()
+
+    def test_later_wording_category_and_privacy_do_not_rewrite_old_evidence(self):
+        original = [{"id": "q1", "category": "general_facts", "text": "original question",
+                     "gold_answer": "original answer", "held_out": False}]
+        replacement = [{"id": "q1", "category": "long_tail", "text": "replacement question",
+                        "gold_answer": None, "held_out": True}]
+        persist_run(self.conn, "original", "2099-W01", "hash-a", original, [resp()],
+                    "2099-01-01T00:00:00+00:00", "scheduled")
+        persist_run(self.conn, "later", "2099-W02", "hash-b", replacement, [resp()],
+                    "2099-01-08T00:00:00+00:00", "manual")
+        rows = self.conn.execute(
+            "SELECT run_id,category,text,gold_answer,held_out,snapshot_source "
+            "FROM response_queries ORDER BY run_id").fetchall()
+        self.assertEqual(rows, [
+            ("later", "long_tail", "replacement question", None, 1, "snapshot"),
+            ("original", "general_facts", "original question", "original answer", 0, "snapshot"),
+        ])
+        self.assertEqual(load_run_queries(self.conn, "original")[0]["text"], "original question")
+
+    def test_snapshot_cannot_be_updated_or_deleted(self):
+        import sqlite3
+        persist_run(self.conn, "original", "2099-W01", "hash-a",
+                    [{"id": "q1", "category": "general_facts", "text": "original"}], [],
+                    "2099-01-01T00:00:00+00:00", "manual")
+        for statement in ("UPDATE run_queries SET text='replacement'", "DELETE FROM run_queries"):
+            with self.assertRaisesRegex(sqlite3.IntegrityError, "immutable"):
+                self.conn.execute(statement)
+            self.conn.rollback()
+
+    def test_failure_creating_snapshots_rolls_back_the_run_atomically(self):
+        import sqlite3
+        queries = [{"id": "q1", "category": "general_facts", "text": "first"},
+                   {"id": "q2", "category": "general_facts", "text": "second", "source": {"invalid": True}}]
+        with self.assertRaises(sqlite3.ProgrammingError):
+            persist_run(self.conn, "invalid", "2099-W01", "hash", queries, [],
+                        "2099-01-01T00:00:00+00:00", "manual")
+        for table in ("runs", "queries", "run_queries"):
+            self.assertEqual(self.conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0], 0)
+
+
+class TestCheckpointedRecovery(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Path(self.tmp.name) / "recovery.db"
+        self.conn = storage.connect(self.db)
+        self.queries = [{"id": "q1", "category": "general_facts", "text": "original question"}]
+        self.response = resp()
+        self.response.cost_source = "reported"
+        self.response.cost_usd = 0.007
+        self.ids = persist_run(self.conn, "retrieval", "2099-W01", "original-hash", self.queries,
+                               [self.response], "2099-01-01T03:00:00+00:00", "scheduled")
+        self.limits = {fam: FamilyLimiter(4, 0) for fam, _ in JUDGES}
+
+    def tearDown(self):
+        self.conn.close()
+        self.tmp.cleanup()
+
+    async def test_cancelled_judging_retains_completed_family_and_resume_only_fills_holes(self):
+        completed = asyncio.Event()
+        attempt = begin_judging_attempt(self.conn, "retrieval")
+
+        async def interrupted_score(client, keys, family, model, prompt, chars, sem):
+            if family == FAMILIES[0]:
+                completed.set()
+                return JudgeScore(judge_family=family, judge_model=model, overall=8,
+                                  prompt_tokens=123, output_tokens=12)
+            await asyncio.sleep(60)
+
+        with contextlib.redirect_stdout(io.StringIO()), patch.object(runner, "score_one", interrupted_score):
+            task = asyncio.create_task(judge_all(None, {}, [self.response], {"q1": self.queries[0]},
+                                                "01 January 2099", conn=self.conn, run_id="retrieval",
+                                                attempt_id=attempt, judge_sems=self.limits))
+            await asyncio.wait_for(completed.wait(), 2)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        finish_judging_attempt(self.conn, attempt, status="interrupted")
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM judge_scores").fetchone()[0], 1)
+        self.assertEqual(self.conn.execute("SELECT status FROM judging_attempts WHERE id=?", (attempt,)).fetchone()[0],
+                         "interrupted")
+        requested = []
+
+        async def recovered_score(client, keys, family, model, prompt, chars, sem):
+            requested.append(family)
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        recovered_attempt = begin_judging_attempt(self.conn, "retrieval")
+        with contextlib.redirect_stdout(io.StringIO()), patch.object(runner, "score_one", recovered_score):
+            scored = await judge_all(None, {}, load_responses(self.conn, "retrieval"),
+                                     {"q1": self.queries[0]}, "01 January 2099", conn=self.conn,
+                                     run_id="retrieval", attempt_id=recovered_attempt, judge_sems=self.limits)
+        finish_judging_attempt(self.conn, recovered_attempt)
+        self.assertCountEqual(requested, FAMILIES[1:])
+        self.assertEqual(len(scored["q1::fixture_alpha"]), len(JUDGES))
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0], 1)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM raw_responses").fetchone()[0], 1)
+        self.assertEqual(self.conn.execute("SELECT cost_usd,cost_source FROM raw_responses").fetchone(),
+                         (0.007, "reported"))
+
+    async def test_fetch_stage_failure_keeps_each_completed_response(self):
+        queries = [{"id": "q1", "category": "general_facts", "text": "first"},
+                   {"id": "q2", "category": "general_facts", "text": "second"}]
+        persist_run(self.conn, "fetch", "2099-W01", "hash", queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual")
+
+        class Adapter:
+            name = "fixture_alpha"
+
+            async def search(self, client, text, qid):
+                if qid == "q2":
+                    await asyncio.sleep(0.02)
+                    raise RuntimeError("unexpected adapter failure")
+                return resp(qid)
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(RuntimeError, "unexpected adapter"):
+                await fetch_all(None, [Adapter()], queries,
+                                on_response=lambda r: persist_response(self.conn, "fetch", r))
+        other = storage.connect(self.db)
+        try:
+            self.assertEqual([r.query_id for r in load_responses(other, "fetch")], ["q1"])
+        finally:
+            other.close()
+
+    async def test_rejudge_cli_uses_original_run_metadata_and_ignores_current_query_file(self):
+        prompts = []
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            prompts.append(prompt)
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        original = self.conn.execute(
+            "SELECT id,week,started_at,query_set_hash,trigger,retrieval_finished_at FROM runs").fetchone()
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--rejudge", "retrieval",
+                                        "--queries", "/nonexistent-current-query-file.json"]), \
+             patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "make_judge_semaphores", return_value=self.limits), \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            result = await runner.main()
+        self.assertEqual(result, 0)
+        self.assertEqual(self.conn.execute(
+            "SELECT id,week,started_at,query_set_hash,trigger,retrieval_finished_at FROM runs").fetchone(), original)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0], 1)
+        self.assertTrue(all("01 January 2099" in prompt and "original question" in prompt for prompt in prompts))
+        self.assertEqual(self.conn.execute("SELECT cost_usd,cost_source FROM raw_responses").fetchone(),
+                         (0.007, "reported"))
+
+    async def test_changed_protocol_cannot_mix_with_accepted_checkpointed_scores(self):
+        persist_scores(self.conn, "retrieval", self.ids,
+                       {"q1::fixture_alpha": [ensemble()[0]]})
+        with patch.object(runner.judge, "RUBRIC", "changed rubric"):
+            with self.assertRaisesRegex(ValueError, "different judging protocol"):
+                begin_judging_attempt(self.conn, "retrieval")
+
+    async def test_checkpoint_storage_failure_cancels_sibling_judge_calls(self):
+        attempt = begin_judging_attempt(self.conn, "retrieval")
+        live = []
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            if family == FAMILIES[0]:
+                await asyncio.sleep(0)
+                return JudgeScore(judge_family=family, judge_model=model, overall=7)
+            live.append(asyncio.current_task())
+            await asyncio.Event().wait()
+
+        with patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "complete_judge_call", side_effect=RuntimeError("storage failed")), \
+             contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(RuntimeError, "storage failed"):
+                await judge_all(None, {}, [self.response], {"q1": self.queries[0]}, "01 January 2099",
+                                conn=self.conn, run_id="retrieval", attempt_id=attempt, judge_sems=self.limits)
+        self.assertEqual(len(live), 2)
+        self.assertTrue(all(task.done() and task.cancelled() for task in live))
+        finish_judging_attempt(self.conn, attempt, status="interrupted")
+
+    async def test_protocol_fingerprint_covers_parser_and_score_schema(self):
+        original = lifecycle.judging_protocol()
+
+        def changed_parser(text):
+            return {"overall": 10}
+
+        def changed_validator(data, **kwargs):
+            return data
+
+        with patch.object(runner.judge, "_extract", changed_parser):
+            self.assertNotEqual(lifecycle.judging_protocol(), original)
+        with patch.object(runner.judge, "_validate_scores", changed_validator):
+            self.assertNotEqual(lifecycle.judging_protocol(), original)
+
+    async def test_a_judging_attempt_cannot_attach_calls_to_another_retrieval(self):
+        other_ids = persist_run(self.conn, "other", "2099-W01", "other-hash", self.queries,
+                                [resp()], "2099-01-01T04:00:00+00:00", "manual")
+        attempt = begin_judging_attempt(self.conn, "retrieval")
+        with self.assertRaisesRegex(ValueError, "own retrieval run"):
+            lifecycle.begin_judge_call(self.conn, attempt, other_ids["q1::fixture_alpha"],
+                                       FAMILIES[0], JUDGE_MODEL[FAMILIES[0]], "fixture prompt", 14)
+    async def test_database_lock_rejects_overlapping_cli_invocations(self):
+        with lifecycle.exclusive_database(self.db):
+            with self.assertRaisesRegex(RuntimeError, "another benchmark process"):
+                with lifecycle.exclusive_database(self.db):
+                    self.fail("overlapping invocation acquired the lock")
+        with lifecycle.exclusive_database(self.db):
+            pass
+
+    async def test_explicit_recovery_marks_abandoned_running_attempt_interrupted(self):
+        abandoned = begin_judging_attempt(self.conn, "retrieval")
+        lifecycle.begin_judge_call(self.conn, abandoned, self.ids["q1::fixture_alpha"],
+                                   FAMILIES[0], JUDGE_MODEL[FAMILIES[0]], "fixture prompt", 14)
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--rejudge", "retrieval"]), \
+             patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "make_judge_semaphores", return_value=self.limits), \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(await runner.main(), 0)
+        self.assertEqual(self.conn.execute("SELECT status,error FROM judging_attempts WHERE id=?",
+                                           (abandoned,)).fetchone(),
+                         ("interrupted", "superseded by explicit recovery"))
+        self.assertEqual(self.conn.execute("SELECT status FROM judge_call_attempts "
+                                           "WHERE judging_attempt_id=?", (abandoned,)).fetchone()[0], "interrupted")
+
+    async def test_retrieval_resume_can_start_from_zero_checkpoints(self):
+        persist_run(self.conn, "empty", "2099-W01", "snapshot-hash", self.queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual",
+                    provenance={"vendors": ["fixture_alpha"]})
+        requested = []
+
+        class Adapter:
+            name = "fixture_alpha"
+
+            async def search(self, client, query, query_id):
+                requested.append(query_id)
+                return resp(query_id)
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--resume", "empty"]), \
+             patch.object(runner, "build_all", return_value=[Adapter()]), \
+             patch.object(runner, "iso_week", return_value="2099-W01"), \
+             patch.object(runner, "retrieval_date_is_current", return_value=True), \
+             patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "make_judge_semaphores", return_value=self.limits), \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(await runner.main(), 0)
+        self.assertEqual(requested, ["q1"])
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM raw_responses WHERE run_id='empty'").fetchone()[0], 1)
+
+    async def test_retrieval_resume_does_not_repeat_checkpointed_vendor_calls(self):
+        queries = self.queries + [{"id": "q2", "category": "general_facts", "text": "second question"}]
+        persist_run(self.conn, "partial", "2099-W01", "hash", queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual",
+                    provenance={"vendors": ["fixture_alpha"]})
+        persist_response(self.conn, "partial", resp("q1"))
+        requested = []
+
+        class Adapter:
+            name = "fixture_alpha"
+
+            async def search(self, client, query, query_id):
+                requested.append(query_id)
+                return resp(query_id)
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--resume", "partial"]), \
+             patch.object(runner, "build_all", return_value=[Adapter()]), \
+             patch.object(runner, "iso_week", return_value="2099-W01"), \
+             patch.object(runner, "retrieval_date_is_current", return_value=True), \
+             patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "make_judge_semaphores", return_value=self.limits), \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(await runner.main(), 0)
+        self.assertEqual(requested, ["q2"])
+
+    async def test_missing_vendor_responses_cannot_be_backfilled_in_a_later_week(self):
+        persist_run(self.conn, "old-empty", "2000-W01", "hash", self.queries, [],
+                    "2000-01-01T00:00:00+00:00", "scheduled",
+                    provenance={"vendors": ["fixture_alpha"]})
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--resume", "old-empty"]), \
+             patch.object(runner, "fetch_all") as fetch, \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(SystemExit, "past week"):
+                await runner.main()
+        fetch.assert_not_called()
+
+    async def test_retrieval_resume_cannot_mix_different_days_in_the_same_week(self):
+        persist_run(self.conn, "older-day", "2099-W01", "hash", self.queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual",
+                    provenance={"vendors": ["fixture_alpha"]})
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--resume", "older-day"]), \
+             patch.object(runner, "iso_week", return_value="2099-W01"), \
+             patch.object(runner, "retrieval_date_is_current", return_value=False), \
+             patch.object(runner, "fetch_all") as fetch, \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(SystemExit, "original UTC retrieval date"):
+                await runner.main()
+        fetch.assert_not_called()
+
+    async def test_rejudged_partial_retrieval_remains_incomplete_and_exits_nonzero(self):
+        queries = self.queries + [{"id": "q2", "category": "general_facts", "text": "second question"}]
+        persist_run(self.conn, "partial-rejudge", "2099-W01", "hash", queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual",
+                    provenance={"vendors": ["fixture_alpha"]})
+        persist_response(self.conn, "partial-rejudge", resp("q1"))
+
+        async def synthetic_score(client, keys, family, model, prompt, chars, sem):
+            return JudgeScore(judge_family=family, judge_model=model, overall=7)
+
+        with patch.object(sys, "argv", ["runner", "--db", str(self.db), "--rejudge", "partial-rejudge"]), \
+             patch.object(runner, "score_one", synthetic_score), \
+             patch.object(runner, "make_judge_semaphores", return_value=self.limits), \
+             patch.object(runner, "load_dotenv"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(await runner.main(), 1)
+        self.assertEqual(self.conn.execute("SELECT status,retrieval_finished_at FROM runs "
+                                           "WHERE id='partial-rejudge'").fetchone(), ("incomplete", None))
+
+    async def test_stage_marker_recovery_uses_last_checkpoint_instead_of_judging_date(self):
+        persist_run(self.conn, "marker-missing", "2099-W01", "hash", self.queries, [],
+                    "2099-01-01T00:00:00+00:00", "manual")
+        persist_response(self.conn, "marker-missing", resp())
+        checkpoint = self.conn.execute("SELECT created_at FROM raw_responses WHERE run_id='marker-missing'").fetchone()[0]
+        mark_retrieval_complete(self.conn, "marker-missing")
+        self.assertEqual(self.conn.execute("SELECT retrieval_finished_at FROM runs WHERE id='marker-missing'").fetchone()[0],
+                         checkpoint)
 
 
 if __name__ == "__main__":

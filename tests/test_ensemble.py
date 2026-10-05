@@ -12,7 +12,7 @@ differently-computed figure in the same column as a properly-computed one and
 nothing anywhere would notice. So these tests assert the *refusals*: the cases
 where the right answer is to decline rather than to produce something.
 
-Nothing here makes a network call. Every function under test is pure.
+Nothing here makes a live network call. Provider replies use MockTransport.
 
     .venv/bin/python -m unittest discover tests
 """
@@ -20,6 +20,7 @@ Nothing here makes a network call. Every function under test is pure.
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -41,6 +42,8 @@ from src.judge.ensemble import (  # noqa: E402
     build_prompt,
     make_judge_semaphores,
     median_overall,
+    score_one,
+    score_response,
 )
 from src.vendors.base import ResponseMode, SearchResponse, SearchResult  # noqa: E402
 
@@ -108,11 +111,26 @@ class TestExtract(unittest.TestCase):
         self.assertNotIn("freshness", got)
         self.assertNotIn("citation_quality", got)
 
-    def test_negative_and_decimal_scores_are_parsed_not_dropped(self):
-        # Clamping to 0-10 belongs to score_one. If salvage silently skipped a
-        # negative it would look like a missing judge instead of a bad one.
-        got = _extract('{"overall": -2.5, "rationale": "x')
-        self.assertEqual(got["overall"], -2.5)
+    def test_an_out_of_range_salvaged_score_is_rejected_not_clamped(self):
+        with self.assertRaises(ValueError):
+            _extract('{"overall": -2.5, "rationale": "x')
+
+    def test_salvage_preserves_a_complete_exponent_not_its_prefix(self):
+        got = _extract('{"overall": 7.5e-1, "rationale": "cut')
+        self.assertEqual(got["overall"], 0.75)
+        for token in ("9e999", "9e", "9.5.1", "true", "NaN", "Infinity"):
+            with self.subTest(token=token), self.assertRaises(ValueError):
+                _extract('{"overall": ' + token + ', "rationale": "cut')
+
+    def test_a_quoted_score_is_not_salvaged_from_rationale_text(self):
+        with self.assertRaises(ValueError):
+            _extract('{"rationale": "An example is \\"overall\\": 8')
+
+    def test_duplicate_score_fields_do_not_silently_replace_a_judgement(self):
+        for text in ('{"overall": 1, "overall": 9}',
+                     '{"overall": 1, "overall": 9, "rationale": "cut'):
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                _extract(text)
 
     def test_a_reply_with_no_scores_raises(self):
         # Loud, because the caller records this as a judge error and a response
@@ -302,10 +320,18 @@ class TestDescribe(unittest.TestCase):
         self.assertNotIn("quota exhausted", got)
         self.assertIn("HTTPStatusError", got)
 
-    def test_an_ordinary_failure_keeps_its_type_and_message(self):
-        got = _describe(ValueError("no scores in judge reply"))
-        self.assertTrue(got.startswith("ValueError: "))
-        self.assertIn("no scores in judge reply", got)
+    def test_an_ordinary_failure_keeps_its_type_without_echoing_private_text(self):
+        got = _describe(ValueError("private query or credential"))
+        self.assertEqual(got, "ValueError")
+        self.assertNotIn("private", got)
+
+    def test_http_failure_descriptions_never_copy_bodies_or_request_urls(self):
+        for body in ("private-query", OPENAI_QUOTA + "private-query"):
+            with self.subTest(body=body):
+                got = _describe(self.exc(429, body=body))
+                self.assertNotIn("private-query", got)
+                self.assertNotIn("example.invalid", got)
+                self.assertIn("429", got)
 
     def test_every_description_fits_the_column(self):
         # score.error is stored at 300 characters; a description that overflows
@@ -313,6 +339,140 @@ class TestDescribe(unittest.TestCase):
         for e in (self.exc(429, body=OPENAI_QUOTA), self.exc(500, body="x" * 4000),
                   ValueError("y" * 4000)):
             self.assertLessEqual(len(_describe(e)), 300)
+
+
+class TestJudgeReplyValidation(unittest.IsolatedAsyncioTestCase):
+    """Exercise HTTP decoding through the score that aggregation consumes."""
+
+    fields = ("relevance", "freshness", "citation_quality", "overall")
+    valid = {"relevance": 8, "freshness": 7, "citation_quality": 9, "overall": 8.5}
+
+    @staticmethod
+    def envelope(family, text):
+        if family == "anthropic":
+            return {"content": [{"type": "text", "text": text}],
+                    "usage": {"input_tokens": 12, "output_tokens": 6}, "model": "served"}
+        if family == "google":
+            return {"candidates": [{"content": {"parts": [{"text": text}]}}],
+                    "usageMetadata": {"promptTokenCount": 12, "candidatesTokenCount": 6},
+                    "modelVersion": "served"}
+        return {"choices": [{"message": {"content": text}}],
+                "usage": {"prompt_tokens": 12, "completion_tokens": 6}, "model": "served"}
+
+    async def judge(self, reply, family="openai"):
+        text = reply if isinstance(reply, str) else json.dumps(reply)
+        envelope = self.envelope(family, text)
+        async with httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, json=envelope)
+        )) as client:
+            return await score_one(client, {family: "fixture-key"}, family, "pinned",
+                                   "private prompt", 20)
+
+    def assert_failed(self, result):
+        self.assertIsNotNone(result.error)
+        self.assertEqual([getattr(result, field) for field in self.fields], [None] * 4)
+        self.assertIsNone(median_overall([score(7), score(8), result]))
+
+    async def test_valid_scores_survive_all_three_provider_envelopes(self):
+        for family, _ in JUDGES:
+            with self.subTest(family=family):
+                result = await self.judge(self.valid, family)
+                self.assertIsNone(result.error)
+                self.assertEqual(result.overall, 8.5)
+                self.assertEqual(result.judge_model, "pinned")
+                self.assertEqual(result.judge_model_returned, "served")
+                self.assertEqual((result.prompt_tokens, result.output_tokens), (12, 6))
+
+    async def test_every_dimension_rejects_nonfinite_boolean_or_out_of_range_values(self):
+        for field in self.fields:
+            for value in (float("nan"), float("inf"), float("-inf"), True, False,
+                          -0.1, 10.1, "8", None, [], {}):
+                with self.subTest(field=field, value=value):
+                    self.assert_failed(await self.judge({**self.valid, field: value}))
+
+    async def test_missing_dimensions_are_failed_judgements(self):
+        for field in self.fields:
+            with self.subTest(field=field):
+                reply = {k: v for k, v in self.valid.items() if k != field}
+                self.assert_failed(await self.judge(reply))
+
+    async def test_rationale_is_optional_but_must_be_text_when_present(self):
+        for rationale in (None, "", "Relevant primary sources."):
+            with self.subTest(rationale=rationale):
+                result = await self.judge({**self.valid, "rationale": rationale})
+                self.assertIsNone(result.error)
+                self.assertEqual(result.rationale, rationale or None)
+        self.assert_failed(await self.judge({**self.valid, "rationale": ["private"]}))
+
+    async def test_truncated_rationale_keeps_complete_valid_scores(self):
+        reply = json.dumps(self.valid)[:-1] + ', "rationale": "Primary sourc'
+        result = await self.judge(reply)
+        self.assertIsNone(result.error)
+        self.assertEqual(result.overall, self.valid["overall"])
+        self.assertEqual(result.rationale, "Primary sourc")
+
+    async def test_truncation_inside_a_rationale_escape_keeps_valid_scores(self):
+        for suffix in ("\\", "\\u12"):
+            with self.subTest(suffix=suffix):
+                reply = json.dumps(self.valid)[:-1] + ', "rationale": "cut' + suffix
+                result = await self.judge(reply)
+                self.assertIsNone(result.error)
+                self.assertEqual(result.overall, self.valid["overall"])
+                self.assertIsNone(result.rationale)
+
+    async def test_truncation_does_not_hide_an_invalid_or_missing_dimension(self):
+        for reply in (
+            '{"relevance": 8, "freshness": 7, "citation_quality": 9, "overall": 9e999, "rationale": "cut',
+            '{"relevance": 8, "freshness": 7, "citation_quality": 9, "overall": true, "rationale": "cut',
+            '{"overall": 8, "rationale": "cut',
+        ):
+            with self.subTest(reply=reply):
+                self.assert_failed(await self.judge(reply))
+
+    async def test_array_and_non_text_judge_replies_are_failed_judgements(self):
+        self.assert_failed(await self.judge([self.valid]))
+        envelope = self.envelope("openai", {"private": "reply"})
+        async with httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, json=envelope)
+        )) as client:
+            result = await score_one(client, {"openai": "fixture-key"}, "openai", "pinned", "q", 1)
+        self.assert_failed(result)
+        self.assertNotIn("private", result.error)
+
+    async def test_invalid_usage_or_model_metadata_cannot_break_score_storage(self):
+        for changes in ({"usage": {"prompt_tokens": {"private": "value"}}},
+                        {"usage": {"prompt_tokens": True}},
+                        {"usage": {"completion_tokens": -1}},
+                        {"model": ["private"]}):
+            with self.subTest(changes=changes):
+                envelope = {**self.envelope("openai", json.dumps(self.valid)), **changes}
+                async with httpx.AsyncClient(transport=httpx.MockTransport(
+                    lambda request: httpx.Response(200, json=envelope)
+                )) as client:
+                    result = await score_one(client, {"openai": "fixture-key"}, "openai",
+                                             "pinned", "q", 1)
+                self.assert_failed(result)
+                self.assertNotIn("private", result.error)
+                self.assertIsNone(result.prompt_tokens)
+                self.assertIsNone(result.output_tokens)
+                self.assertIsNone(result.judge_model_returned)
+
+    async def test_one_invalid_family_preserves_the_others_but_refuses_the_median(self):
+        seen = []
+
+        def reply(request):
+            family = {"api.anthropic.com": "anthropic", "api.openai.com": "openai",
+                      "generativelanguage.googleapis.com": "google"}[request.url.host]
+            seen.append(family)
+            scores = {**self.valid, "overall": float("nan")} if family == "openai" else self.valid
+            return httpx.Response(200, json=self.envelope(family, json.dumps(scores)))
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(reply)) as client:
+            results = await score_response(client, {family: "fixture-key" for family, _ in JUDGES},
+                                           response(), "q", None, TODAY)
+        self.assertEqual(set(seen), {family for family, _ in JUDGES})
+        self.assertEqual(sum(result.error is None for result in results), 2)
+        self.assertIsNone(median_overall(results))
 
 
 # --------------------------------------------------- prompt / length normalisation

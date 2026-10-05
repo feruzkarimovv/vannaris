@@ -175,14 +175,18 @@ class TestVendorTotals(unittest.TestCase):
         rows = ([row(category="general_facts", median=9.0) for _ in range(10)] +
                 [row(category="long_tail", median=3.0) for _ in range(10)])
         cells = export.build_cells(rows)
-        totals = export.build_vendor_totals(rows, cells)
+        totals = export.build_vendor_totals(rows, cells, ["general_facts", "long_tail"])
         self.assertEqual(totals[0]["score"], 6.0)
 
-    def test_a_suppressed_category_is_left_out_of_the_vendor_score(self):
+    def test_a_suppressed_category_suppresses_the_overall_score(self):
         rows = ([row(category="general_facts", median=8.0) for _ in range(10)] +
                 [row(category="long_tail", median=None) for _ in range(10)])
         totals = export.build_vendor_totals(rows, export.build_cells(rows))
-        self.assertEqual(totals[0]["score"], 8.0)
+        self.assertIsNone(totals[0]["score"])
+        self.assertIsNone(totals[0]["ci95"])
+        self.assertEqual(totals[0]["status"], "incomplete_categories")
+        self.assertEqual(totals[0]["included_categories"], ["general_facts"])
+        self.assertEqual(totals[0]["required_categories"], export.CATEGORY_ORDER)
 
     def test_outright_wins_count_queries_one_vendor_took_alone(self):
         rows = []
@@ -341,11 +345,103 @@ class TestCanonicalRun(unittest.TestCase):
         stalled = self.a_run("interrupted", complete=0, completeness=0.0)
         self.assertIsNone(export.canonical_run([stalled], "2099-W01"))
 
+    def test_legacy_unknown_retrieval_marker_does_not_reject_history(self):
+        legacy = self.a_run("legacy")
+        legacy.update(retrieval_finished_at=None,
+                      methodology={"retrieval_provenance": None})
+        self.assertIs(export.canonical_run([legacy], "2099-W01"), legacy)
+
     def test_a_re_judged_run_beats_the_interrupted_one_it_recovered(self):
         runs = [self.a_run("interrupted", complete=0, completeness=0.0),
                 self.a_run("rejudged", complete=140,
                          started="2099-01-04T09:00:00+00:00")]
         self.assertEqual(export.canonical_run(runs, "2099-W01")["id"], "rejudged")
+
+
+class TestFrozenRetrievalSelection(unittest.TestCase):
+    def test_judged_partial_workload_cannot_pass_observed_subset_floors(self):
+        from src.storage.lifecycle import mark_retrieval_complete, persist_run
+
+        with tempfile.TemporaryDirectory() as temporary:
+            conn = export.storage.connect(Path(temporary) / "fixture.db")
+            conn.row_factory = export.sqlite3.Row
+            queries = [{"id": f"{cat}-{i}", "category": cat, "text": "FIXTURE QUERY"}
+                       for cat in export.CATEGORY_ORDER
+                       for i in range(export.MIN_QUERIES_PER_CATEGORY + 1)]
+            persist_run(conn, "partial", "2099-W01", "fixture-hash", queries, [],
+                        "2099-01-04T06:00:00Z", "manual",
+                        provenance={"query_snapshot": "immutable_per_run",
+                                    "vendors": ["fixture"]})
+
+            def checkpoint(q):
+                rid = f"fixture-{q['id']}"
+                conn.execute("INSERT INTO raw_responses "
+                             "(id,run_id,query_id,vendor,response_mode,created_at) "
+                             "VALUES (?,?,?,?,?,?)",
+                             (rid, "partial", q["id"], "fixture", "ranked_results",
+                              "2099-01-04T06:01:00Z"))
+                conn.executemany("INSERT INTO judge_scores "
+                                 "(id,response_id,judge_family,judge_model,overall,created_at) "
+                                 "VALUES (?,?,?,?,?,?)",
+                                 [(f"{rid}-{family}", rid, family, model, 8.0,
+                                   "2099-01-04T06:02:00Z")
+                                  for family, model in export.JUDGES])
+
+            missing = []
+            for q in queries:
+                if q["id"].endswith(f"-{export.MIN_QUERIES_PER_CATEGORY}"):
+                    missing.append(q)
+                else:
+                    checkpoint(q)
+            conn.commit()
+            candidates = export.candidate_runs(conn)
+            observed = candidates[0]
+            self.assertEqual(observed["min_per_category"], export.MIN_QUERIES_PER_CATEGORY)
+            self.assertEqual(observed["categories"], len(export.CATEGORY_ORDER))
+            self.assertEqual(observed["completeness"], 1.0)
+            self.assertIsNone(observed["retrieval_finished_at"])
+            self.assertIsNone(export.canonical_run(candidates, "2099-W01"))
+            with self.assertRaisesRegex(ValueError, "missing planned"):
+                mark_retrieval_complete(conn, "partial")
+
+            for q in missing:
+                checkpoint(q)
+            conn.commit()
+            # Finishing responses alone is insufficient until the verified
+            # stage marker is recovered from the stored checkpoints.
+            self.assertIsNone(export.canonical_run(export.candidate_runs(conn), "2099-W01"))
+            mark_retrieval_complete(conn, "partial")
+            published = export.canonical_run(export.candidate_runs(conn), "2099-W01")
+            self.assertEqual(published["id"], "partial")
+            self.assertEqual(published["retrieval_finished_at"], "2099-01-04T06:01:00Z")
+            conn.close()
+
+
+class TestBrowserPublicationContract(unittest.TestCase):
+    def test_browser_omits_audit_family_while_download_retains_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            comparison = {"vendor_a": "fixture_a", "vendor_b": "fixture_b",
+                          "p_value": 0.01, "p_adjusted": 0.07}
+            tiers = [{"tier": 1, "vendors": ["fixture_a", "fixture_b"]}]
+            week = {"week": "2099-W01", "detail": [],
+                    "separation": {"comparisons": [comparison], "overall_tiers": tiers,
+                                   "by_category": [], "multiplicity": "holm"}}
+            bundle = {"latest": week, "all_weeks": {week["week"]: week}, "weeks": [week["week"]]}
+            export.write_site_data(directory, bundle, {week["week"]: {}})
+            for filename in (f"{week['week']}.json", "latest.json"):
+                download = json.loads((directory / filename).read_text())
+                self.assertEqual(download["separation"]["comparisons"], [comparison])
+            raw = (directory / "bundle.js").read_text()
+            browser = json.loads(raw.split("window.SB_DATA = ", 1)[1].rsplit(";", 1)[0])
+            for snapshot in (browser["latest"], browser["all_weeks"][week["week"]]):
+                self.assertNotIn("comparisons", snapshot["separation"])
+                self.assertNotIn("detail", snapshot)
+                self.assertEqual(snapshot["separation"]["overall_tiers"], tiers)
+                self.assertEqual(snapshot["separation"]["multiplicity"], "holm")
+            # Exporting the browser projection must not mutate the full audit.
+            self.assertEqual(week["separation"]["comparisons"], [comparison])
+            self.assertEqual(raw.count("\n"), 2)
 
 
 # ------------------------------------------------------- the routing gain
