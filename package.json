@@ -2,15 +2,20 @@
   "name": "vannaris-checks",
   "private": true,
   "type": "module",
-  "description": "Dev-only tooling for the Vannaris site checks. The site itself has no build step and no runtime dependencies — nothing here ships.",
+  "description": "Dev-only tooling for the Vannaris site checks. The site itself has no build step and no runtime dependencies \u2014 nothing here ships.",
   "scripts": {
     "check": "npm run check:site && npm run check:quality && npm run check:labeller",
     "check:site": "node scripts/check-site.mjs",
     "check:quality": "node scripts/check-quality.mjs",
-    "check:labeller": "node scripts/check-labeller.mjs"
+    "check:labeller": "node scripts/check-labeller.mjs",
+    "check:browser": "node scripts/check-browser.mjs site",
+    "demo": "make demo",
+    "demo:build": "make demo-build",
+    "verify": "make verify"
   },
   "devDependencies": {
     "axe-core": "^4.12.1",
-    "jsdom": "^27.0.0"
+    "jsdom": "^27.0.0",
+    "playwright": "1.62.1"
   }
 }

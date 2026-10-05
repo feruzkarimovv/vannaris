@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline engineering demo: Vannaris</title>
+<meta name="description" content="A clearly synthetic, offline walkthrough of checkpointing, judge failure, recovery, and safe public export. No paid API calls.">
+<link rel="canonical" href="https://vannaris.com/demo.html">
+<meta property="og:title" content="Offline engineering demo: Vannaris">
+<meta property="og:description" content="Inspect checkpointing, injected failures, same-run recovery, and a safe export with synthetic data.">
+<meta property="og:url" content="https://vannaris.com/demo.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://vannaris.com/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f7f4'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23285548' stroke-width='3.2'/></svg>">
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="masthead"><div class="shell masthead__inner navbar">
+<a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
+<nav class="nav" id="site-nav" aria-label="Primary"><a href="results.html">Results</a><a href="methodology.html">Methodology</a><a href="data.html">Data</a><a href="demo.html" aria-current="page">Demo</a><a href="https://github.com/feruzkarimovv/vannaris">Source</a></nav>
+<button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="Menu"><span></span></button>
+</div></header>
+<main id="main">
+<section class="page-hero"><div class="shell">
+<p class="demo-label">SYNTHETIC · OFFLINE ENGINEERING DEMO</p>
+<h1>Offline recovery demo</h1>
+<p class="lead">Inspect checkpointing, judge failure, and same-run recovery using synthetic data. No paid API calls.</p>
+<div class="data-health" role="status" id="demo-status">Synthetic fixture data demonstrates pipeline behaviour, not real vendor performance.</div>
+<div class="cta-row"><a class="btn" href="results.html">View results <span aria-hidden="true">→</span></a><a class="btn btn--ghost" href="https://github.com/feruzkarimovv/vannaris/blob/main/src/demo.py">Read the demo code</a></div>
+</div></section>
+<section class="band seam"><div class="shell">
+<div id="demo-setup" class="prose"><h2>Run locally</h2><p>After repository setup, generate the offline evidence and start its local server:</p><pre class="code" role="region" tabindex="0" aria-label="Command to start the offline demo">make demo</pre><p>Open <code>http://127.0.0.1:8000/demo.html</code> to inspect the recorded stages. The demo uses a separate synthetic site and leaves the published benchmark files unchanged.</p><p><a href="https://github.com/feruzkarimovv/vannaris#quick-start">Installation and quick start</a></p></div>
+<div id="demo-evidence" hidden>
+<div class="section-head"><h2>Recorded stages</h2><p>Select a stage to inspect its checkpoint, recovery action, and export status.</p></div>
+<div class="demo-controls" id="demo-controls" role="group" aria-label="Pipeline stage"></div>
+<div class="panel" id="demo-stage" aria-live="polite"><div class="panel__head"><h3 id="demo-stage-title"></h3><span class="label" id="demo-stage-status"></span></div><div class="panel__body"><p id="demo-stage-detail" class="prose"></p><dl id="demo-stage-metrics" class="demo-summary"></dl></div></div>
+<h2 style="margin-top:2.5rem">Verified behaviour</h2><dl class="deflist" id="demo-checks"></dl>
+<div class="cta-row"><a class="btn" href="results.html">Explore synthetic results</a><a class="btn btn--ghost" href="events.json" download>Download event trace</a><a href="demo.json" download>Download demo evidence</a></div>
+<p class="note">These are deterministic mocked responses and simulated costs. They demonstrate pipeline behavior; they are not measurements of commercial search APIs.</p>
+</div>
+</div></section>
+</main>
+<footer class="foot"><div class="shell"><p class="foot__tagline">Vannaris · inspectable evaluation engineering</p><p class="foot__links"><a href="index.html">Home</a><a href="results.html">Results</a><a href="data.html">Data</a><a href="https://github.com/feruzkarimovv/vannaris">Source</a></p></div></footer>
+<script src="data/bundle.js"></script>
+<script src="assets/demo.js"></script>
+</body>
+</html>

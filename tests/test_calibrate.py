@@ -632,6 +632,16 @@ class TestLoadPairSet(unittest.TestCase):
         self.assertEqual(load_pair_set(self.conn, "set1"),
                          load_pair_set(self.conn, "set1"))
 
+    def test_registered_task_uses_run_snapshot_after_global_query_edits(self):
+        self.conn.execute(
+            "INSERT INTO run_queries (run_id,query_id,category,text,gold_answer) "
+            "SELECT 'r1',id,category,text,gold_answer FROM queries WHERE id='q1'")
+        before = load_pair_set(self.conn, "set1")
+        self.conn.execute("UPDATE queries SET category='long_tail',text='different question',"
+                          "gold_answer='different answer' WHERE id='q1'")
+        self.conn.commit()
+        self.assertEqual(load_pair_set(self.conn, "set1"), before)
+
     def test_the_question_and_reference_answer_travel_with_each_side(self):
         p = load_pair_set(self.conn, "set1")[0]
         self.assertEqual(p["category"], "general_facts")

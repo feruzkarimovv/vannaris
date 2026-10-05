@@ -24,6 +24,23 @@
 
   /* --------------------------------------------------------------- values */
   var D = window.SB_DATA;
+  if (!D || !D.latest) {
+    var recover = function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      var warning = document.createElement("div");
+      warning.className = "shell load-warning";
+      warning.setAttribute("role", "alert");
+      var prefix = window.SB_VENDOR ? "../" : "";
+      warning.innerHTML = '<h1>Evidence could not load</h1><p>The published data file is unavailable. Reload this page to retry, or inspect the frozen JSON export.</p><p><button class="btn" type="button">Retry loading</button> <a href="' + prefix + 'data/latest.json">Download the public snapshot</a></p>';
+      warning.querySelector("button").addEventListener("click", function () { location.reload(); });
+      main.replaceChildren(warning);
+      document.querySelectorAll("[data-repo]").forEach(function (a) { a.href = "https://github.com/feruzkarimovv/vannaris"; });
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", recover);
+    else recover();
+    return;
+  }
 
   /* ISO week ids (2026-W33) name the export files. They are not how a public
    * page should date a run: W33 ran on 13 Aug, not on that week's Monday.
@@ -76,6 +93,8 @@
    * at all — the number then means what it meant before tiers existed, rather
    * than the badge rendering empty. */
   function rank(vendor, position) {
+    var item = D.latest.vendors.filter(function (v) { return v.vendor === vendor; })[0];
+    if (!item || item.score == null) return { tier: null, shared: false, peers: [], text: "unranked" };
     var tier = TIERS[vendor] || (position + 1);
     var peers = (D && D.latest ? D.latest.vendors : []).filter(function (o) {
       return (TIERS[o.vendor] || 0) === tier;
@@ -98,8 +117,8 @@
     if (!D || !D.latest) return {};
     var vs = D.latest.vendors;
     var withCost = vs.filter(function (v) { return v.cost_per_query_usd; });
-    var cheap = withCost.reduce(function (a, b) { return a.cost_per_query_usd <= b.cost_per_query_usd ? a : b; });
-    var top = vs[0];
+    var cheap = withCost.reduce(function (a, b) { return a.cost_per_query_usd <= b.cost_per_query_usd ? a : b; }, withCost[0] || vs[0]);
+    var top = vs.filter(function (v) { return v.score != null; })[0] || {label:"No complete overall score",vendor:"",score:null,cost_per_query_usd:null};
     var cells = D.latest.cells.filter(function (c) { return c.vendor === cheap.vendor && c.pct_of_best != null; });
     var weak = cells.filter(function (c) { return c.pct_of_best < 90; })
                     .sort(function (a, b) { return a.pct_of_best - b.pct_of_best; });
@@ -146,8 +165,8 @@
     if (!cells.length) {
       spreadNote = "No category on this run carries a complete enough sample to compare the two.";
     } else if (!weak.length) {
-      spreadNote = "It reaches " + span(strong) + " of the best available score in every one of " +
-        "the " + D.categories.length + " categories.";
+      spreadNote = "It reaches " + span(strong) + " of the best available score in all " + cells.length +
+        " published categories" + (cells.length < D.categories.length ? "; the remaining categories are withheld." : ".");
     } else if (!strong.length) {
       spreadNote = "It reaches " + span(weak) + " of the best available score, and gets within " +
         "10% of the category leader nowhere.";
@@ -199,13 +218,12 @@
           rank_of: vs.length,
           // "joint 3rd", not "3rd", when the run cannot separate this vendor
           // from the one the table happens to print below it.
-          standing: (R.shared ? "joint " : "") + ord(R.tier) + " of " + vs.length,
+          standing: R.tier == null ? "not ranked — incomplete category coverage" : (R.shared ? "joint " : "") + ord(R.tier) + " of " + vs.filter(function (v) { return v.score != null; }).length + " ranked vendors",
           returns: modes[self.response_mode] || self.response_mode,
           strength: !mine.length
             ? "No category published a comparable cell for it on this run."
             : leads.length
-              ? "Leads " + joinList(leads.map(function (c) { return catLabel[c.category].toLowerCase(); })) +
-                " outright."
+              ? "Highest point estimate on " + joinList(leads.map(function (c) { return catLabel[c.category].toLowerCase(); })) + ". Read this alongside the paired intervals; it does not establish an outright lead."
               : "Comes closest on " + catLabel[mine[0].category].toLowerCase() + ", at " +
                 Math.round(mine[0].pct_of_best) + "% of the category leader.",
           weakness: mine.length < 2
@@ -217,16 +235,17 @@
            * the interval supports, and saying only the point difference on a
            * page about that vendor is the overclaim the badge stopped making. */
           gap_note: (function () {
+            if (self.score == null) return "An overall score is withheld because not every required category has sufficient judging coverage. Available category scores remain inspectable below.";
             var tied = R.peers.map(function (o) { return o.label; });
             if (R.tier === 1) {
               return R.shared
                 ? "Shares the top tier with " + joinList(tied) + ". This run cannot separate them."
-                : "Leads the overall table, separated from second place by the paired 95% interval.";
+                : "Leads the overall table, supported by multiplicity-adjusted paired comparisons.";
             }
-            var behind = (vs[0].score - self.score).toFixed(2) + " points behind " + vs[0].label +
+            var behind = (top.score - self.score).toFixed(2) + " points behind " + top.label +
               ", which leads the overall table.";
             return R.shared
-              ? behind + " Level with " + joinList(tied) + ". This run cannot separate them."
+              ? behind + " The difference from " + joinList(tied) + " is unresolved; this does not establish equivalence."
               : behind;
           })()
         };
@@ -235,19 +254,22 @@
 
     var likeRatio = D.latest.cost_spread && D.latest.cost_spread.like_for_like_ratio;
     var findingNote;
-    if (!cells.length) {
+    if (top.score == null) {
+      findingNote = "No vendor has a complete overall score on this run. Inspect the available categories; an overall winner is not established.";
+    } else if (!cells.length) {
       findingNote = "This run published no comparable category cells.";
     } else {
       var costBit = likeRatio
         ? Number(likeRatio).toFixed(0) + "× cheaper on like-for-like pay-as-you-go"
         : (top.cost_per_query_usd / cheap.cost_per_query_usd).toFixed(0) + "× cheaper";
       if (!weak.length) {
-        findingNote = cheap.label + " reaches " + span(strong) + " of " + top.label +
-          " in every category, " + costBit + ".";
+        findingNote = cheap.label + " reaches " + span(strong) + " of the category-leading score" +
+          " in all " + cells.length + " published categories, " + costBit + "." +
+          (cells.length < D.categories.length ? " Other categories are withheld." : "");
       } else if (!strong.length) {
         findingNote = cheap.label + " is " + costBit + " than " + top.label + ".";
       } else {
-        findingNote = cheap.label + " reaches " + span(strong) + " of " + top.label +
+        findingNote = cheap.label + " reaches " + span(strong) + " of the category-leading score" +
           " on " + strong.length + " of " + D.categories.length + " categories, " + costBit + ".";
       }
     }
@@ -262,8 +284,8 @@
       cheap_score: cheap.score,
       cheap_cost: cheap.cost_per_query_usd,
       top_cost: top.cost_per_query_usd,
-      cost_ratio: top.cost_per_query_usd / cheap.cost_per_query_usd,
-      cost_pct: 100 * cheap.cost_per_query_usd / top.cost_per_query_usd,
+      cost_ratio: top.cost_per_query_usd ? top.cost_per_query_usd / cheap.cost_per_query_usd : null,
+      cost_pct: top.cost_per_query_usd ? 100 * cheap.cost_per_query_usd / top.cost_per_query_usd : null,
       strong_lo: strong.length ? strong[0].pct_of_best : null,
       strong_hi: strong.length ? strong[strong.length - 1].pct_of_best : null,
       strong_n: strong.length,
@@ -488,7 +510,7 @@
        * one would go on saying this one. Every branch returns English. */
       routing_note: (function () {
         var R = D.latest.routing || {};
-        if (!R.leaders) return "This run published no per-category comparison, so there is no routing gain to report.";
+        if (!R.leaders || R.best_single_score == null) return "This run has no complete overall comparison, so there is no measured routing gain to report.";
         var name = {};
         vs.forEach(function (v) { name[v.vendor] = v.label; });
         var n = R.n_categories;
@@ -517,7 +539,7 @@
         var name = {};
         vs.forEach(function (v) { name[v.vendor] = v.label; });
         var n = R.n_categories, sep = R.categories_separated;
-        if (sep === n) return "Every one of those leads is separated from second place by a paired 95% interval.";
+        if (sep === n) return "Every category lead is supported by the adjusted paired comparison.";
         /* A rival is named only when the same vendor shares the top tier in
          * every category the run cannot resolve. Counting appearances across
          * all categories names a vendor for categories it is not in, and
@@ -544,8 +566,7 @@
           : "The gain above therefore rests on category leads this run cannot resolve in " +
             (n - sep) + " of " + n + " cases.";
         return subject + " only separated from second place in " + sep + " of " + n +
-          " categories; in the other " + (n - sep) + " the paired 95% interval on the gap includes " +
-          "zero" + (rival ? ", level with " + (name[rival] || rival) : "") + ". " + close;
+          " categories; in the other " + (n - sep) + " the adjusted paired comparison does not establish a lead" + (rival ? ", level with " + (name[rival] || rival) : "") + ". " + close;
       })()
     };
   }
@@ -599,6 +620,7 @@
       var v = resolve(el.getAttribute("data-val"));
       if (v == null) {
         el.textContent = "n/a";
+        el.removeAttribute("data-count-to");
         el.setAttribute("title", "no value in the current export");
         return;
       }
@@ -627,6 +649,69 @@
     el.innerHTML = bits.map(function (b) {
       return '<span data-priority="' + b[2] + '">' + b[0] + " <b>" + b[1] + "</b></span>";
     }).join("");
+  }
+
+  function evidence(v) {
+    var required = (v.required_categories || D.categories).length;
+    var included = v.included_categories ? v.included_categories.length : D.latest.cells.filter(function (c) { return c.vendor === v.vendor && c.score != null; }).length;
+    var parts = [v.n_scored + "/" + v.n_queries + " fully judged", included + "/" + required + " categories published"];
+    if (v.availability != null) parts.push((v.availability * 100).toFixed(1) + "% API availability");
+    else parts.push((100 * (v.n_queries - v.n_errors) / v.n_queries).toFixed(1) + "% API availability");
+    if (v.ci95) parts.unshift("95% interval " + v.ci95.map(function (x) { return Number(x).toFixed(2); }).join("–"));
+    if (v.score == null) parts.unshift("Overall withheld: incomplete categories");
+    return parts.join(" · ");
+  }
+
+  function runControls() {
+    var latest = window.SB_LATEST || D.latest;
+    var current = D.latest;
+    var main = document.querySelector("main"); if (main) { main.dataset.run = current.week; main.dataset.selectedRun = current.week; }
+    var age = Math.max(0, Math.floor((Date.now() - Date.parse(latest.ran_at)) / 86400000));
+    var select = document.getElementById("run-select");
+    var archive = D.all_weeks || {};
+    if (select) {
+      select.textContent = "";
+      (D.weeks || [current.week]).slice().reverse().forEach(function (week) {
+        var w = (Array.isArray(archive) ? archive.filter(function (v) { return v.week === week; })[0] : archive[week]) || (week === latest.week ? latest : null);
+        var option = document.createElement("option");
+        option.value = week;
+        option.textContent = formatWhen(w ? w.ran_at : week) + (week === latest.week ? " · latest published" : " · archive");
+        option.selected = week === current.week;
+        option.disabled = !w;
+        select.appendChild(option);
+      });
+      select.addEventListener("change", function () {
+        var url = new URL(location.href);
+        url.searchParams.set("run", select.value);
+        ["page", "query"].forEach(function (key) { url.searchParams.delete(key); });
+        location.href = url.href;
+      });
+    }
+    var description = document.getElementById("run-description");
+    if (description) description.textContent = (current.methodology ? "Scoring protocol " + current.methodology.version + ". " : "") + "Frozen snapshots. Methodology changes can make different runs incomparable; see the methodology changelog before comparing.";
+    document.querySelectorAll("[data-health]").forEach(function (host) {
+      var lines = [];
+      if (D.synthetic) lines.push("SYNTHETIC DEMO — fabricated fixture data; no vendor or judge API was called.");
+      if (window.SB_RUN_ERROR) lines.push(window.SB_RUN_ERROR);
+      if (!D.synthetic) lines.push((window.SB_ARCHIVE ? "Archived snapshot" : "Latest published snapshot") + ": " + formatWhen(current.ran_at) + ". " + (window.SB_ARCHIVE ? "This view is historical. " : "") + "Latest publication is " + age + (age === 1 ? " day" : " days") + " old" + (age > 14 ? "; refresh overdue. Treat this as a dated measurement." : "."));
+      var C = current.completeness;
+      var missing = C.responses - C.complete_ensembles;
+      var incomplete = current.vendors.filter(function (v) { return v.score == null; });
+      lines.push((missing ? "Partial judging: " : "Complete judging: ") + C.complete_ensembles + "/" + C.responses + " responses fully judged (" + Number(C.pct).toFixed(1) + "%). " + C.vendor_errors + " vendor failures. " + (incomplete.length ? incomplete.map(function (v) { return v.label; }).join(", ") + " omitted from overall ranking; insufficient category coverage." : "All vendors meet the category publication floors."));
+      if (current.methodology && current.methodology.provenance_status === "legacy_partial") lines.push("Historical provenance is partial. Recomputed uncertainty describes the preserved scores, not a new vendor evaluation.");
+      host.textContent = "";
+      lines.forEach(function (line) { var p = document.createElement("span"); p.className = "health-line"; p.textContent = line; host.appendChild(p); });
+    });
+    var own = current.vendors.filter(function (v) { return v.vendor === window.SB_VENDOR; })[0];
+    document.querySelectorAll("[data-vendor-evidence]").forEach(function (host) { if (own) host.textContent = evidence(own); });
+    /* Preserve the selected snapshot across internal evidence/navigation links. */
+    if (new URLSearchParams(location.search).get("run")) document.querySelectorAll("a[href]").forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (!href || !/\.html(?:[?#]|$)/.test(href) || /^(https?:|mailto:)/.test(href)) return;
+      var target = new URL(href, location.href);
+      target.searchParams.set("run", current.week);
+      a.setAttribute("href", href.split(/[?#]/)[0] + "?" + target.searchParams.toString() + target.hash);
+    });
   }
 
   /* ----------------------------------------------------------------- nav */
@@ -721,6 +806,7 @@
       el.setAttribute("data-shown", "");
       el.setAttribute("data-done", "");
       if (el.hasAttribute("data-count")) {
+        if (!el.hasAttribute("data-count-to")) return;
         var t = Number(el.getAttribute("data-count-to"));
         if (isFinite(t)) {
           var fmt = FMT[el.getAttribute("data-fmt") || "raw"] || FMT.raw;
@@ -759,6 +845,7 @@
    * value regardless of whether a single frame ever ran.
    */
   function countUp(el) {
+    if (!el.hasAttribute("data-count-to")) return;
     var target = Number(el.getAttribute("data-count-to"));
     if (!isFinite(target)) return;
     if (typeof requestAnimationFrame !== "function") return;
@@ -823,15 +910,10 @@
     catch (e) { /* jsdom */ }
     return v;
   }
-  /* One hue, lightness rising the whole way. The ramp used to run dark blue
-   * through light blue to pink and end on the accent red, which reads as a
-   * diverging scale — blue one side, red the other, a neutral middle — over a
-   * quantity that has no middle. On a run where every cell lands between 7.2
-   * and 9.9 that is the more flattering reading twice over: it invents a
-   * midpoint and then paints the two sides of it as opposites. */
+  /* Shared sequential chart tokens keep the selected run's scale explicit. */
   function rampFill(t) {
     var steps = ["--d100", "--d200", "--d300", "--d400", "--d500", "--d600", "--d700"];
-    var hex = ["#1a1420", "#3a1526", "#5c1a2e", "#851f37", "#b32540", "#e02f4c", "#ff6b7e"];
+    var hex = ["#edf3ee", "#d6e6db", "#b5d1bf", "#8cb59b", "#5b9275", "#38684f", "#254d3b"];
     var i = Math.max(0, Math.min(steps.length - 1, Math.round(t * (steps.length - 1))));
     return cssVar(steps[i]) || hex[i];
   }
@@ -869,13 +951,11 @@
       if (v == null) return "n/a";
       return h ? h.fmt(v) : Number(v).toFixed(2);
     }
-    /* Where the ramp crosses over. The two top steps are light enough that
-     * light ink drops under 4.5:1 on them; every step below carries light ink
-     * at 5.7:1 or better. Moved up one step with the ramp above — left at 4 it
-     * put dark ink on #b32540, at 3.1:1. */
+    /* Use the chart module's measured-contrast ink, including custom tokens. */
     function inkFor(t) {
+      if (h && h.contrastInk) return h.contrastInk(rampFill(t));
       var step = Math.round(Math.max(0, Math.min(1, t)) * 6);
-      return step >= 5 ? "#07080c" : "#eef2f7";
+      return step >= 5 ? "#ffffff" : "#000000";
     }
 
     var table = document.createElement("table");
@@ -923,7 +1003,9 @@
         td.className = "plate__cell";
         td.style.setProperty("--i", String(vi * cats.length + ci));
         if (score == null) {
-          td.textContent = "n/a";
+          td.textContent = "withheld";
+          td.title = cell ? cell.n_scored + "/" + cell.n_queries + " fully judged; below the publication floor" : "No public category record";
+          td.setAttribute("aria-label", v.label + ", " + c.label + ": " + td.title);
           td.classList.add("is-empty");
         } else {
           var t = hi === lo ? 0.5 : (score - lo) / (hi - lo);
@@ -964,8 +1046,8 @@
     var domain = document.getElementById("score-domain");
     if (domain) {
       var md = D.latest.judging && D.latest.judging.mean_disagreement;
-      domain.textContent = lo.toFixed(1) + " dark → " + hi.toFixed(1) + " hot" +
-        (md ? " · one answer splits the judges by " + Number(md).toFixed(2) + " on average" : "");
+      domain.textContent = lo.toFixed(1) + " low → " + hi.toFixed(1) + " high" +
+        (md ? " · mean judge spread " + Number(md).toFixed(2) : "");
     }
 
     /* Below about 700px the board scrolls inside itself and the last categories
@@ -1014,9 +1096,10 @@
       a.innerHTML =
         '<span class="roster__n">' + r.text + "</span>" +
         '<span class="roster__name">' + v.label + "</span>" +
-        '<span class="roster__score">' + (h ? h.fmt(v.score) : Number(v.score).toFixed(2)) + "</span>" +
+        '<span class="roster__score">' + (v.score == null ? "withheld" : h ? h.fmt(v.score) : Number(v.score).toFixed(2)) + "</span>" +
         '<span class="roster__meta">$' + Number(v.cost_per_query_usd).toFixed(4) + " / query</span>" +
         '<span class="roster__go" aria-hidden="true">→</span>';
+      var note = document.createElement("span"); note.className = "roster__evidence"; note.textContent = evidence(v); a.appendChild(note);
       host.appendChild(a);
     });
   }
@@ -1035,6 +1118,7 @@
     // Page figures are built before the scan, so charts created here are
     // observed rather than missed.
     if (window.SBPage && window.SBPage.init) window.SBPage.init();
+    runControls();
     scan();
     window.addEventListener("load", function () {
       setTimeout(function () { showAll(); }, 3200);
@@ -1044,7 +1128,7 @@
   // rank/rankBadge are exported because the tables that render a badge live in
   // each page's own SBPage block, which runs from init() below.
   window.SBSite = { fillValues: fillValues, derived: DERIVED, fmt: FMT, scan: scan,
-                    rank: rank, rankBadge: rankBadge, instrument: instrument };
+                    rank: rank, rankBadge: rankBadge, instrument: instrument, evidence: evidence, runControls: runControls };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

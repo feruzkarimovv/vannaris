@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -275,6 +276,40 @@ def build_prompt(response: SearchResponse, query_text: str, gold: str | None,
 _NUM_FIELDS = ("relevance", "freshness", "citation_quality", "overall")
 
 
+class InvalidJudgeReply(ValueError):
+    """Schema diagnostics containing only our own field names and descriptions."""
+
+
+def _validate_scores(data: Any, *, require_all: bool = True) -> dict[str, Any]:
+    """A malformed rubric reply is a failed judgement, never a bounded score."""
+    if not isinstance(data, dict):
+        raise InvalidJudgeReply("judge reply must be a JSON object")
+    if not any(field in data for field in _NUM_FIELDS):
+        raise InvalidJudgeReply("no scores in judge reply")
+    for field in _NUM_FIELDS:
+        if field not in data:
+            if require_all:
+                raise InvalidJudgeReply(f"judge reply is missing {field}")
+            continue
+        value = data[field]
+        # bool is an int subclass; JSON NaN/Infinity are accepted by Python's
+        # decoder. Clamping these used to turn malformed replies into a 10.
+        if type(value) not in (int, float) or not 0 <= value <= 10 or not math.isfinite(value):
+            raise InvalidJudgeReply(f"judge {field} must be a finite number from 0 to 10")
+    if data.get("rationale") is not None and not isinstance(data["rationale"], str):
+        raise InvalidJudgeReply("judge rationale must be text")
+    return data
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise InvalidJudgeReply("duplicate field in judge reply")
+        result[key] = value
+    return result
+
+
 def _extract(text: str) -> dict[str, Any]:
     """Pull the scores out of a judge reply, tolerating truncation.
 
@@ -287,33 +322,72 @@ def _extract(text: str) -> dict[str, Any]:
     so non-randomly (longer vendor payloads truncate more), which biases the
     result rather than merely thinning it.
 
-    So: try strict JSON first, and fall back to field-wise salvage. A salvaged
-    reply keeps its scores and loses only its rationale.
+    So: try strict JSON first, then decode complete fields from a truncated
+    object. A partial numeric token must never be mistaken for a complete score
+    (for example, treating 9e999 as 9). Required dimensions are checked by
+    score_one, so a reply missing one cannot form a complete ensemble.
     """
+    if not isinstance(text, str):
+        raise InvalidJudgeReply("judge reply must be text")
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.MULTILINE).strip()
 
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            pass  # fall through to salvage
+    start = text.find("{")
+    if start < 0 or text.startswith("["):
+        raise InvalidJudgeReply("no score object in judge reply")
+    text = text[start:]
+    decoder = json.JSONDecoder(object_pairs_hook=_unique_object)
+    try:
+        data, _ = decoder.raw_decode(text)
+        return _validate_scores(data, require_all=False)
+    except json.JSONDecodeError:
+        pass  # A truncated rationale can leave all four numeric scores intact.
 
+    # Decode at the actual object boundaries. Searching for score-shaped text
+    # inside a rationale could turn a quoted example into a real judgement.
     salvaged: dict[str, Any] = {}
-    for field in _NUM_FIELDS:
-        m = re.search(rf'"{field}"\s*:\s*(-?\d+(?:\.\d+)?)', text)
-        if m:
-            salvaged[field] = float(m.group(1))
-    if not salvaged:
-        raise ValueError(f"no scores in judge reply: {text[:160]!r}")
-
-    m = re.search(r'"rationale"\s*:\s*"([^"]*)', text)
-    if m:
-        salvaged["rationale"] = m.group(1).strip() or None
+    remaining = text[1:].lstrip()
+    while remaining:
+        try:
+            field, end = decoder.raw_decode(remaining)
+        except json.JSONDecodeError:
+            raise InvalidJudgeReply("invalid field in judge reply") from None
+        if not isinstance(field, str) or field in salvaged:
+            raise InvalidJudgeReply("invalid or duplicate field in judge reply")
+        remaining = remaining[end:].lstrip()
+        if not remaining.startswith(":"):
+            raise InvalidJudgeReply("invalid field separator in judge reply")
+        remaining = remaining[1:].lstrip()
+        try:
+            value, end = decoder.raw_decode(remaining)
+        except json.JSONDecodeError as exc:
+            if field != "rationale" or not remaining.startswith('"'):
+                raise InvalidJudgeReply("invalid value in judge reply") from None
+            # Only a cut-off string is salvageable. Invalid escapes/control
+            # characters still fail rather than laundering malformed JSON.
+            try:
+                value = json.loads(remaining + '"')
+            except json.JSONDecodeError:
+                if exc.msg.startswith("Unterminated string") or (
+                    exc.msg.startswith("Invalid \\uXXXX escape")
+                    and re.search(r"\\u[0-9a-fA-F]{0,3}$", remaining)
+                ):
+                    # A truncation can split an escape sequence too. The four
+                    # complete scores remain useful; optional prose does not.
+                    value = None
+                else:
+                    raise InvalidJudgeReply("invalid rationale in judge reply") from None
+            salvaged[field] = value.strip() or None if value is not None else None
+            break
+        salvaged[field] = value
+        remaining = remaining[end:].lstrip()
+        if remaining:
+            if not remaining.startswith(","):
+                raise InvalidJudgeReply("invalid value boundary in judge reply")
+            remaining = remaining[1:].lstrip()
     salvaged["_salvaged"] = True
-    return salvaged
+    return _validate_scores(salvaged, require_all=False)
 
 
 async def _call_anthropic(c: httpx.AsyncClient, key: str, model: str, prompt: str) -> tuple[dict, int, int]:
@@ -427,9 +501,15 @@ def _describe(exc: Exception) -> str:
     `HTTPStatusError: Client error '429 Too Many Requests'`.
     """
     if isinstance(exc, httpx.HTTPStatusError) and _is_quota_exhaustion(exc.response):
-        return ("quota exhausted, not rate-limited — this account needs topping up: "
-                f"{exc.response.text[:180].strip()}")
-    return f"{type(exc).__name__}: {exc}"[:300]
+        return ("quota exhausted, not rate-limited — this account needs topping up "
+                f"(HTTP {exc.response.status_code})")
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"HTTPStatusError: HTTP {exc.response.status_code}"
+    if isinstance(exc, InvalidJudgeReply):
+        return f"invalid judge reply: {exc}"
+    # A provider can echo queries or credentials in its body/exception. Report
+    # the failure class, without copying untrusted content into public logs.
+    return type(exc).__name__
 
 
 def _retry_after(exc: httpx.HTTPStatusError, attempt: int) -> float | None:
@@ -496,23 +576,21 @@ async def score_one(
                 data, pt, ot, served = await _call_with_retry(
                     family, client, keys[family], model, prompt
                 )
+        if any(value is not None and (type(value) is not int or value < 0) for value in (pt, ot)):
+            raise InvalidJudgeReply("token usage must be nonnegative integers")
+        if served is not None and not isinstance(served, str):
+            raise InvalidJudgeReply("returned model must be text")
+        score.prompt_tokens, score.output_tokens = pt, ot
+        score.judge_model_returned = served
+        _validate_scores(data)
+        # Assign only after the whole rubric is valid. Otherwise an invalid
+        # dimension could leave an overall that aggregation would still use.
+        for field in _NUM_FIELDS:
+            setattr(score, field, float(data[field]))
+        score.rationale = (data.get("rationale") or "")[:500] or None
     except Exception as exc:  # noqa: BLE001 — a judge failing is data, not a crash
         score.error = _describe(exc)
         return score
-
-    def num(field: str) -> float | None:
-        v = data.get(field)
-        if isinstance(v, (int, float)):
-            return max(0.0, min(10.0, float(v)))
-        return None
-
-    score.relevance = num("relevance")
-    score.freshness = num("freshness")
-    score.citation_quality = num("citation_quality")
-    score.overall = num("overall")
-    score.rationale = str(data.get("rationale", ""))[:500] or None
-    score.prompt_tokens, score.output_tokens = pt, ot
-    score.judge_model_returned = served
     return score
 
 

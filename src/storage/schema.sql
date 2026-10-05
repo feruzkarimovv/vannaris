@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS runs (
     -- The set's hash is pre-registered in git before it runs, so this column
     -- makes "that run included that set" checkable rather than asserted.
     heldout_set     TEXT,
+    -- Retrieval identity stays fixed when judging is resumed later. NULL for
+    -- legacy runs whose retrieval completion was never recorded separately.
+    retrieval_finished_at TEXT,
+    status          TEXT,
+    provenance      TEXT,                  -- JSON; code/configuration, never keys
     notes           TEXT
 );
 
@@ -51,6 +56,33 @@ CREATE TABLE IF NOT EXISTS queries (
     -- reported as a public-versus-held-out gap per vendor.
     held_out    INTEGER NOT NULL DEFAULT 0
 );
+
+-- Query ids are a registry, not a historical snapshot. A query may retain its
+-- logical id while its wording changes, so every new run records what it asked.
+-- Existing runs deliberately fall back to the legacy registry: migration must
+-- not pretend it can recover wording that was never versioned.
+CREATE TABLE IF NOT EXISTS run_queries (
+    run_id      TEXT NOT NULL REFERENCES runs(id),
+    query_id    TEXT NOT NULL REFERENCES queries(id),
+    category    TEXT NOT NULL,
+    text        TEXT NOT NULL,
+    source      TEXT,
+    gold_answer TEXT,
+    gold_urls   TEXT,
+    rotates     INTEGER NOT NULL DEFAULT 0,
+    held_out    INTEGER NOT NULL DEFAULT 0,
+    tier        INTEGER,
+    PRIMARY KEY (run_id, query_id)
+);
+
+CREATE TRIGGER IF NOT EXISTS run_queries_no_update
+BEFORE UPDATE ON run_queries BEGIN
+    SELECT RAISE(ABORT, 'run query snapshots are immutable');
+END;
+CREATE TRIGGER IF NOT EXISTS run_queries_no_delete
+BEFORE DELETE ON run_queries BEGIN
+    SELECT RAISE(ABORT, 'run query snapshots are immutable');
+END;
 
 -- ---------------------------------------------------------------- raw layer
 CREATE TABLE IF NOT EXISTS raw_responses (
@@ -74,6 +106,53 @@ CREATE TABLE IF NOT EXISTS raw_responses (
     UNIQUE (run_id, query_id, vendor)
 );
 
+CREATE VIEW IF NOT EXISTS response_queries AS
+SELECT rr.id AS response_id, rr.run_id, rr.query_id,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.category ELSE q.category END AS category,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.text ELSE q.text END AS text,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.source ELSE q.source END AS source,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.gold_answer ELSE q.gold_answer END AS gold_answer,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.gold_urls ELSE q.gold_urls END AS gold_urls,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.rotates ELSE q.rotates END AS rotates,
+       CASE WHEN rq.query_id IS NOT NULL THEN rq.held_out ELSE COALESCE(q.held_out, 0) END AS held_out,
+       rq.tier,
+       CASE WHEN rq.query_id IS NOT NULL THEN 'snapshot' ELSE 'legacy_fallback' END AS snapshot_source
+FROM raw_responses rr
+JOIN queries q ON q.id = rr.query_id
+LEFT JOIN run_queries rq ON rq.run_id = rr.run_id AND rq.query_id = rr.query_id;
+
+-- Recovery creates judging attempts, never a second retrieval run. The public
+-- judge_scores table retains accepted scores; failed calls and interruption
+-- evidence live separately, so publication guards can remain strict.
+CREATE TABLE IF NOT EXISTS judging_attempts (
+    id              TEXT PRIMARY KEY,
+    run_id          TEXT NOT NULL REFERENCES runs(id),
+    started_at      TEXT NOT NULL,
+    finished_at     TEXT,
+    status          TEXT NOT NULL,
+    protocol_hash   TEXT NOT NULL,
+    provenance      TEXT,
+    error           TEXT
+);
+
+CREATE TABLE IF NOT EXISTS judge_call_attempts (
+    id                  TEXT PRIMARY KEY,
+    judging_attempt_id  TEXT NOT NULL REFERENCES judging_attempts(id),
+    response_id         TEXT NOT NULL REFERENCES raw_responses(id),
+    judge_model         TEXT NOT NULL,
+    judge_family        TEXT NOT NULL,
+    started_at          TEXT NOT NULL,
+    finished_at         TEXT,
+    status              TEXT NOT NULL,
+    error               TEXT,
+    prompt_hash         TEXT,
+    scored_chars        INTEGER,
+    prompt_tokens       INTEGER,
+    output_tokens       INTEGER,
+    judge_model_returned TEXT,
+    UNIQUE (judging_attempt_id, response_id, judge_model)
+);
+
 -- -------------------------------------------------------------- judge layer
 CREATE TABLE IF NOT EXISTS judge_scores (
     id                TEXT PRIMARY KEY,
@@ -94,6 +173,7 @@ CREATE TABLE IF NOT EXISTS judge_scores (
     -- provider can repoint without notice, and a silent swap would move every
     -- score without moving anything about the vendors.
     judge_model_returned TEXT,
+    judging_attempt_id TEXT REFERENCES judging_attempts(id),
     created_at        TEXT NOT NULL,
     UNIQUE (response_id, judge_model)
 );
@@ -249,3 +329,5 @@ CREATE INDEX IF NOT EXISTS idx_plabels_set ON pair_labels(set_id);
 CREATE INDEX IF NOT EXISTS idx_raw_run     ON raw_responses(run_id);
 CREATE INDEX IF NOT EXISTS idx_judge_resp  ON judge_scores(response_id);
 CREATE INDEX IF NOT EXISTS idx_weekly_week ON weekly_scores(week);
+CREATE INDEX IF NOT EXISTS idx_attempt_run ON judging_attempts(run_id);
+CREATE INDEX IF NOT EXISTS idx_call_response ON judge_call_attempts(response_id);

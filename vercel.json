@@ -14,6 +14,14 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-+Qzw9tWm5Z847W9T7shwXVtVkHgjDsN+W5u8BI0jFcM=' 'sha256-+YtCdBZifaBP9CWhdbaZ9UczEn5mjk79n2VI8zaKi4k=' 'sha256-2nSzUAwaEA5acYs6JJql/zD/s13xhyGRVPyMIhsfqlo=' 'sha256-38tcZWOkbRWXM1IWcIfEfaaTwWAKxCBJVT6oke2RDPg=' 'sha256-TDy68Rgx5l8UUJ2FWPwrJj8q+oC+qRtmrorGB+LJxw0=' 'sha256-VeeQrR9i9KmiOr3hZ2xjIKF00UePAvQx4HbcadKjUTc=' 'sha256-YY+miD4MZ0d3xsWJwqvqTyt+mUwNHAR/7cJ3k72DX6g=' 'sha256-kPXefm0nzFBUoekBQ0d8o6oPewM4SyFejYRmjfOLABI=' 'sha256-qeBttmAQb6LcgMDwG3H7RRozSQtu9rHsVSqkeL4y4Zg=' 'sha256-whRORfANGEup8CrUISlr6e9NZ/4Me6WYdTb/qX9lMZ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
         }
       ]
     }

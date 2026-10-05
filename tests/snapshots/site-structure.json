@@ -1,40 +1,58 @@
 {
   "index.html": {
-    "title": "Vannaris: search APIs, scored in public",
+    "title": "Vannaris — search APIs, measured in public",
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
-      "main",
-      "section#standings",
+      "main#main",
+      "section#comparison \"Different questions. Different strengths.\"",
+      "div[role=status]",
+      "section \"The tradeoffs are in the details.\"",
+      "section#standings \"The evidence behind each score.\"",
+      "section \"Open to inspection.\"",
       "footer"
     ],
     "outline": [
-      "h1 Search APIs. Scored in public.",
-      "h2 This run"
+      "h1 Search APIs,measured in public.",
+      "h2 Different questions. Different strengths.",
+      "h2 The tradeoffs are in the details.",
+      "h2 The evidence behind each score.",
+      "h2 Open to inspection.",
+      "h3 Explore the questions",
+      "h3 Understand the study",
+      "h3 Inspect the measurements"
     ],
     "figures": [],
     "tables": [],
     "controls": [
-      "button[type=button] \"Menu\""
+      "button[type=button] \"Menu\"",
+      "select#run-select \"Latest snapshot\"",
+      "summary \"Coverage and publication notes\""
     ],
     "slots": [
       "d.calibration_state",
       "d.finding_note",
       "d.n_judge_families",
       "d.weeks",
-      "d.weeks_plural",
       "generated_at|when",
-      "latest.n_judges",
+      "latest.completeness.complete_ensembles|int",
+      "latest.completeness.pct|n1",
+      "latest.completeness.responses|int",
       "latest.n_queries|int",
       "latest.n_vendors",
       "latest.ran_at|when"
     ],
     "links": [
+      "#main",
       "data.html",
+      "data/latest.json",
+      "demo.html",
       "index.html",
       "methodology.html",
       "methodology.html#calibration",
-      "results.html"
+      "results.html",
+      "results.html#quality",
+      "results.html#queries"
     ]
   },
   "results.html": {
@@ -42,17 +60,21 @@
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
-      "main",
+      "main#main",
+      "div[role=status]",
       "div[role=group] \"Current run\"",
+      "nav \"Results sections\"",
       "section#quality",
       "section#cost",
       "section#latency",
       "section#judging",
       "section#queries",
+      "span#q-count[role=status]",
+      "div#query-table-wrap[role=region] \"Query scores; scroll to view all vendors\"",
       "footer"
     ],
     "outline": [
-      "h1 One run. Every cell.",
+      "h1 Explore the results",
       "h2 Quality by vendor and category",
       "h3 Score matrix",
       "h3 Where each vendor's queries land",
@@ -65,7 +87,8 @@
       "h2 How much the judges disagree",
       "h3 How far apart the three judges were",
       "h3 Mean score by judge family",
-      "h2 Every query, every score"
+      "h2 Every query, every score",
+      "h2 Query evidence"
     ],
     "figures": [
       "#fig-heatmap",
@@ -77,14 +100,19 @@
       "#fig-judges"
     ],
     "tables": [
-      "#vendor-table \"Overall score is the mean of a vendor's category scores. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie, which is itself the most useful thing this table says.\" [Vendor | Score | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
+      "#vendor-table \"Overall score is the equal-weight mean of all required category scores. Vendors missing a publishable category are not ranked. Intervals describe uncertainty in the preserved judged sample; unresolved differences are not evidence of equivalence. \"Won outright\" counts queries where one vendor alone took the highest ensemble median; \"among best\" counts queries where it was level with the highest. Those differ a great deal here, because {latest.wins.n_tied} of {latest.wins.n_queries_compared} queries ended in a tie, which is itself the most useful thing this table says.\" [Vendor | Score & evidence | Cost / query | Run cost | p50 latency | Won outright | Among best | Scored | Returns]",
       "#query-table []"
     ],
     "controls": [
       "button[type=button] \"Menu\"",
+      "select#run-select \"Latest snapshot\"",
+      "summary \"Coverage and publication notes\"",
       "select#retained-vendor \"Vendor to compare against the best score\"",
       "select#q-category \"all\"",
-      "input#q-search[type=search] \"filter query text\""
+      "input#q-search[type=search] \"filter query text\"",
+      "button#q-prev[type=button] \"Previous\"",
+      "button#q-next[type=button] \"Next\"",
+      "button#query-dialog-close[type=button] \"Close query evidence\""
     ],
     "slots": [
       "d.calibration_note",
@@ -100,8 +128,7 @@
       "latest.judging.mean_disagreement|n2",
       "latest.judging.n_compared|int",
       "latest.judging.responses_over_3pts|int",
-      "latest.n_judges",
-      "latest.n_queries|int ×2",
+      "latest.n_queries|int",
       "latest.n_vendors",
       "latest.robustness.n_families_that_invert_it|int",
       "latest.robustness.n_families|int",
@@ -113,7 +140,15 @@
       "latest.wins.n_tied|int ×2"
     ],
     "links": [
+      "#cost",
+      "#judging",
+      "#latency",
+      "#main",
+      "#quality",
+      "#queries",
       "data.html",
+      "data/latest.json",
+      "demo.html",
       "index.html",
       "methodology.html",
       "methodology.html#calibration",
@@ -125,11 +160,14 @@
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
-      "main",
+      "main#main",
+      "div[role=status]",
+      "nav \"Methodology sections\"",
       "section#queries",
       "section#vendors",
       "section#normalisation",
       "section#judges",
+      "pre[role=region] \"Published scoring rubric\"",
       "section#disagreement",
       "section#calibration",
       "section#heldout",
@@ -137,54 +175,55 @@
       "section#gaps",
       "section#conflicts",
       "section#reproduce",
+      "pre[role=region] \"Commands to run the benchmark\"",
       "section#changelog",
       "footer"
     ],
     "outline": [
-      "h1 How a score is made.",
-      "h2 Six categories that fail differently",
+      "h1 Methodology",
+      "h2 Query workload",
       "h3 Where the queries come from",
       "h3 Breaking-news queries carry no expected answer",
-      "h2 Scoped by contract, not by popularity",
-      "h3 Exactly how each vendor is called",
-      "h2 Making responses comparable",
+      "h2 API scope",
+      "h3 Request configuration",
+      "h2 Response normalisation",
       "h3 Uniform depth",
       "h3 Two shapes of answer",
       "h3 Uniform snippet length",
       "h3 Cost",
       "h3 Latency",
-      "h3 Does a bigger response score better?",
-      "h2 Three models, three labs, one rubric",
+      "h3 Payload size and scoring",
+      "h2 Judge ensemble",
       "h3 Why three families",
       "h3 Median, and only when complete",
       "h3 Salvaging truncated replies",
-      "h3 The rubric, as the code sends it",
-      "h2 How often the judges disagree, and where",
-      "h3 It concentrates by category",
-      "h3 Which two families",
+      "h3 Scoring rubric",
+      "h2 Judge disagreement",
+      "h3 Variation by category",
+      "h3 Pairwise family differences",
       "h3 Spread by category",
-      "h2 How well the judges track a person",
-      "h3 What the number is",
-      "h3 What it is not",
+      "h2 Human calibration",
+      "h3 Measured agreement",
+      "h3 Limits of the result",
       "h3 How the labeller was blinded",
-      "h2 Questions nobody can tune against, committed before they run",
-      "h3 Withheld, not hidden",
+      "h2 Withheld workload",
+      "h3 Commitment and retirement",
       "h3 What it measures",
       "h3 What it cannot do",
       "h3 The current commitment",
       "h3 Public minus withheld",
-      "h2 From scores to a published table",
+      "h2 Aggregation and eligibility",
       "h3 Response score",
       "h3 Category cell",
       "h3 Vendor score",
       "h3 One run per cycle is published",
-      "h2 Open gaps",
-      "h2 Who pays for this, and what that could distort",
-      "h3 The conflict that exists",
-      "h3 The conflicts that do not",
-      "h3 How to dispute a number",
-      "h3 What should make you distrust this",
-      "h2 Run the whole thing yourself",
+      "h2 Known limitations",
+      "h2 Funding and disclosures",
+      "h3 Proposed commercial incentives",
+      "h3 Vendor relationships",
+      "h3 Corrections and disputes",
+      "h3 Signals to scrutinise",
+      "h2 Reproduce the study",
       "h2 Methodology changelog"
     ],
     "figures": [],
@@ -196,7 +235,9 @@
       "#heldout-table [Vendor | Public | Withheld | Gap]"
     ],
     "controls": [
-      "button[type=button] \"Menu\""
+      "button[type=button] \"Menu\"",
+      "select#run-select \"Latest snapshot\"",
+      "summary \"Coverage and publication notes\""
     ],
     "slots": [
       "calibration.blinding",
@@ -254,12 +295,18 @@
       "repo_url"
     ],
     "links": [
+      "#aggregation",
       "#calibration",
       "#changelog",
       "#gaps",
       "#heldout",
+      "#judges",
+      "#main",
+      "#queries",
       "data.html",
       "data.html#recompute",
+      "data/latest.json",
+      "demo.html",
       "export/pricing.json",
       "index.html",
       "methodology.html",
@@ -271,28 +318,32 @@
     "landmarks": [
       "header",
       "nav#site-nav \"Primary\"",
-      "main",
+      "main#main",
+      "div[role=status]",
+      "nav \"Data sections\"",
       "section#files",
       "section#excluded",
       "section#columns",
       "section#recompute",
+      "pre[role=region] \"Commands to verify published analytics\"",
       "section#licence",
+      "pre#citation[role=region] \"Citation for the selected run\"",
       "footer"
     ],
     "outline": [
-      "h1 Take the data. Check the work.",
-      "h2 What is in the export",
-      "h2 What is deliberately not in here",
-      "h2 Column dictionary",
+      "h1 Data and downloads",
+      "h2 Download files",
+      "h2 Publication policy",
+      "h2 Column reference",
       "h3 judge-scores.csv",
       "h3 responses.csv",
       "h3 weekly-scores.csv",
-      "h2 Recompute the headline number",
+      "h2 Recompute the results",
       "h2 Licence and citation",
       "h3 Data",
       "h3 Code",
       "h3 Corrections",
-      "h3 Cite this"
+      "h3 Cite the selected snapshot"
     ],
     "figures": [],
     "tables": [
@@ -302,7 +353,9 @@
       "table [Column | Meaning]"
     ],
     "controls": [
-      "button[type=button] \"Menu\""
+      "button[type=button] \"Menu\"",
+      "select#run-select \"Latest snapshot\"",
+      "summary \"Coverage and publication notes\""
     ],
     "slots": [
       "config.min_cell_coverage|share0",
@@ -311,9 +364,15 @@
     ],
     "links": [
       "#",
+      "#columns",
+      "#excluded",
+      "#files",
+      "#licence",
+      "#main",
       "#recompute",
       "data.html",
       "data/latest.json",
+      "demo.html",
       "export/manifest.json",
       "index.html",
       "methodology.html",

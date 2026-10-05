@@ -8,6 +8,7 @@ schema is how a benchmark ends up with two shapes of the same table.
 from __future__ import annotations
 
 import sqlite3
+import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -66,6 +67,10 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     # statistics. NULL on sets written before the column means absolute, which
     # is what they were, but the reader is told rather than assumed at.
     ("calibration_sets", "kind", "TEXT"),
+    ("runs", "retrieval_finished_at", "TEXT"),
+    ("runs", "status", "TEXT"),
+    ("runs", "provenance", "TEXT"),
+    ("judge_scores", "judging_attempt_id", "TEXT REFERENCES judging_attempts(id)"),
 ]
 
 
@@ -96,8 +101,9 @@ def _backfill_cost_source(conn: sqlite3.Connection) -> None:
         except (ValueError, TypeError):
             payload = {}
         usage = payload.get("usage") if isinstance(payload, dict) else None
+        cost_dollars = payload.get("costDollars") if isinstance(payload, dict) else None
         reported = (
-            (payload.get("costDollars") or {}).get("total") is not None
+            (isinstance(cost_dollars, dict) and cost_dollars.get("total") is not None)
             or (isinstance(usage, dict) and usage.get("cost") is not None)
         )
         conn.execute("UPDATE raw_responses SET cost_source = ? WHERE id = ?",
@@ -137,7 +143,17 @@ def connect(db_path: Path | str = DB_PATH, *, create: bool = True) -> sqlite3.Co
             f"(python -m src.runner), or pass --db to point at one."
         )
     conn = sqlite3.connect(path)
-    if create:
-        conn.executescript(SCHEMA.read_text())
+    # Existing databases also need additive lifecycle tables/views. Their old
+    # evidence is not backfilled into snapshots or invented attempt records.
+    conn.executescript(SCHEMA.read_text())
     migrate(conn)
+    conn.execute("PRAGMA foreign_keys = ON")
+    violations = conn.execute("PRAGMA foreign_key_check").fetchall()
+    if violations:
+        warnings.warn(
+            f"database contains {len(violations)} legacy foreign-key violation(s); "
+            "existing evidence was preserved and new writes enforce foreign keys",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return conn

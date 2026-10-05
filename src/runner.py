@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import hashlib
+import inspect
 import json
 import os
 import sqlite3
@@ -25,8 +26,16 @@ import httpx
 from dotenv import load_dotenv
 
 from . import heldout, storage
-from .judge.ensemble import JUDGES, make_judge_semaphores, median_overall, score_response
-from .vendors.adapters import build_all
+from .storage.lifecycle import (
+    begin_judge_call, begin_judging_attempt, complete_judge_call,
+    exclusive_database, finish_judging_attempt, interrupt_open_attempts,
+    load_responses, load_run_queries, load_scores,
+    mark_retrieval_complete, persist_response, persist_run, persist_scores,
+    response_id_map, retrieval_is_complete, runtime_provenance, validate_queries,
+)
+from .judge import ensemble as judge
+from .judge.ensemble import JUDGES, JudgeScore, build_prompt, make_judge_semaphores, median_overall, score_one
+from .vendors.adapters import TOP_K, build_all
 from .vendors.base import ResponseMode, SearchResponse
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -77,10 +86,12 @@ def load_queries(path: Path) -> tuple[list[dict], str]:
     queries = payload["queries"]
     # Hash pins exactly which queries produced a given run, so a published
     # number can always be traced to the question set behind it.
-    digest = hashlib.sha256(
-        json.dumps(queries, sort_keys=True).encode()
-    ).hexdigest()[:16]
-    return queries, digest
+    validate_queries(queries)
+    return queries, query_digest(queries)
+
+
+def query_digest(queries: list[dict]) -> str:
+    return hashlib.sha256(json.dumps(queries, sort_keys=True).encode()).hexdigest()[:16]
 
 
 def load_heldout(mode: str) -> tuple[list[dict], str | None]:
@@ -118,7 +129,8 @@ def load_heldout(mode: str) -> tuple[list[dict], str | None]:
 
 
 async def fetch_all(
-    client: httpx.AsyncClient, adapters, queries: list[dict]
+    client: httpx.AsyncClient, adapters, queries: list[dict], *,
+    on_response=None, existing: set[tuple[str, str]] | None = None,
 ) -> list[SearchResponse]:
     sem = asyncio.Semaphore(VENDOR_CONCURRENCY)
 
@@ -126,13 +138,26 @@ async def fetch_all(
         async with sem:
             return await adapter.search(client, q["text"], q["id"])
 
-    tasks = [one(a, q) for q in queries for a in adapters]
+    existing = existing or set()
+    tasks = [asyncio.create_task(one(a, q)) for q in queries for a in adapters
+             if (q["id"], a.name) not in existing]
     done = 0
     out: list[SearchResponse] = []
-    for coro in asyncio.as_completed(tasks):
-        out.append(await coro)
-        done += 1
-        print(f"\r  fetching {done}/{len(tasks)}", end="", flush=True)
+    try:
+        for coro in asyncio.as_completed(tasks):
+            response = await coro
+            if on_response is not None:
+                on_response(response)
+            out.append(response)
+            done += 1
+            print(f"\r  fetching {done}/{len(tasks)}", end="", flush=True)
+    finally:
+        # A storage error or cancellation must not leave chargeable requests
+        # running after the caller has abandoned the stage.
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
     print()
     return out
 
@@ -143,183 +168,66 @@ async def judge_all(
     responses: list[SearchResponse],
     qmap: dict[str, dict],
     today: str,
+    *, conn=None, run_id: str | None = None, attempt_id: str | None = None,
+    judge_sems=None,
 ) -> dict[str, list]:
     sem = asyncio.Semaphore(RESPONSE_CONCURRENCY)
-    judge_sems = make_judge_semaphores()
-    scored: dict[str, list] = {}
+    judge_sems = judge_sems if judge_sems is not None else make_judge_semaphores()
+    if conn is not None and (run_id is None or attempt_id is None):
+        raise ValueError("checkpointed judging requires run_id and attempt_id")
+    scored = load_scores(conn, run_id) if conn is not None else {}
+    response_ids = response_id_map(conn, run_id) if conn is not None else {}
 
     async def one(resp: SearchResponse):
         key = f"{resp.query_id}::{resp.vendor}"
         if not resp.ok:
             return key, []
+        previous = scored.get(key, [])
+        accepted = {(s.judge_family, s.judge_model) for s in previous
+                    if s.overall is not None and not s.error}
+        missing = [(fam, mdl) for fam, mdl in JUDGES if (fam, mdl) not in accepted]
+        if not missing:
+            return key, previous
         q = qmap[resp.query_id]
         async with sem:
-            return key, await score_response(
-                client, keys, resp, q["text"], q.get("gold_answer"), today, judge_sems
-            )
+            prompt, chars = build_prompt(resp, q["text"], q.get("gold_answer"), today)
 
-    tasks = [one(r) for r in responses]
+            async def family_one(fam, model):
+                call_id = None
+                if conn is not None:
+                    call_id = begin_judge_call(conn, attempt_id, response_ids[key], fam,
+                                               model, prompt, chars)
+                score = await score_one(client, keys, fam, model, prompt, chars, judge_sems[fam])
+                if conn is not None:
+                    complete_judge_call(conn, call_id, attempt_id, response_ids[key], score)
+                return score
+
+            family_tasks = [asyncio.create_task(family_one(fam, mdl)) for fam, mdl in missing]
+            try:
+                new = await asyncio.gather(*family_tasks)
+            finally:
+                for task in family_tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*family_tasks, return_exceptions=True)
+            return key, previous + list(new)
+
+    tasks = [asyncio.create_task(one(r)) for r in responses]
     done = 0
-    for coro in asyncio.as_completed(tasks):
-        key, scores = await coro
-        scored[key] = scores
-        done += 1
-        print(f"\r  judging {done}/{len(tasks)}", end="", flush=True)
+    try:
+        for coro in asyncio.as_completed(tasks):
+            key, scores = await coro
+            scored[key] = scores
+            done += 1
+            print(f"\r  judging {done}/{len(tasks)}", end="", flush=True)
+    finally:
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
     print()
     return scored
 
-
-def load_responses(conn, run_id: str) -> list[SearchResponse]:
-    """Rehydrate a stored run's vendor responses, so judging can be redone.
-
-    Why this exists: MIN_COMPLETE_SHARE is all-or-nothing, so a judge-stage
-    failure used to force re-running the whole thing — all 750 vendor calls
-    included — and that is not free in either money or validity. On 2026-07-31
-    two full runs went out twelve minutes apart for exactly this reason, and
-    Exa's own telemetry shows the second was served from its cache: server-side
-    search time under 50ms on 62 of 150 calls against 0 of 150 in the first,
-    and its published breaking-news p50 fell from 1368ms to 298ms. That number
-    reached the site as the fastest cell on it.
-
-    The vendor's answer to a query does not change because a judge returned
-    malformed JSON. Re-judging reads the stored payload instead.
-    """
-    from .vendors.base import SearchResult
-
-    rows = conn.execute(
-        "SELECT query_id, vendor, response_mode, answer, citations, results, "
-        "latency_ms, cost_usd, error, raw_payload FROM raw_responses WHERE run_id = ?",
-        (run_id,),
-    ).fetchall()
-    if not rows:
-        raise SystemExit(f"no stored responses for run {run_id!r}")
-
-    out: list[SearchResponse] = []
-    for (query_id, vendor, mode, answer, citations, results,
-         latency_ms, cost_usd, error, raw) in rows:
-        resp = SearchResponse(
-            vendor=vendor,
-            query_id=query_id,
-            response_mode=ResponseMode(mode),
-            results=[SearchResult(url=x["url"], rank=x["rank"], title=x.get("title"),
-                                  snippet=x.get("snippet"),
-                                  published_at=x.get("published_at"))
-                     for x in json.loads(results or "[]")],
-            answer=answer,
-            citations=json.loads(citations or "[]"),
-            latency_ms=latency_ms,
-            # Deliberately zeroed. This run did not buy these responses; the run
-            # that fetched them did, and counting the spend twice would overstate
-            # what the benchmark costs to operate.
-            cost_usd=0.0,
-            error=error,
-        )
-        resp.raw = json.loads(raw) if raw else {}
-        out.append(resp)
-    return out
-
-
-def persist_run(conn, run_id, week, digest, queries, responses,
-                started_at, trigger, heldout_set=None) -> dict[str, str]:
-    """Write the run, its questions and its vendor responses — before judging.
-
-    Split from the scores deliberately. Everything used to be written in one
-    call *after* judging returned, which meant the most expensive and least
-    reliable stage of the run was also the one with nothing behind it: a crash,
-    a stall, or the workflow's 90-minute timeout during judging discarded all
-    750 vendor calls, and took the `--rejudge` recovery path down with them,
-    because `--rejudge` reads a stored run and there was no stored run. That is
-    how 2026-W32 became a hole that cannot be backfilled.
-
-    The vendor responses are the part that costs money and cannot be recreated
-    — re-fetching them days later asks different questions of a moving web, and
-    within minutes it asks the same ones of a warm vendor cache, which corrupts
-    the latency column (see `load_responses`). So they go to disk the moment
-    they exist. `finished_at` stays NULL until the scores land, which is what
-    makes an interrupted run visible as an interrupted run rather than a
-    complete one that scored nothing.
-
-    Returns the stored row id for each `query_id::vendor`, which the judge
-    scores reference.
-    """
-    cur = conn.cursor()
-    # started_at is the real start, threaded in from main(). It used to be
-    # stamped here, at persist time, which made every run look instantaneous
-    # and put `ran_at` on the published site an hour or so late.
-    cur.execute(
-        "INSERT INTO runs (id, started_at, finished_at, week, query_set_hash, trigger, "
-        "heldout_set) VALUES (?,?,?,?,?,?,?)",
-        (run_id, started_at, None, week, digest, trigger, heldout_set),
-    )
-    for q in queries:
-        cur.execute(
-            "INSERT OR REPLACE INTO queries "
-            "(id, category, text, source, gold_answer, rotates, held_out) "
-            "VALUES (?,?,?,?,?,?,?)",
-            # `rotates` was written as a literal 0 here, which quietly threw
-            # away the flag the query set carries — every freshness question in
-            # full-v1.json is marked rotates=1 and every one of them landed in
-            # the database as 0. Nothing published read it, so nothing caught
-            # it; the column exists to record which questions are meant to be
-            # regenerated each cycle, and it now records that.
-            (q["id"], q["category"], q["text"], q.get("source"), q.get("gold_answer"),
-             int(q.get("rotates", 0)), int(bool(q.get("held_out")))),
-        )
-
-    ids: dict[str, str] = {}
-    for r in responses:
-        rid = str(uuid.uuid4())
-        ids[f"{r.query_id}::{r.vendor}"] = rid
-        cur.execute(
-            "INSERT INTO raw_responses (id, run_id, query_id, vendor, response_mode, answer, "
-            "citations, results, latency_ms, cost_usd, cost_source, error, raw_payload, "
-            "created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (
-                rid, run_id, r.query_id, r.vendor, r.response_mode.value, r.answer,
-                json.dumps(r.citations),
-                json.dumps([{"url": x.url, "rank": x.rank, "title": x.title,
-                             "snippet": x.snippet, "published_at": x.published_at}
-                            for x in r.results]),
-                r.latency_ms, r.cost_usd, r.cost_source, r.error, json.dumps(r.raw), now(),
-            ),
-        )
-    conn.commit()
-    return ids
-
-
-def persist_scores(conn, run_id, response_ids: dict[str, str], scored) -> None:
-    """Attach the judge scores to responses already on disk, and close the run.
-
-    Stamping `finished_at` here rather than at the start is the whole point of
-    the split: a row with responses and no `finished_at` is a run that can be
-    re-judged, and one with a timestamp is a run that completed.
-    """
-    cur = conn.cursor()
-    for key, scores in scored.items():
-        rid = response_ids.get(key)
-        # A score whose response this run did not store has nowhere to hang.
-        # `response_id` is NOT NULL, so writing it anyway would raise and take
-        # every other score in this commit with it — a whole run's judgements
-        # lost to one orphan. (The column also declares a foreign key, but this
-        # connection does not enable `PRAGMA foreign_keys`, so NOT NULL is the
-        # constraint that would actually fire.)
-        if rid is None:
-            continue
-        for s in scores:
-            if s.error:
-                continue
-            cur.execute(
-                "INSERT INTO judge_scores (id, response_id, judge_model, judge_family, relevance, "
-                "freshness, citation_quality, overall, rationale, scored_chars, prompt_tokens, "
-                "output_tokens, judge_model_returned, created_at) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (str(uuid.uuid4()), rid, s.judge_model, s.judge_family, s.relevance,
-                 s.freshness, s.citation_quality, s.overall, s.rationale,
-                 s.scored_chars, s.prompt_tokens, s.output_tokens,
-                 s.judge_model_returned, now()),
-            )
-    cur.execute("UPDATE runs SET finished_at = ? WHERE id = ?", (now(), run_id))
-    conn.commit()
 
 
 def aggregate(conn, week, run_id, responses, scored, qmap) -> dict[tuple[str, str], float]:
@@ -476,8 +384,8 @@ def report_heldout(responses, scored, qmap) -> None:
     print("  " + "-" * 54)
     for v, pub, priv, gap in sorted(rows, key=lambda r: -r[3]):
         print(f"  {v:<13}{pub:<10.2f}{priv:<11.2f}{gap:+.2f}")
-    print("\n  A single run cannot separate this from question difficulty.")
-    print("  It is only evidence once the same vendor shows the same sign for weeks.")
+    print("\n  This is a descriptive distribution-gap diagnostic.")
+    print("  Neither one run nor a repeated gap isolates overfitting from question difficulty.")
 
 
 def validity(scored: dict[str, list], responses: list[SearchResponse]) -> list[str]:
@@ -516,119 +424,172 @@ def validity(scored: dict[str, list], responses: list[SearchResponse]) -> list[s
     return problems
 
 
+def vendor_configuration(adapter) -> dict:
+    """Record request-affecting configuration without inspecting credentials."""
+    try:
+        source = inspect.getsource(type(adapter))
+    except (OSError, TypeError):
+        source = ""
+    return {"adapter": f"{type(adapter).__module__}.{type(adapter).__qualname__}",
+            "adapter_source_sha256": hashlib.sha256(source.encode()).hexdigest() if source else None,
+            "response_mode": adapter.response_mode.value, "top_k": TOP_K,
+            "model": getattr(adapter, "model", None),
+            "timeout_seconds": getattr(adapter, "_timeout", None),
+            "estimated_cost_per_query_usd": adapter.cost_per_query_usd}
+
+
+def retrieval_date_is_current(started_at: str) -> bool:
+    return (datetime.fromisoformat(started_at).astimezone(timezone.utc).date()
+            == datetime.now(timezone.utc).date())
+
+
 async def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--db", default=str(DB_PATH), help="private SQLite evidence database")
     ap.add_argument("--queries", default=str(ROOT / "src" / "queries" / "pilot.json"))
     ap.add_argument("--limit", type=int, default=None, help="cap queries, for smoke tests")
-    # Recorded on the run, not just used for logging: the site's cadence claim
-    # is derived from whether scheduled runs exist (see storage/schema.sql).
     ap.add_argument("--trigger", choices=("manual", "scheduled"),
-                    default=os.environ.get("SB_TRIGGER", "manual"),
-                    help="how this run was invoked; CI passes 'scheduled'")
-    # The withheld set runs by default. Making it opt-in would mean the honest
-    # configuration is the one nobody remembers to pass, and the overfitting
-    # check would exist in the repository rather than in the data.
+                    default=os.environ.get("SB_TRIGGER", "manual"))
     ap.add_argument("--heldout", default="auto",
                     help="'auto' (the registered active set), 'off', or a path")
-    # Re-judge a stored run instead of calling the vendors again. The judge
-    # stage fails for reasons that have nothing to do with the vendors — rate
-    # limits, truncated JSON, an expired key — and re-fetching to recover from
-    # that costs money and, worse, re-issues identical queries into vendor
-    # caches within minutes, which corrupts the latency column. See
-    # load_responses.
-    ap.add_argument("--rejudge", metavar="RUN_ID", default=None,
-                    help="re-judge a stored run's responses; makes no vendor calls")
+    recovery = ap.add_mutually_exclusive_group()
+    recovery.add_argument("--rejudge", metavar="RUN_ID", help="resume missing judges; no vendor calls")
+    recovery.add_argument("--resume", metavar="RUN_ID", help="resume incomplete retrieval and judging")
     args = ap.parse_args()
-    # argparse only validates `choices` for values that arrive on the command
-    # line, so a typo'd SB_TRIGGER would sail through into the evidence layer.
     if args.trigger not in ("manual", "scheduled"):
-        raise SystemExit(f"SB_TRIGGER must be 'manual' or 'scheduled', got {args.trigger!r}")
+        raise SystemExit("SB_TRIGGER must be 'manual' or 'scheduled'")
+    if args.limit is not None and args.limit < 1:
+        raise SystemExit("--limit must be positive")
+    if (args.rejudge or args.resume) and args.limit is not None:
+        raise SystemExit("recovery uses the recorded query snapshot; --limit is not supported")
 
     load_dotenv(ROOT / ".env")
     env = dict(os.environ)
-    keys = {
-        "anthropic": env.get("ANTHROPIC_API_KEY", ""),
-        "openai": env.get("OPENAI_API_KEY", ""),
-        "google": env.get("GOOGLE_API_KEY", ""),
-    }
+    keys = {"anthropic": env.get("ANTHROPIC_API_KEY", ""),
+            "openai": env.get("OPENAI_API_KEY", ""), "google": env.get("GOOGLE_API_KEY", "")}
+    db_path = Path(args.db)
+    with exclusive_database(db_path):
+        return await execute_run(args, env, keys, db_path)
 
-    queries, digest = load_queries(Path(args.queries))
-    if args.limit:
-        queries = queries[: args.limit]
-    # The public set's hash is computed before the withheld set is folded in,
-    # so it keeps identifying the published questions and nothing else. A
-    # reader recomputing it from queries.csv has to get the same string.
-    private, heldout_id = load_heldout(args.heldout)
-    if args.limit:
-        private = private[: args.limit]
-    queries = queries + private
-    qmap = {q["id"]: q for q in queries}
-    cats = list(dict.fromkeys(q["category"] for q in queries))
 
-    adapters = build_all(env)
-    run_id, week = str(uuid.uuid4()), iso_week()
-    started_at = now()
-    # The date the judges are told. Interpolated into the rubric so a judge does
-    # not read post-cutoff search results as fabricated — see build_prompt.
-    today = datetime.now(timezone.utc).strftime("%d %B %Y")
+async def execute_run(args, env, keys, db_path: Path) -> int:
+    conn = storage.connect(db_path)
+    attempt_id = None
+    run_id = args.rejudge or args.resume
+    try:
+        if run_id:
+            row = conn.execute(
+                "SELECT week,query_set_hash,started_at,trigger,heldout_set,provenance "
+                "FROM runs WHERE id=?", (run_id,),
+            ).fetchone()
+            if row is None:
+                raise SystemExit(f"unknown retrieval run: {run_id}")
+            interrupt_open_attempts(conn, run_id)
+            week, digest, started_at, trigger, heldout_id, saved_provenance = row
+            queries = load_run_queries(conn, run_id)
+            provenance = json.loads(saved_provenance) if saved_provenance else {}
+            if any(q["snapshot_source"] == "legacy_fallback" for q in queries):
+                print("  legacy query text was not versioned; recovery uses the preserved legacy registry")
+            responses = load_responses(conn, run_id, allow_empty=bool(args.resume))
+            print(f"recovering retrieval {run_id} from {week}; original dates and prices preserved")
+            if args.resume:
+                vendors = provenance.get("vendors")
+                if not vendors:
+                    raise SystemExit("legacy run has no recorded vendor selection; use --rejudge for stored responses")
+                adapters = [a for a in build_all(env) if a.name in vendors]
+                missing_keys = sorted(set(vendors) - {a.name for a in adapters})
+                existing = {(r.query_id, r.vendor) for r in responses}
+                missing = {(q["id"], v) for q in queries for v in vendors} - existing
+                if missing and week != iso_week():
+                    raise SystemExit("cannot fetch missing responses for a past week; --rejudge can recover stored evidence")
+                if missing and not retrieval_date_is_current(started_at):
+                    raise SystemExit("cannot fetch missing responses after the original UTC retrieval date; use --rejudge")
+                if missing and missing_keys:
+                    raise SystemExit(f"missing credentials for retrieval vendors: {', '.join(missing_keys)}")
+                if missing:
+                    configurations = provenance.get("vendor_configuration")
+                    if configurations and any(configurations[a.name] != vendor_configuration(a) for a in adapters):
+                        raise SystemExit("vendor configuration changed; cannot mix retrieval protocols in a recovery")
+                    try:
+                        with conn:
+                            conn.execute("UPDATE runs SET status='fetching' WHERE id=?", (run_id,))
+                        async with httpx.AsyncClient(timeout=90.0) as client:
+                            await fetch_all(client, adapters, queries, existing=existing,
+                                            on_response=lambda r: persist_response(conn, run_id, r))
+                    except BaseException:
+                        with conn:
+                            conn.execute("UPDATE runs SET status='interrupted' WHERE id=?", (run_id,))
+                        raise
+                    responses = load_responses(conn, run_id)
+            if retrieval_is_complete(conn, run_id) is True:
+                mark_retrieval_complete(conn, run_id)
+        else:
+            queries, _ = load_queries(Path(args.queries))
+            if args.limit is not None:
+                queries = queries[:args.limit]
+            digest = query_digest(queries)
+            private, heldout_id = load_heldout(args.heldout)
+            if args.limit is not None:
+                private = private[:args.limit]
+            queries += private
+            validate_queries(queries)
+            adapters = build_all(env)
+            if not adapters:
+                raise SystemExit("no cleared vendor credentials are configured")
+            run_id, week, started_at, trigger = str(uuid.uuid4()), iso_week(), now(), args.trigger
+            provenance = {**runtime_provenance(), "vendors": [a.name for a in adapters],
+                          "vendor_configuration": {a.name: vendor_configuration(a) for a in adapters},
+                          "query_snapshot": "immutable_per_run"}
+            persist_run(conn, run_id, week, digest, queries, [], started_at, trigger,
+                        heldout_id, provenance=provenance)
+            print(f"retrieval {run_id} week {week} queryset {digest} trigger {trigger}")
+            print(f"{len(queries)} queries x {len(adapters)} vendors; checkpointing each result")
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    await fetch_all(client, adapters, queries,
+                                    on_response=lambda r: persist_response(conn, run_id, r))
+            except BaseException:
+                with conn:
+                    conn.execute("UPDATE runs SET status='interrupted' WHERE id=?", (run_id,))
+                raise
+            mark_retrieval_complete(conn, run_id)
+            responses = load_responses(conn, run_id)
 
-    print(f"run {run_id[:8]}  week {week}  queryset {digest}  trigger {args.trigger}")
-    if heldout_id:
-        print(f"held-out set {heldout_id}: {len(private)} withheld questions, hash verified")
-
-    if args.rejudge:
-        conn = connect()
-        responses = load_responses(conn, args.rejudge)
+        qmap = {q["id"]: q for q in queries}
+        cats = list(dict.fromkeys(q["category"] for q in queries))
+        # Freshness is judged against when the retrieval happened, even when the
+        # missing family is recovered weeks later.
+        today = datetime.fromisoformat(started_at).strftime("%d %B %Y")
+        attempt_id = begin_judging_attempt(conn, run_id,
+                                          provenance={"kind": "recovery" if args.rejudge or args.resume else "initial"})
+        print(f"  judging attempt {attempt_id}; accepted scores are reused")
+        try:
+            async with httpx.AsyncClient(timeout=90.0) as client:
+                scored = await judge_all(client, keys, responses, qmap, today,
+                                         conn=conn, run_id=run_id, attempt_id=attempt_id)
+        except BaseException as exc:
+            finish_judging_attempt(conn, attempt_id, status="interrupted", error=type(exc).__name__)
+            raise
+        finish_judging_attempt(conn, attempt_id)
+        public = [r for r in responses if not qmap[r.query_id].get("held_out")]
+        means = aggregate(conn, week, run_id, public, scored, qmap)
+        report(means, public, scored, qmap, cats)
+        report_heldout(responses, scored, qmap)
+        print(f"\n  original retrieval vendor spend: ${sum(r.cost_usd or 0 for r in responses):.4f}")
+        print(f"  stored: {db_path}")
+        print(f"  resume missing judges with: python -m src.runner --db {db_path} --rejudge {run_id}")
+        problems = validity(scored, responses)
+        if retrieval_is_complete(conn, run_id) is False:
+            problems.append("retrieval is missing planned query/vendor responses")
+        if problems:
+            print("\n  RUN NOT PUBLISHABLE:")
+            for problem in problems:
+                print(f"    - {problem}")
+            print("  Responses, accepted scores, and failed attempts were checkpointed.")
+            return 1
+        return 0
+    finally:
         conn.close()
-        print(f"re-judging {len(responses)} stored responses from run "
-              f"{args.rejudge[:8]} — no vendor calls, no vendor spend")
-    else:
-        print(f"{len(queries)} queries x {len(adapters)} vendors x {len(JUDGES)} judges "
-              f"= {len(queries) * len(adapters)} calls, "
-              f"{len(queries) * len(adapters) * len(JUDGES)} judgements\n")
-        async with httpx.AsyncClient(timeout=90.0) as client:
-            responses = await fetch_all(client, adapters, queries)
-        ok = sum(1 for r in responses if r.ok)
-        print(f"  {ok}/{len(responses)} vendor calls ok")
-
-    # On disk before a single judge is called. Judging is the stage that fails —
-    # rate limits, an exhausted balance, a 90-minute job timeout — and until
-    # this line ran after it, a failure there threw away every vendor call the
-    # run had paid for. Now the worst case is a run that has to be re-judged,
-    # which costs judge tokens and no vendor spend at all.
-    conn = connect()
-    response_ids = persist_run(conn, run_id, week, digest, queries, responses,
-                               started_at, args.trigger, heldout_id)
-    conn.close()
-    print(f"  stored {len(responses)} responses. If judging fails from here, "
-          f"recover with:\n    python -m src.runner --queries {args.queries} "
-          f"--rejudge {run_id}")
-
-    async with httpx.AsyncClient(timeout=90.0) as client:
-        scored = await judge_all(client, keys, responses, qmap, today)
-
-    conn = connect()
-    persist_scores(conn, run_id, response_ids, scored)
-    # Public responses only. A published cell has to be recomputable from the
-    # published questions, so a withheld question must never enter one — the
-    # withheld set is reported separately, as a gap.
-    public = [r for r in responses if not qmap[r.query_id].get("held_out")]
-    means = aggregate(conn, week, run_id, public, scored, qmap)
-    conn.close()
-
-    report(means, public, scored, qmap, cats)
-    report_heldout(responses, scored, qmap)
-    print(f"\n  vendor spend this run: ${sum(r.cost_usd or 0 for r in responses):.4f}")
-    print(f"  stored: {DB_PATH}")
-
-    problems = validity(scored, responses)
-    if problems:
-        print("\n  RUN NOT PUBLISHABLE:")
-        for p in problems:
-            print(f"    - {p}")
-        print("  Everything above is stored; the export will not select this run.")
-        return 1
-    return 0
 
 
 if __name__ == "__main__":

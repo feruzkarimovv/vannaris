@@ -36,5 +36,17 @@
       "rows": 0,
       "what": "Held-out questions, published in full once their set retires. Each set's hash was committed before it ever ran."
     }
-  ]
+  ],
+  "analysis_revision": {
+    "version": "publication-v3",
+    "revised_at": "2026-10-04T05:14:14+00:00",
+    "source": "released numerical judge and response CSVs; no new retrieval or judging",
+    "input_sha256": {
+      "queries.csv": "db7b27229607eccf9cf681d0bb7353d887f1a595e769de982b7b9b0724e58360",
+      "responses-2026-W35.csv": "5b40855336565098f62e47525818a226ebad84c31c13ef8a5e778ce4d4797842",
+      "judge-scores-2026-W35.csv": "f04c0e6e0dda4aae14808e46d4d4838a967ddccf16b266ae6dda7fc07a00d239"
+    },
+    "previous_analysis_version": "legacy_unversioned",
+    "original_retrieval_at": "2026-08-24T07:33:27.588429+00:00"
+  }
 }

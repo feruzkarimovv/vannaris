@@ -149,7 +149,7 @@ def candidates(conn: sqlite3.Connection, run_id: str) -> list[dict]:
                rr.results, rr.error, q.category, q.text AS query_text,
                q.gold_answer
         FROM raw_responses rr
-        JOIN queries q ON q.id = rr.query_id
+        JOIN response_queries q ON q.response_id = rr.id
         WHERE rr.run_id = ? AND rr.error IS NULL
         """,
         (run_id,),
@@ -914,7 +914,7 @@ def collect(conn: sqlite3.Connection, set_id: str) -> dict[tuple, dict[str, list
         JOIN calibration_items ci
           ON ci.set_id = hl.set_id AND ci.response_id = hl.response_id
         JOIN raw_responses rr ON rr.id = hl.response_id
-        JOIN queries q ON q.id = rr.query_id
+        JOIN response_queries q ON q.response_id = rr.id
         WHERE hl.set_id = ?
         """,
         (set_id,),
@@ -1050,7 +1050,7 @@ def load_pair_set(conn: sqlite3.Connection, set_id: str) -> list[dict]:
         FROM calibration_pairs cp
         JOIN raw_responses l ON l.id = cp.left_response_id
         JOIN raw_responses r ON r.id = cp.right_response_id
-        JOIN queries q ON q.id = l.query_id
+        JOIN response_queries q ON q.response_id = l.id
         WHERE cp.set_id = ?
         ORDER BY cp.position
         """,

@@ -45,10 +45,11 @@ import math
 import re
 import sqlite3
 import statistics
+from itertools import combinations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import heldout, storage
+from . import heldout, storage, inference
 from .judge.ensemble import JUDGES, RUBRIC, SNIPPET_CHARS
 from .vendors.adapters import REGISTRY, TOP_K
 
@@ -150,7 +151,7 @@ def build_cost_spread(totals: list[dict]) -> dict:
 VENDOR_META = {
     "exa":        {"label": "Exa",        "docs": "https://exa.ai"},
     "perplexity": {"label": "Perplexity", "docs": "https://docs.perplexity.ai",
-                   "note": "Sonar. Returns prose and a ranked list; scored on the list."},
+                   "note": "Sonar. Returns prose and a ranked list; both are included in the historical judge payload."},
     "serper":     {"label": "Serper",     "docs": "https://serper.dev"},
     "linkup":     {"label": "Linkup",     "docs": "https://linkup.so",
                    "note": "Standard depth, not deep search — a different product tier."},
@@ -223,7 +224,7 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
                    COUNT(DISTINCT vendor) AS vendors
             FROM (SELECT rr.id, rr.query_id, rr.vendor, COUNT(js.id) AS n
                   FROM raw_responses rr
-                  JOIN queries q ON q.id = rr.query_id
+                  JOIN response_queries q ON q.response_id = rr.id
                   LEFT JOIN judge_scores js ON js.response_id = rr.id
                   WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 0
                   GROUP BY rr.id)
@@ -233,7 +234,7 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
         per_cat = conn.execute(
             """
             SELECT q.category, COUNT(DISTINCT rr.query_id) AS n
-            FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
+            FROM raw_responses rr JOIN response_queries q ON q.response_id = rr.id
             WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 0
             GROUP BY q.category
             """,
@@ -242,7 +243,7 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
         held = conn.execute(
             """
             SELECT COUNT(DISTINCT rr.query_id) AS queries, COUNT(*) AS responses
-            FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
+            FROM raw_responses rr JOIN response_queries q ON q.response_id = rr.id
             WHERE rr.run_id = ? AND COALESCE(q.held_out, 0) = 1
             """,
             (r["id"],),
@@ -260,6 +261,9 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
             # Which withheld set ran with it, if any. Same treatment: NULL means
             # a run from before the set existed, not a run that skipped it.
             "heldout_set": r["heldout_set"] if "heldout_set" in r.keys() else None,
+            "retrieval_finished_at": r["retrieval_finished_at"] if "retrieval_finished_at" in r.keys() else None,
+            "status": r["status"] if "status" in r.keys() else None,
+            "methodology": run_methodology(conn, r["id"], r["query_set_hash"]),
             "responses": responses,
             "complete": complete,
             "completeness": round(complete / responses, 3) if responses else 0.0,
@@ -270,6 +274,26 @@ def candidate_runs(conn: sqlite3.Connection) -> list[dict]:
             "categories": len(per_cat),
         })
     return runs
+
+
+def run_methodology(conn: sqlite3.Connection, run_id: str, query_hash: str) -> dict:
+    """Known recorded provenance; never fill old protocol gaps from today's code."""
+    columns = {r[1] for r in conn.execute("PRAGMA table_info(runs)")}
+    raw = conn.execute("SELECT provenance FROM runs WHERE id=?", (run_id,)).fetchone()[0] if "provenance" in columns else None
+    provenance = json.loads(raw) if raw else None
+    has_attempts = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='judging_attempts'").fetchone()
+    attempts = []
+    if has_attempts:
+        for attempt in conn.execute("SELECT protocol_hash, provenance FROM judging_attempts WHERE run_id=? ORDER BY started_at", (run_id,)):
+            metadata = json.loads(attempt[1]) if attempt[1] else {}
+            attempts.append({"protocol_hash": attempt[0], **metadata})
+    return {
+        "version": attempts[-1]["protocol_hash"] if attempts else "legacy_unrecorded",
+        "query_set_hash": query_hash,
+        "provenance_status": "recorded" if provenance and attempts else "legacy_partial",
+        "retrieval_provenance": provenance,
+        "judging_protocols": attempts,
+    }
 
 
 def canonical_run(runs: list[dict], week: str) -> dict | None:
@@ -286,10 +310,23 @@ def canonical_run(runs: list[dict], week: str) -> dict | None:
         and r["min_per_category"] >= MIN_QUERIES_PER_CATEGORY
         and r["categories"] >= len(CATEGORY_META)
         and r["completeness"] >= MIN_RUN_COMPLETENESS
+        and retrieval_is_publishable(r)
     ]
     if not eligible:
         return None
     return max(eligible, key=lambda r: (r["complete"], r["started_at"]))
+
+
+def retrieval_is_publishable(run: dict) -> bool:
+    """New runs must finish the planned retrieval, not only judge its subset.
+
+    The legacy NULL marker means unknown because it was never recorded. New
+    runs freeze the full workload before fetching; their NULL marker means an
+    interrupted retrieval, even when every response so far has three scores.
+    """
+    provenance = (run.get("methodology") or {}).get("retrieval_provenance") or {}
+    return (provenance.get("query_snapshot") != "immutable_per_run"
+            or bool(run.get("retrieval_finished_at")))
 
 
 # ------------------------------------------------------------------ recompute
@@ -301,7 +338,7 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
         SELECT rr.id, rr.query_id, rr.vendor, rr.response_mode, rr.latency_ms,
                rr.cost_usd, rr.cost_source, rr.error, rr.results, q.category,
                COALESCE(q.held_out, 0) AS held_out
-        FROM raw_responses rr JOIN queries q ON q.id = rr.query_id
+        FROM raw_responses rr JOIN response_queries q ON q.response_id = rr.id
         WHERE rr.run_id = ?
         """,
         (run_id,),
@@ -348,62 +385,109 @@ def load_run(conn: sqlite3.Connection, run_id: str) -> list[dict]:
     return out
 
 
-# Two-sided 95% critical value. Normal rather than t: these comparisons run at
-# n of roughly 20-140 paired queries, where the difference from a t critical
-# value is small relative to everything else uncertain here, and a constant is
-# something a reader can check by hand against the exported per-judge scores.
-Z95 = 1.96
-
-
 def paired_difference(rows: list[dict], a: str, b: str,
                       category: str | None = None) -> dict | None:
-    """Compare two vendors on the queries they *both* answered.
+    """Category-balanced paired-query estimate; multiplicity is applied below.
 
-    Unpaired means are the wrong comparison for this design and the error is
-    easy to make in both directions. Every vendor sees the same query set, so
-    the query is a repeated measure: the variation between questions — which is
-    most of the variation here — cancels within a pair and does not cancel
-    between two independently-computed means. It also matters that coverage
-    differs by vendor (0.88 to 1.00), so two cells' means are not even taken
-    over the same questions.
-
-    Returns the mean per-query difference a - b, its standard error, and
-    whether a 95% interval around it excludes zero.
+    A comparison is formed on matched complete ensembles, not two independently
+    retained vendor means. Overall estimates require every declared category;
+    a vendor missing a category cannot silently receive a different workload.
     """
-    by_query: dict[str, dict[str, float]] = {}
+    cats = [category] if category is not None else CATEGORY_ORDER
+    by_query: dict[tuple[str, str], dict[str, float]] = {}
     for r in rows:
-        if category is not None and r["category"] != category:
+        if r["category"] not in cats or r["median"] is None or r["vendor"] not in (a, b):
             continue
-        if r["median"] is None or r["vendor"] not in (a, b):
-            continue
-        by_query.setdefault(r["query_id"], {})[r["vendor"]] = r["median"]
-
-    diffs = [q[a] - q[b] for q in by_query.values() if a in q and b in q]
-    if len(diffs) < 2:
-        return None
-    mean = statistics.mean(diffs)
-    sd = statistics.stdev(diffs)
-    se = sd / math.sqrt(len(diffs))
+        by_query.setdefault((r["category"], r["query_id"]), {})[r["vendor"]] = r["median"]
+    grouped = []
+    counts = {}
+    for cat in cats:
+        diffs = tuple(q[a] - q[b] for (c, _), q in sorted(by_query.items())
+                      if c == cat and a in q and b in q)
+        counts[cat] = len(diffs)
+        if len(diffs) < 2:
+            return None
+        grouped.append(diffs)
+    groups = tuple(grouped)
+    label = f"paired:{category or 'overall'}:{a}:{b}:{groups}"
+    interval = inference.bootstrap_mean(groups, label)
+    tested = inference.paired_sign_flip(groups, label)
+    mean = statistics.mean(statistics.mean(g) for g in groups)
     return {
-        "n_common": len(diffs),
+        "n_common": sum(counts.values()),
+        "n_by_category": counts,
         "mean_diff": round(mean, 3),
-        "se": round(se, 3),
-        "t": round(mean / se, 2) if se else None,
-        "ci95": [round(mean - Z95 * se, 3), round(mean + Z95 * se, 3)] if se else None,
-        "separated": bool(se) and abs(mean) > Z95 * se,
+        "se": interval["se"],
+        "ci95": interval["ci95"],
+        "interval_method": "paired query bootstrap, percentile 95%",
+        **tested,
+        # Standalone estimates make no selection-adjusted separation claim.
+        "p_adjusted": None,
+        "separated": False,
     }
 
 
-def build_tiers(rows: list[dict], ranking: list[str],
-                category: str | None = None) -> list[dict]:
-    """Group a ranking into tiers the data can actually tell apart.
+def comparison_key(a: str, b: str, category: str | None = None) -> tuple:
+    return category, *sorted((a, b))
 
-    Walks the ranking in order and keeps a vendor in the current tier unless it
-    is separated from that tier's leader by a paired 95% interval. The result is
-    what the site renders instead of 01-05 rank badges: five distinct rank
-    numbers over differences of 0.008 points assert a resolution this instrument
-    does not have.
+
+def build_comparisons(rows: list[dict]) -> dict[tuple, dict]:
+    """One fixed Holm family: all pairs x (every category plus overall).
+
+    Even a suppressed or unmatched comparison occupies its predeclared slot.
+    Neither the winner nor the size of the family is chosen from p-values.
     """
+    vendors = sorted({r["vendor"] for r in rows})
+    qualified = {}
+    for vendor in vendors:
+        for cat in CATEGORY_ORDER:
+            rs = [r for r in rows if r["vendor"] == vendor and r["category"] == cat]
+            qualified[vendor, cat] = bool(rs) and sum(r["median"] is not None for r in rs) / len(rs) >= MIN_CELL_COVERAGE
+    entries = {}
+    for category in [None, *CATEGORY_ORDER]:
+        needed = [category] if category is not None else CATEGORY_ORDER
+        for a, b in combinations(vendors, 2):
+            eligible = all(qualified.get((v, c)) for v in (a, b) for c in needed)
+            cmp = paired_difference(rows, a, b, category) if eligible else None
+            entries[comparison_key(a, b, category)] = {
+                "above": a, "below": b, "category": category,
+                "status": "estimated" if cmp else "insufficient_coverage_or_pairs",
+                **(cmp or {"n_common": 0, "ci95": None, "mean_diff": None,
+                           "p_value": None, "p_adjusted": None, "separated": False}),
+            }
+    adjusted = inference.holm_adjust([c["p_value"] for c in entries.values()])
+    for cmp, p in zip(entries.values(), adjusted):
+        cmp["p_adjusted"] = round(p, 6) if p is not None else None
+        cmp["comparison_family_size"] = len(entries)
+        cmp["multiplicity"] = "Holm family-wise alpha 0.05"
+        ci = cmp["ci95"]
+        cmp["separated"] = bool(p is not None and p <= inference.ALPHA
+                                and ci and (ci[0] > 0 or ci[1] < 0))
+    return entries
+
+
+def orient_comparison(comparisons: dict[tuple, dict], a: str, b: str,
+                      category: str | None = None) -> dict | None:
+    cmp = comparisons.get(comparison_key(a, b, category))
+    if cmp is None or cmp["status"] != "estimated":
+        return None
+    cmp = {**cmp, "above": a, "below": b}
+    if a > b:
+        cmp["mean_diff"] = -cmp["mean_diff"]
+        if cmp.get("ci95"):
+            cmp["ci95"] = [-cmp["ci95"][1], -cmp["ci95"][0]]
+    return cmp
+
+
+def build_tiers(rows: list[dict], ranking: list[str],
+                category: str | None = None,
+                comparisons: dict[tuple, dict] | None = None) -> list[dict]:
+    """Display groups with no resolved internal comparison, never equivalence.
+
+    Non-significance is not transitive. Check every existing member, not only
+    the group's leader, and disclose that unresolved also includes thin pairs.
+    """
+    comparisons = comparisons if comparisons is not None else build_comparisons(rows)
     tiers: list[dict] = []
     leader: str | None = None
     for vendor in ranking:
@@ -411,8 +495,9 @@ def build_tiers(rows: list[dict], ranking: list[str],
             tiers.append({"tier": 1, "vendors": [vendor]})
             leader = vendor
             continue
-        cmp = paired_difference(rows, leader, vendor, category)
-        if cmp and cmp["separated"]:
+        resolved = any((orient_comparison(comparisons, member, vendor, category) or {}).get("separated")
+                       for member in tiers[-1]["vendors"])
+        if resolved:
             tiers.append({"tier": len(tiers) + 1, "vendors": [vendor]})
             leader = vendor
         else:
@@ -420,8 +505,9 @@ def build_tiers(rows: list[dict], ranking: list[str],
     return tiers
 
 
-def build_cells(rows: list[dict]) -> list[dict]:
+def build_cells(rows: list[dict], comparisons: dict[tuple, dict] | None = None) -> list[dict]:
     """(vendor, category) cells, recomputed from per-judge scores."""
+    comparisons = comparisons if comparisons is not None else build_comparisons(rows)
     grouped: dict[tuple[str, str], list[dict]] = {}
     for r in rows:
         grouped.setdefault((r["vendor"], r["category"]), []).append(r)
@@ -438,17 +524,25 @@ def build_cells(rows: list[dict]) -> list[dict]:
         # and the site was rendering three decimals and a rank badge over it.
         sd = statistics.stdev(scored) if len(scored) > 1 else None
         se = sd / math.sqrt(len(scored)) if sd is not None else None
+        interval = inference.bootstrap_mean((tuple(sorted(scored)),), f"cell:{vendor}:{category}")
+        n_errors = sum(1 for r in rs if r["error"])
         cells.append({
             "vendor": vendor,
             "category": category,
             # Suppressed rather than approximated when coverage is thin.
             "score": round(statistics.mean(scored), 3) if coverage >= MIN_CELL_COVERAGE else None,
+            "ci95": interval["ci95"] if coverage >= MIN_CELL_COVERAGE else None,
+            "interval_method": "query bootstrap, percentile 95%",
+            "status": "published" if coverage >= MIN_CELL_COVERAGE else "insufficient_judge_coverage",
             "sd": round(sd, 3) if sd is not None else None,
             "se": round(se, 3) if se is not None else None,
             "n_queries": len(rs),
             "n_scored": len(scored),
             "coverage": round(coverage, 3),
-            "n_errors": sum(1 for r in rs if r["error"]),
+            "n_errors": n_errors,
+            "n_vendor_success": len(rs) - n_errors,
+            "availability": round((len(rs) - n_errors) / len(rs), 4) if rs else None,
+            "n_missing_judgements": sum(r["median"] is None and not r["error"] for r in rs),
             "p50_latency_ms": int(statistics.median(lat)) if lat else None,
             "cost_usd": round(sum(r["cost_usd"] or 0 for r in rs), 5),
         })
@@ -466,7 +560,8 @@ def build_cells(rows: list[dict]) -> list[dict]:
         if c["score"] is not None and top:
             leader, top_score = top
             c["delta_from_best"] = round(top_score - c["score"], 3)
-            c["pct_of_best"] = round(100 * c["score"] / top_score, 1)
+            c["pct_of_best"] = round(100 * c["score"] / top_score, 1) if top_score else None
+            c["relative_score_note"] = "ratio of rubric scores; not a percentage of task quality"
             c["best_vendor"] = leader
             # Whether that gap is a gap. Four of six category leaders on the
             # first run are not distinguishable from second place, and the
@@ -476,7 +571,7 @@ def build_cells(rows: list[dict]) -> list[dict]:
                 c["separated_from_best"] = None      # not a comparison with itself
                 c["paired"] = None
             else:
-                cmp = paired_difference(rows, leader, c["vendor"], c["category"])
+                cmp = orient_comparison(comparisons, leader, c["vendor"], c["category"])
                 c["separated_from_best"] = cmp["separated"] if cmp else None
                 c["paired"] = cmp
         else:
@@ -627,7 +722,8 @@ def build_win_stats(rows: list[dict]) -> dict:
     }
 
 
-def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
+def build_vendor_totals(rows: list[dict], cells: list[dict],
+                        required_categories: list[str] | None = None) -> list[dict]:
     """Per-vendor roll-up.
 
     The overall score is the mean of a vendor's six *category* scores, not the
@@ -635,6 +731,7 @@ def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
     category, and the category mean is the one that matches what the table
     above it shows.
     """
+    required = required_categories if required_categories is not None else CATEGORY_ORDER
     vendors = sorted({r["vendor"] for r in rows})
     outright, shared = _per_query_winners(rows)
 
@@ -644,16 +741,32 @@ def build_vendor_totals(rows: list[dict], cells: list[dict]) -> list[dict]:
         vrows = [r for r in rows if r["vendor"] == v]
         lat = [r["latency_ms"] for r in vrows if r["latency_ms"] is not None]
         scored = [r for r in vrows if r["median"] is not None]
+        included = [cat for cat in required if any(c["category"] == cat for c in vcells)]
+        complete_categories = len(included) == len(required)
+        groups = tuple(tuple(sorted(r["median"] for r in scored if r["category"] == cat))
+                       for cat in required)
+        interval = inference.bootstrap_mean(groups, f"overall:{v}") if complete_categories else {"ci95": None}
+        n_errors = sum(1 for r in vrows if r["error"])
         totals.append({
             "vendor": v,
             "label": VENDOR_META.get(v, {}).get("label", v),
-            "score": round(statistics.mean(c["score"] for c in vcells), 3) if vcells else None,
+            "score": round(statistics.mean(statistics.mean(g) for g in groups), 3) if complete_categories and groups else None,
+            "ci95": interval["ci95"],
+            "interval_method": "category-stratified query bootstrap, percentile 95%",
+            "status": "complete" if complete_categories else "incomplete_categories",
+            "included_categories": included,
+            "required_categories": list(required),
+            "category_coverage": round(len(included) / len(required), 4) if required else 0.0,
+            "coverage": round(len(scored) / len(vrows), 4) if vrows else 0.0,
             "p50_latency_ms": int(statistics.median(lat)) if lat else None,
             "cost_usd": round(sum(r["cost_usd"] or 0 for r in vrows), 5),
             "cost_per_query_usd": round(sum(r["cost_usd"] or 0 for r in vrows) / len(vrows), 6) if vrows else None,
             "n_queries": len(vrows),
             "n_scored": len(scored),
-            "n_errors": sum(1 for r in vrows if r["error"]),
+            "n_errors": n_errors,
+            "n_vendor_success": len(vrows) - n_errors,
+            "availability": round((len(vrows) - n_errors) / len(vrows), 4) if vrows else None,
+            "n_missing_judgements": sum(r["median"] is None and not r["error"] for r in vrows),
             # Two columns, because one cannot carry this honestly. See
             # _per_query_winners: on this query set most queries end in a tie,
             # and the difference between "won it" and "was among the best" is
@@ -841,6 +954,8 @@ def build_judge_stats(rows: list[dict]) -> dict:
     families: dict[str, list[float]] = {}
     models: dict[str, str] = {}
     spreads: list[float] = []
+    partial_spreads: list[float] = []
+    panel_counts: dict[int, int] = {}
     by_cat: dict[str, list[float]] = {}
     pairs: dict[tuple[str, str], list[float]] = {}
     expected = len(rows)
@@ -854,7 +969,8 @@ def build_judge_stats(rows: list[dict]) -> dict:
                 models[fam] = s["judge_model"]
                 vals.append(s["overall"])
                 scored[fam] = s["overall"]
-        if len(vals) > 1:
+        panel_counts[len(vals)] = panel_counts.get(len(vals), 0) + 1
+        if len(vals) == len(JUDGES) and set(scored) == {f for f, _ in JUDGES}:
             spread = max(vals) - min(vals)
             spreads.append(spread)
             by_cat.setdefault(r["category"], []).append(spread)
@@ -862,6 +978,8 @@ def build_judge_stats(rows: list[dict]) -> dict:
             for i, a in enumerate(fams):
                 for b in fams[i + 1:]:
                     pairs.setdefault((a, b), []).append(abs(scored[a] - scored[b]))
+        elif len(vals) > 1:
+            partial_spreads.append(max(vals) - min(vals))
 
     judges = []
     for fam, model in JUDGES:
@@ -881,6 +999,15 @@ def build_judge_stats(rows: list[dict]) -> dict:
         "mean_disagreement": round(statistics.mean(spreads), 3) if spreads else None,
         "responses_over_3pts": sum(1 for s in spreads if s > 3),
         "n_compared": len(spreads),
+        "denominator": "responses with every required judge family",
+        "panel_counts": {str(n): panel_counts.get(n, 0) for n in range(len(JUDGES) + 1)},
+        "partial_panels": {
+            "n_compared": len(partial_spreads),
+            "mean_disagreement": round(statistics.mean(partial_spreads), 3) if partial_spreads else None,
+            "over_2pt": _rate(partial_spreads, 2),
+            "over_3pt": _rate(partial_spreads, 3),
+            "note": "available partial panels only; excluded from full-ensemble disagreement",
+        },
         # The same disagreement expressed as rates rather than as a mean, and
         # published rather than kept for the methodology page's footnotes.
         #
@@ -936,19 +1063,12 @@ def _pct(vals: list[float], p: float) -> float:
 
 
 def build_heldout(rows: list[dict], run: dict, manifest: dict) -> dict | None:
-    """Public score against withheld score, per vendor — the overfitting check.
+    """An unmatched public/private distribution-gap diagnostic.
 
-    `docs/04` and `src/heldout.py` set out why the set exists. This is where it
-    turns into a published number, and the number is deliberately a *gap*
-    rather than a held-out leaderboard: the held-out set is a fraction of the
-    size of the public one, so its absolute scores are too noisy to rank
-    vendors by, while the within-vendor difference between two sets it saw in
-    the same run, on the same day, through the same judges, is exactly the
-    comparison the noise cancels out of.
-
-    Category mix is controlled explicitly. Both sides are averaged per category
-    first and then across categories, so a held-out set that happens to be
-    harder in one bucket cannot masquerade as a vendor-specific gap.
+    Equal category weights control category proportions, not question hardness
+    within categories. Repeating this gap cannot by itself establish tuning or
+    causal overfitting. Its conditional public mean also uses a different
+    coverage policy from the publishable overall leaderboard.
     """
     held = [r for r in rows if r["held_out"]]
     if not held:
@@ -978,11 +1098,16 @@ def build_heldout(rows: list[dict], run: dict, manifest: dict) -> dict | None:
             "gap": round(p - h, 3) if p is not None and h is not None else None,
             "n_heldout_scored": n_scored,
             "n_categories": len(shared),
+            "included_categories": shared,
+            "public_mean_policy": "complete ensembles in matched categories; no leaderboard suppression",
         })
 
     gaps = [v["gap"] for v in vendors if v["gap"] is not None]
     e = next((s for s in manifest.get("sets", []) if s["id"] == run.get("heldout_set")), None)
     return {
+        "interpretation": "distribution_gap_diagnostic",
+        "supports_overfitting_inference": False,
+        "limitations": "question difficulty is unmatched; repeated gaps do not establish vendor tuning",
         "set": e and {
             **{k: e.get(k) for k in ("id", "sha256", "n_queries", "categories",
                                      "committed_at", "retired_week")},
@@ -1085,10 +1210,40 @@ def build_calibration(labels_dir: Path) -> dict | None:
 
 # ------------------------------------------------------------------- assembly
 
+def build_availability(rows: list[dict]) -> dict:
+    panels: dict[str, set[str]] = {}
+    vendors = {r["vendor"] for r in rows}
+    for r in rows:
+        panels.setdefault(r["query_id"], set())
+        if r["median"] is not None:
+            panels[r["query_id"]].add(r["vendor"])
+    errors = sum(bool(r["error"]) for r in rows)
+    return {
+        "n_attempted": len(rows),
+        "n_vendor_success": len(rows) - errors,
+        "n_vendor_errors": errors,
+        "vendor_success_rate": round((len(rows) - errors) / len(rows), 4) if rows else None,
+        "n_missing_judgements": sum(r["median"] is None and not r["error"] for r in rows),
+        "n_queries_all_vendors_scored": sum(len(v) == len(vendors) for v in panels.values()),
+        "n_queries": len(panels),
+        "quality_policy": "complete judge ensembles conditional on API success; failures are not zero scores",
+    }
+
+
 def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
                week_runs: list[dict] | None = None,
                manifest: dict | None = None) -> dict:
-    all_rows = load_run(conn, run["id"])
+    return build_week_from_rows(load_run(conn, run["id"]), run, week_runs, manifest)
+
+
+def build_week_from_rows(all_rows: list[dict], run: dict,
+                         week_runs: list[dict] | None = None,
+                         manifest: dict | None = None) -> dict:
+    """Shared analysis for original DB observations and verified released CSVs.
+
+    Recalculating derived statistics is not a new retrieval run. The original
+    run identity, timestamp and question commitment are always carried forward.
+    """
     # Every published figure below is computed from the public questions alone.
     # This one line is the whole publication policy for the withheld set: a
     # reader holding queries.csv and the judge scores must be able to rebuild
@@ -1096,9 +1251,11 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
     # is inside it. The withheld responses are published too — as scores, in
     # the CSVs, and as the public-versus-held-out gap — just never mixed in.
     rows = [r for r in all_rows if not r["held_out"]]
-    cells = build_cells(rows)
+    comparisons = build_comparisons(rows)
+    cells = build_cells(rows, comparisons)
     totals = build_vendor_totals(rows, cells)
     complete = sum(1 for r in rows if r["complete"])
+    ranked = [t for t in totals if t["score"] is not None]
 
     # Per-response detail, for the query-level table on the dashboard. Scores
     # and identifiers only — the query text comes from the published query set,
@@ -1114,6 +1271,9 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
             "m": round(r["median"], 2) if r["median"] is not None else None,
             "l": r["latency_ms"],
             "n": r["n_results"],
+            "e": bool(r["error"]),
+            "missing_judges": [fam for fam, _ in JUDGES
+                               if fam not in r["judges"] or r["judges"][fam]["overall"] is None],
         }
         for r in rows
     ]
@@ -1126,13 +1286,16 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
     # time. Lifted out of the returned literal because `routing` is computed
     # from `by_category` and the two must not diverge.
     separation = {
-        "overall_tiers": build_tiers(rows, [t["vendor"] for t in totals]),
+        "tier_interpretation": "unresolved comparisons; not evidence of equivalence",
+        "incomplete_vendors": [t["vendor"] for t in totals if t["score"] is None],
+        "comparisons": list(comparisons.values()),
+        "overall_tiers": build_tiers(rows, [t["vendor"] for t in ranked], comparisons=comparisons),
         "adjacent": [
             {
                 "above": a["vendor"], "below": b["vendor"],
-                **(paired_difference(rows, a["vendor"], b["vendor"]) or {}),
+                **(orient_comparison(comparisons, a["vendor"], b["vendor"]) or {}),
             }
-            for a, b in zip(totals, totals[1:])
+            for a, b in zip(ranked, ranked[1:])
         ],
         "by_category": [
             {
@@ -1141,7 +1304,7 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
                     rows,
                     [c["vendor"] for c in cells
                      if c["category"] == cat and c["score"] is not None],
-                    cat),
+                    cat, comparisons),
             }
             for cat in CATEGORY_ORDER
             if any(c["category"] == cat and c["score"] is not None for c in cells)
@@ -1154,6 +1317,24 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "ran_at": run["started_at"],
         "trigger": run.get("trigger"),
         "query_set_hash": run["query_set_hash"],
+        "analysis": inference.protocol(),
+        "export": {
+            "week": run["week"], "licence": "CC BY 4.0",
+            "files": [
+                {"file": f"judge-scores-{run['week']}.csv", "rows": sum(len(r["judges"]) for r in all_rows),
+                 "what": "Original individual judge measurements, including flagged withheld rows."},
+                {"file": f"responses-{run['week']}.csv", "rows": len(all_rows),
+                 "what": "Original response metadata; no retrieved content."},
+                {"file": f"weekly-scores-{run['week']}.csv", "rows": len(cells),
+                 "what": "Derived category scores and uncertainty under publication-v3."},
+            ],
+        },
+        "methodology": run.get("methodology") or {
+            "version": "legacy_unrecorded",
+            "provenance_status": "legacy_partial",
+            "query_set_hash": run["query_set_hash"],
+            "note": "original scoring settings were not stored as a complete run manifest",
+        },
         # Public questions. The site says "N queries go to M vendors" next to a
         # link to the query set, so N has to be the number of questions that
         # link actually contains.
@@ -1167,7 +1348,10 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
             "complete_ensembles": complete,
             "pct": round(100 * complete / len(rows), 1) if rows else 0.0,
             "vendor_errors": sum(1 for r in rows if r["error"]),
+            "n_missing_judgements": sum(r["median"] is None and not r["error"] for r in rows),
+            "status": "complete" if complete == len(rows) else "degraded",
         },
+        "availability": build_availability(rows),
         # The whole run's spend, public and withheld — this is what the week
         # cost to produce, and understating it by the third of the queries
         # nobody can see would be a strange place to start being imprecise.
@@ -1176,7 +1360,8 @@ def build_week(conn: sqlite3.Connection, run: dict, queries: dict[str, dict],
         "vendors": totals,
         "judging": build_judge_stats(rows),
         "wins": build_win_stats(rows),
-        "robustness": build_robustness(rows),
+        "robustness": build_robustness([r for r in rows if r["median"] is not None
+                                        and r["vendor"] in {v["vendor"] for v in ranked}]),
         "cost_spread": build_cost_spread(totals),
         "payload_effect": build_payload_effect(rows),
         "separation": separation,
@@ -1341,7 +1526,10 @@ def build_bundle(conn: sqlite3.Connection, queries: dict[str, dict],
         "heldout": {
             **heldout.public_view(manifest),
             "weeks_with_set": heldout_weeks,
-            "interpretable": len(heldout_weeks) >= 3,
+            "interpretable": False,
+            "supports_overfitting_inference": False,
+            "interpretation": "unmatched distribution-gap diagnostic",
+            "limitations": "equal category weights do not match question difficulty; repeated gaps do not establish tuning",
         },
         # Judge against human. None until a human pass clears chance, and every
         # sentence about the judges on every page branches on that rather than
@@ -1463,9 +1651,74 @@ def write_json(path: Path, payload: dict) -> None:
 def write_csv(path: Path, header: list[str], rows: list[list]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as fh:
-        w = csv.writer(fh)
+        w = csv.writer(fh, lineterminator="\n")
         w.writerow(header)
         w.writerows(rows)
+
+
+def queries_for_run(conn: sqlite3.Connection, run_id: str) -> dict[str, dict]:
+    return {r["id"]: dict(r) for r in conn.execute(
+        "SELECT DISTINCT query_id AS id,category,text,source,gold_answer,rotates "
+        "FROM response_queries WHERE run_id=? AND COALESCE(held_out,0)=0", (run_id,))}
+
+
+def write_site_data(data_dir: Path, bundle: dict,
+                    queries_by_week: dict[str, dict[str, dict]]) -> None:
+    """Write snapshots and per-run detail; never attach today's text to old IDs."""
+    for week, payload in bundle["all_weeks"].items():
+        write_json(data_dir / f"{week}.json", payload)
+        if week not in queries_by_week:
+            continue  # Preserve a previously generated historical detail file.
+        qs = queries_by_week[week]
+        detail = {
+            "week": week, "judges": [f for f, _ in JUDGES], "rows": payload["detail"],
+            "queries": [{"id": q["id"], "c": q["category"], "t": q["text"],
+                         "g": q.get("gold_answer"), "r": q.get("rotates", 0)}
+                        for q in sorted(qs.values(), key=lambda q: (CATEGORY_ORDER.index(q["category"]), q["id"]))],
+        }
+        text = "// Generated by src/export.py — do not edit.\nwindow.SB_DETAIL = " + json.dumps(detail, separators=(",", ":")) + ";\n"
+        (data_dir / f"detail-{week}.js").write_text(text)
+        if week == bundle["latest"]["week"]:
+            (data_dir / "detail.js").write_text(text)
+    write_json(data_dir / "latest.json", bundle["latest"])
+    site = {k: v for k, v in bundle.items() if k not in ("all_weeks", "latest", "_weeks_from_db")}
+    site["all_weeks"] = {w: browser_week(payload)
+                         for w, payload in sorted(bundle["all_weeks"].items())}
+    site["latest"] = site["all_weeks"][bundle["latest"]["week"]]
+    (data_dir / "bundle.js").write_text(
+        "// Generated by src/export.py — do not edit.\nwindow.SB_DATA = " + json.dumps(site, separators=(",", ":")) + ";\n")
+
+
+def browser_week(payload: dict) -> dict:
+    """Keep rendered summaries small; downloads retain every paired test.
+
+    Detail loads separately for the selected week. The complete comparison
+    family is an audit artifact in the unchanged week/latest JSON downloads;
+    charts use its already computed tiers and category summaries.
+    """
+    result = {k: v for k, v in payload.items() if k != "detail"}
+    if "separation" in result:
+        result["separation"] = {k: v for k, v in result["separation"].items()
+                                if k != "comparisons"}
+    return result
+
+
+def write_weekly_csv(path: Path, week: str, cells: list[dict]) -> None:
+    """The same derived numeric table for DB export and CSV reanalysis."""
+    header = ["week", "vendor", "category", "score", "sd", "se", "n_queries", "n_scored",
+              "coverage", "p50_latency_ms", "cost_usd", "delta_from_best", "pct_of_best",
+              "best_vendor", "separated_from_best", "n_common_with_best", "ci95_low", "ci95_high",
+              "status", "n_vendor_success", "n_missing_judgements", "availability", "analysis_version"]
+    output = []
+    for c in cells:
+        ci = c.get("ci95") or [None, None]
+        output.append([week, c["vendor"], c["category"], c["score"], c["sd"], c["se"],
+                       c["n_queries"], c["n_scored"], c["coverage"], c["p50_latency_ms"],
+                       c["cost_usd"], c["delta_from_best"], c["pct_of_best"], c.get("best_vendor"),
+                       "" if c.get("separated_from_best") is None else int(c["separated_from_best"]),
+                       (c.get("paired") or {}).get("n_common", ""), *ci, c["status"],
+                       c["n_vendor_success"], c["n_missing_judgements"], c["availability"], inference.VERSION])
+    write_csv(path, header, output)
 
 
 def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
@@ -1477,6 +1730,8 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     wrote.
     """
     written = []
+    # The response snapshot wins over a current query file with reused IDs.
+    queries = queries_for_run(conn, run_id)
 
     # Held-out rows are in both of the next two files, flagged rather than
     # removed. What the withheld set withholds is the question text, not the
@@ -1488,10 +1743,10 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
         SELECT rr.query_id, q.category, COALESCE(q.held_out, 0), rr.vendor,
                js.judge_family, js.judge_model,
                js.relevance, js.freshness, js.citation_quality, js.overall,
-               js.scored_chars, js.prompt_tokens, js.output_tokens
+               js.scored_chars, js.prompt_tokens, js.output_tokens, js.judge_model_returned
         FROM judge_scores js
         JOIN raw_responses rr ON rr.id = js.response_id
-        JOIN queries q ON q.id = rr.query_id
+        JOIN response_queries q ON q.response_id = rr.id
         WHERE rr.run_id = ?
         ORDER BY q.category, rr.query_id, rr.vendor, js.judge_family
         """,
@@ -1501,7 +1756,7 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     write_csv(p, ["week", "query_id", "category", "held_out", "vendor",
                   "judge_family", "judge_model",
                   "relevance", "freshness", "citation_quality", "overall",
-                  "scored_chars", "prompt_tokens", "output_tokens"],
+                  "scored_chars", "prompt_tokens", "output_tokens", "judge_model_returned"],
               [[week, *list(r)] for r in scores])
     written.append({"file": p.name, "rows": len(scores),
                     "what": "Every individual judge score. One row per (query, vendor, judge). "
@@ -1528,15 +1783,7 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
     # sd/se and the separation flag ship with the score. A published number and
     # the reason not to over-read it belong in the same row: a reader who has to
     # go and derive the dispersion themselves will usually just take the mean.
-    write_csv(p, ["week", "vendor", "category", "score", "sd", "se", "n_queries", "n_scored",
-                  "coverage", "p50_latency_ms", "cost_usd", "delta_from_best", "pct_of_best",
-                  "best_vendor", "separated_from_best", "n_common_with_best"],
-              [[week, c["vendor"], c["category"], c["score"], c["sd"], c["se"],
-                c["n_queries"], c["n_scored"],
-                c["coverage"], c["p50_latency_ms"], c["cost_usd"],
-                c["delta_from_best"], c["pct_of_best"], c.get("best_vendor"),
-                "" if c.get("separated_from_best") is None else int(c["separated_from_best"]),
-                (c.get("paired") or {}).get("n_common", "")] for c in cells])
+    write_weekly_csv(p, week, cells)
     written.append({"file": p.name, "rows": len(cells),
                     "what": "The published table: one row per vendor per category."})
 
@@ -1567,6 +1814,10 @@ def export_csvs(conn: sqlite3.Connection, out: Path, week: str, run_id: str,
                 q["text"], q.get("gold_answer") or ""] for q in qs])
     written.append({"file": p.name, "rows": len(qs),
                     "what": "The full public query set. Authored in-house, so it ships with no dataset-licence encumbrance."})
+    archived = out / f"queries-{week}.csv"
+    archived.write_bytes(p.read_bytes())
+    written.append({"file": archived.name, "rows": len(qs),
+                    "what": "Immutable public question snapshot for this retrieval run."})
 
     # The disclosure half of the held-out design. A set is withheld while it
     # runs and published in full when it rotates out, so this file grows by one
@@ -1716,35 +1967,9 @@ def main() -> None:
         ],
     }
 
-    # Machine-readable: one file per week plus a stable `latest.json`.
-    for week, payload in bundle["all_weeks"].items():
-        write_json(data_dir / f"{week}.json", payload)
-    write_json(data_dir / "latest.json", bundle["latest"])
-
-    # What the pages read. A plain script assignment rather than fetch(), so
-    # the site works when opened from disk as well as over http — a benchmark
-    # whose dashboard needs a web server to inspect is less inspectable.
-    site = {k: v for k, v in bundle.items()
-            if k not in ("all_weeks", "latest", "_weeks_from_db")}
-    site["latest"] = {k: v for k, v in bundle["latest"].items() if k != "detail"}
-    (data_dir / "bundle.js").write_text(
-        "// Generated by src/export.py — do not edit.\n"
-        "window.SB_DATA = " + json.dumps(site, indent=1) + ";\n"
-    )
-    (data_dir / "detail.js").write_text(
-        "// Generated by src/export.py — do not edit.\n"
-        "window.SB_DETAIL = " + json.dumps({
-            "week": bundle["latest"]["week"],
-            "judges": [f for f, _ in JUDGES],
-            "rows": bundle["latest"]["detail"],
-            "queries": [
-                {"id": q["id"], "c": q["category"], "t": q["text"],
-                 "g": q.get("gold_answer"), "r": q.get("rotates", 0)}
-                for q in sorted(queries.values(),
-                                key=lambda q: (CATEGORY_ORDER.index(q["category"]), q["id"]))
-            ],
-        }, separators=(",", ":")) + ";\n"
-    )
+    query_snapshots = {w: queries_for_run(conn, bundle["all_weeks"][w]["run_id"])
+                       for w in bundle["_weeks_from_db"]}
+    write_site_data(data_dir, bundle, query_snapshots)
 
     if args.rebuild_weekly:
         n = rebuild_weekly(conn, bundle)

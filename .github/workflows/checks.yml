@@ -73,7 +73,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install --require-hashes -r requirements.txt
           # `npm ci` from the committed lockfile, never `npm install --no-save`:
           # the latter reconciles the tree against package.json and has pruned
           # jsdom in this repository before, which turned two green checks into
@@ -87,7 +87,7 @@ jobs:
       - name: scripts/check-all.sh
         run: |
           set -o pipefail
-          ./scripts/check-all.sh 2>&1 | tee gate.log
+          bash scripts/check-all.sh 2>&1 | tee gate.log
           # A skipped gate verified nothing, and CI is precisely where that
           # distinction gets lost: a green tick over a run in which two checks
           # did not happen reads identically to a green tick over a run in
@@ -101,3 +101,14 @@ jobs:
             echo "::error::a gate was SKIPPED — in CI that is a failure, not a pass"
             exit 1
           fi
+
+      - name: Install Chromium for rendered browser checks
+        run: npx playwright install --with-deps chromium
+
+      - name: Rendered accessibility and interaction regressions
+        run: node scripts/check-browser.mjs site
+
+      - name: Offline end-to-end demo and recovery
+        run: |
+          python -m src.demo --out .demo
+          node scripts/check-browser.mjs .demo/site --demo

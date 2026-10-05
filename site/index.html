@@ -1,23 +1,24 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vannaris: search APIs, scored in public</title>
+<title>Vannaris — search APIs, measured in public</title>
 <meta name="description" content="An independent public benchmark of the web-search APIs agents call. Open methodology, open data, three judges from three labs.">
 <link rel="canonical" href="https://vannaris.com/">
-<meta property="og:title" content="Vannaris: search APIs, scored in public">
+<meta property="og:title" content="Vannaris: search APIs, measured in public">
 <meta property="og:description" content="An independent public benchmark of the web-search APIs agents call. Open methodology, open data.">
 <meta property="og:url" content="https://vannaris.com/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://vannaris.com/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307080c'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23ff2a4a' stroke-width='3.2'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f8f7f4'/><path d='M7 6 L16 26 L25 6' fill='none' stroke='%23285548' stroke-width='3.2'/></svg>">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/geistmono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="masthead">
   <div class="shell masthead__inner navbar">
@@ -30,47 +31,50 @@
     </nav>
     <button class="nav-toggle" type="button" aria-controls="site-nav"
             aria-expanded="false" aria-label="Menu">
-      <span></span>
+      Menu
     </button>
   </div>
   <div class="progress" aria-hidden="true"></div>
 </header>
 
-<main>
+<main id="main">
+<noscript><div class="shell load-warning">JavaScript is needed for interactive evidence views. Download the frozen data from <a href="data/latest.json">the public JSON export</a>, or enable JavaScript to inspect results.</div></noscript>
 
-<section class="hero">
+<section class="home-intro">
   <div class="shell">
-    <div class="hero__grid">
-      <div class="hero__pitch" data-reveal="rise">
-        <!-- The date links to the page that lists this run's export files by
-             name. The run is identified on the site by its date, not by the ISO
-             week that names those files (check-site.mjs fails on a week id in
-             visible copy), so without the link there is no path from the figure
-             to the file it came from. -->
-        <p class="run-line">
-          <a href="data.html" aria-label="This run's data and export files"><b data-val="latest.ran_at" data-fmt="when"></b></a>
-          <span class="run-line__sep" aria-hidden="true">/</span>
-          <span data-val="d.weeks"></span> <span data-val="d.weeks_plural"></span> published
-        </p>
-        <h1>Search APIs. <em>Scored</em> in public.</h1>
-        <p class="hero__sub">
-          <span data-val="latest.n_queries" data-fmt="int"></span> queries,
-          <span data-val="latest.n_vendors"></span> vendors,
-          <span data-val="latest.n_judges"></span> judges from
-          <span data-val="d.n_judge_families"></span> labs.
-        </p>
+    <p class="eyebrow">Independent search API study</p>
+    <h1>Search APIs,<br>measured in public.</h1>
+    <div class="home-intro__bottom">
+      <div>
+        <p class="home-intro__copy">Compare retrieval quality, cost, and latency across <span data-val="latest.n_vendors"></span> APIs, using <span data-val="latest.n_queries" data-fmt="int"></span> authored questions and <span data-val="d.n_judge_families"></span> judge families.</p>
         <div class="cta-row">
-          <a class="btn" href="results.html">Open results <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="btn btn--ghost" href="data.html">Take the data</a>
+          <a class="btn" href="results.html">Explore the results</a>
+          <a class="home-text-link" href="methodology.html">Read the methodology</a>
         </div>
       </div>
+      <div class="home-intro__publication">
+        <span class="eyebrow">Latest measurement</span>
+        <a href="data.html" data-val="latest.ran_at" data-fmt="when">View measurement data</a>
+        <p>Historical study archive<br><span data-val="d.weeks"></span> published snapshots</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <!-- The legend states the range the colour spans and how far apart two
-           cells have to be before the colour means anything. Both are filled
-           from the data by site.js: the ramp is stretched across this run's own
-           spread, so without the range printed next to it a 0.5-point gap and a
-           5-point gap look identical, and on a saturating instrument that is
-           the more flattering of the two readings. -->
+<section class="home-comparison" id="comparison" aria-labelledby="comparison-title">
+  <div class="shell">
+    <div class="home-comparison__head">
+      <div>
+        <p class="eyebrow">The published comparison</p>
+        <h2 id="comparison-title">Different questions. Different strengths.</h2>
+        <p class="note">Category scores out of 10. Select a provider to inspect its evidence.</p>
+      </div>
+      <div class="run-picker">
+        <label for="run-select">Snapshot</label>
+        <select id="run-select" aria-describedby="run-description"><option value="">Latest snapshot</option></select>
+      </div>
+    </div>
+    <div class="home-comparison__figure">
       <div class="plate" id="score-plate">
         <div class="plate__board" id="score-board"></div>
         <p class="plate__hud">
@@ -79,38 +83,57 @@
           <span class="plate__read" id="score-read" aria-live="polite"></span>
         </p>
       </div>
+      <div class="home-comparison__caption">
+        <p><strong><span data-val="latest.completeness.pct" data-fmt="n1"></span>%</strong> complete judge panels · <span data-val="latest.completeness.complete_ensembles" data-fmt="int"></span> of <span data-val="latest.completeness.responses" data-fmt="int"></span> public responses. Withheld cells fall below the category coverage floor.</p>
+        <a class="home-text-link" href="results.html#quality">Full results</a>
+      </div>
+    </div>
+    <details class="snapshot-notes" data-run-tools>
+      <summary>Coverage and publication notes</summary>
+      <p id="run-description" class="note"></p>
+      <div class="data-health" role="status" aria-live="polite" data-health></div>
+    </details>
+  </div>
+</section>
+
+<section class="home-finding" aria-labelledby="finding-title">
+  <div class="shell home-finding__grid">
+    <div>
+      <p class="eyebrow">A finding from this snapshot</p>
+      <h2 id="finding-title">The tradeoffs are in the details.</h2>
+    </div>
+    <div>
+      <p class="finding" data-val="d.finding_note"></p>
+      <p class="audit-stamp"><span data-val="d.calibration_state"></span> / <a href="methodology.html#calibration">Calibration scope and limits</a></p>
     </div>
   </div>
 </section>
 
-<section class="signal-strip">
+<section id="standings" class="home-standings" aria-labelledby="standings-title">
   <div class="shell">
-    <p class="finding" data-val="d.finding_note"></p>
-    <!-- Not typed. For two published weeks this line was a hand-written
-         sentence saying the judges had never been checked against a person,
-         which was true until a pairwise pass cleared on 2026-08-16 and would
-         have gone on saying it afterwards. Both states are composed in site.js
-         from the export's calibration block. -->
-    <p class="audit-stamp">
-      <span data-val="d.calibration_state"></span>
-      <span class="run-line__sep" aria-hidden="true">/</span>
-      <a href="methodology.html#calibration">how that was measured</a>
-    </p>
+    <div class="home-section-head">
+      <div>
+        <p class="eyebrow">Overall quality</p>
+        <h2 id="standings-title">The evidence behind each score.</h2>
+      </div>
+      <p class="note">Equal-weight category mean, 0–10. Incomplete providers remain unranked; a shared tier indicates an unresolved difference.</p>
+    </div>
+    <div class="roster" id="standings-roster" data-reveal="rows"></div>
   </div>
 </section>
 
-<!-- One list, not two. This section and an "Every API" section below it printed
-     the same five vendors, the same scores and the same costs, the second one
-     adding a six-point sparkline of the numbers already in the heatmap above.
-     Three renderings of one table read as more evidence than there is. -->
-<section id="standings" class="band seam">
+<section class="home-next" aria-labelledby="next-title">
   <div class="shell">
-    <h2 class="section-head">This run</h2>
-    <p class="section-lede">
-      Ensemble median, 0-10. Rank is the tier this run can resolve — vendors it cannot
-      separate share a number. One page per vendor, with every cell open.
-    </p>
-    <div class="roster" id="standings-roster" data-reveal="rows"></div>
+    <div class="home-section-head">
+      <h2 id="next-title">Open to inspection.</h2>
+      <p class="note">Follow a question, examine the method, or work with the published measurements.</p>
+    </div>
+    <div class="home-next__links">
+      <a href="results.html#queries"><span class="eyebrow">01 / Evidence</span><h3>Explore the questions</h3><p>Individual judge ratings, response timings, and missing evidence.</p><span class="home-text-link">Open the query explorer</span></a>
+      <a href="methodology.html"><span class="eyebrow">02 / Method</span><h3>Understand the study</h3><p>The workload, judging process, statistical approach, and limitations.</p><span class="home-text-link">Read the methodology</span></a>
+      <a href="data.html"><span class="eyebrow">03 / Data</span><h3>Inspect the measurements</h3><p>Dated exports and recorded price sources, ready for your own analysis.</p><span class="home-text-link">Browse the exports</span></a>
+    </div>
+    <p class="home-engineering">Built with checkpointed retrieval, recoverable judging, and reproducible analysis. <a href="demo.html">Explore the offline engineering demo</a>.</p>
   </div>
 </section>
 
@@ -121,12 +144,11 @@
     <div>
       <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">V</span>Vannaris</a>
       <p class="foot__tagline">
-        Independent evals lab for the search APIs agents call.<br>
+        An independent study of the search APIs agents call.<br>
         Public data CC BY 4.0. Not affiliated with any vendor listed.
       </p>
       <p class="foot__eval">
-        Private evaluations of this harness on your own traffic:
-        <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
+        Contact: <a href="mailto:feruz.karimov@rutgers.edu">feruz.karimov@rutgers.edu</a>
       </p>
     </div>
     <div>
@@ -134,6 +156,7 @@
         <a href="results.html">Results</a>
         <a href="methodology.html">Methodology</a>
         <a href="data.html">Data</a>
+      <a href="demo.html">Demo</a>
         <a href="https://github.com/" data-repo>Source</a>
       </p>
       <p class="mono note">
@@ -144,6 +167,7 @@
 </footer>
 
 <script src="data/bundle.js"></script>
+<script src="assets/run-context.js"></script>
 <script>
 window.SBPage = { init: function () {}, redraw: function () {} };
 </script>

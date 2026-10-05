@@ -1,25 +1,10 @@
-# Did Monday's run actually land?
-#
-# The weekly workflow already fails loudly when a *run* goes wrong. What it
-# cannot do is notice that it never started — a disabled schedule, an expired
-# secret, an exhausted provider balance, or a step that dies before the runner
-# spends anything all produce the same thing: silence, and a week that can never
-# be backfilled.
-#
-# That is the one asset in this project with no recovery path (README.md, and
-# the weekly workflow's own header). The first scheduled run, 2026-08-03, died
-# on a provider credit preflight and nothing said so. This is the thing that
-# says so.
-#
-# It is deliberately a separate workflow rather than a step inside the weekly
-# one, because a step cannot report on a job that did not run.
+# Publication health is a separate scheduled job so a failed or absent run
+# cannot report itself healthy. This validates the committed publication,
+# including scheduler provenance; it does not claim deployment monitoring.
 name: Heartbeat
 
 on:
   schedule:
-    # Monday 14:00 UTC — about seven and a half hours after the benchmark's
-    # 06:23 slot, which is enough room for a slow run or one retry, and still
-    # the same day, so a missed Monday is known on Monday.
     - cron: '0 14 * * 1'
   workflow_dispatch:
 
@@ -31,41 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Compare the published week against the calendar
-        run: |
-          python - <<'EOF'
-          import datetime, json, pathlib, sys
-
-          latest = json.loads(pathlib.Path("site/data/latest.json").read_text())
-          published = latest["week"]
-
-          y, w, _ = datetime.datetime.now(datetime.timezone.utc).isocalendar()
-          expected = f"{y}-W{w:02d}"
-
-          def as_tuple(week):
-              yy, ww = week.split("-W")
-              return (int(yy), int(ww))
-
-          print(f"published: {published}")
-          print(f"expected:  {expected}")
-
-          if published == expected:
-              print("\nMonday's run landed.")
-              sys.exit(0)
-
-          gap = (as_tuple(expected)[0] - as_tuple(published)[0]) * 52 + \
-                (as_tuple(expected)[1] - as_tuple(published)[1])
-
-          print(f"\nNo data for {expected}. The published week is {gap} week(s) behind.")
-          print("")
-          print("A missed week cannot be backfilled — the run has to happen on the")
-          print("day to count as one the scheduler delivered. Check, in order:")
-          print("  1. provider credit balances (the 2026-08-03 miss was an")
-          print("     Anthropic credit preflight)")
-          print("  2. the eight Actions secrets, for expiry")
-          print("  3. the most recent 'Weekly benchmark' run's logs")
-          print("  4. whether the schedule is disabled — GitHub suspends cron on")
-          print("     repositories with no activity for 60 days")
-          sys.exit(1)
-          EOF
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Require this week's scheduled publication
+        run: python scripts/run_status.py --heartbeat
