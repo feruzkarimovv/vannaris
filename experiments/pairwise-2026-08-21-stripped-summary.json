@@ -1,0 +1,75 @@
+{
+ "run_id": "50fbea16-fb03-4e26-bcd1-40c1d40bd871",
+ "set_id": "96afde9bfef3",
+ "today": "2026-07-31",
+ "judges": [
+  {
+   "family": "anthropic",
+   "model": "claude-haiku-4-5"
+  },
+  {
+   "family": "openai",
+   "model": "gpt-5.4-mini-2026-03-17"
+  },
+  {
+   "family": "google",
+   "model": "gemini-3.1-flash-lite"
+  }
+ ],
+ "pilot": null,
+ "B": {
+  "arm": "B \u2014 discrimination, exa vs perplexity",
+  "n_queries": 150,
+  "wins": {
+   "exa": 50,
+   "perplexity": 59
+  },
+  "tie": 0,
+  "order_dependent": 33,
+  "unresolved": 8,
+  "tie_rate_pct": 0.0,
+  "decided": 109,
+  "exa_share_of_decided": 0.4587,
+  "ci95_on_share": [
+   0.3682,
+   0.5521
+  ],
+  "separated": false,
+  "absolute_baseline": {
+   "note": "2026-W34 published exa - perplexity = +0.014, se 0.086, CI [-0.156, +0.183]; tie rate 74.0%; not separated"
+  },
+  "per_category": {
+   "breaking_news": {
+    "exa": 16,
+    "perplexity": 2,
+    "tie": 0
+   },
+   "code_technical": {
+    "exa": 6,
+    "perplexity": 12,
+    "tie": 0
+   },
+   "general_facts": {
+    "exa": 3,
+    "perplexity": 11,
+    "tie": 0
+   },
+   "local_shopping": {
+    "exa": 5,
+    "perplexity": 15,
+    "tie": 0
+   },
+   "long_tail": {
+    "exa": 9,
+    "perplexity": 13,
+    "tie": 0
+   },
+   "multi_hop": {
+    "exa": 11,
+    "perplexity": 6,
+    "tie": 0
+   }
+  },
+  "judge_errors": 1
+ }
+}
